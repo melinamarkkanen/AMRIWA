@@ -11,7 +11,7 @@ mamba create -c bioconda -c conda-forge -n snakemake snakemake-minimal
 ```
 
 The Snakemake file and the virtual environment `.yml` files are in the `workflow` folder.  
-The virtual environments for QC and cutadaopt can be created first with:
+The virtual environments for QC and cutadapt can be created first with:
 ```
 snakemake --use-conda --conda-create-envs-only --cores 1
 ```
@@ -23,14 +23,12 @@ snakemake --use-conda -np
 
 If everything is ok, proceed to trimming the reads. All data should be in the `data` folder (which is not included in git).  
 And after trimming trimmed data will be in `trimmed_data` folder (also not included in git).   
-FastQC and MultiQC files for raw and trimmed data wil be in those folders as well.
-
-Probably easiest to run as a batch job in Puhti with as many cores as you define with `-j`.
-
+FastQC and MultiQC files for raw and trimmed data can be found from corresponding folders as well.
 ```
 snakemake --use-conda -j 32
 ```
 
+Probably easiest to run as a batch job in Puhti.
 Example bacth file:
 ```
 #!/bin/bash
@@ -43,6 +41,6 @@ Example bacth file:
 #SBATCH --partition=small
 
 conda activate snakemake
-snakemake --use-conda -j 32
+snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 ```
 
