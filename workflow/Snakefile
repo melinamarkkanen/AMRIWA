@@ -1,0 +1,78 @@
+SAMPLES, = glob_wildcards("data/{sample}_R1_001.fastq.gz")
+
+rule all: 
+	input:
+		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
+		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
+		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
+		"data/multiqc_report.html", 
+		"trimmed_data/multiqc_report.html"
+
+rule fastqc_raw:
+	input:  
+		"data/{sample}_{read}_001.fastq.gz"
+	output: 
+		"data/FASTQC/{sample}_{read}_001_fastqc.zip"
+	message: 
+		"-- Quality check of raw data with Fastqc --"
+	conda:	
+		"envs/QC_env.yml"
+	threads:
+		2
+	shell:
+              "fastqc --quiet -t {threads} --outdir data/FASTQC -f fastq {input}"
+
+rule multiqc_raw:
+	input:
+		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"])
+	output:
+		"data/multiqc_report.html"
+	message:
+		"-- Running MultiQC for raw data --"
+	conda:
+		"envs/QC_env.yml"
+	shell:
+		"multiqc -f --interactive --quiet data/ -o data/"
+
+rule cutadapt:
+	input:
+		fw= "data/{sample}_R1_001.fastq.gz",
+		rv= "data/{sample}_R2_001.fastq.gz"
+	output:
+		fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
+		rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz",
+		log= "trimmed_data/{sample}.trimmed.txt"
+	message:
+		"-- Running Cutadapt --"
+	conda:
+		"envs/cutadapt.yml"
+	shell:
+		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT \
+                                {input.fw} {input.rv} -o {output.fw} -p {output.rv} > {output.log}"	
+
+rule fastqc_trim:
+	input:
+		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
+	output:
+		"trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip"	
+	message:
+		"-- Quality check of trimmed data with Fastqc --"
+	conda:
+		"envs/QC_env.yml"
+	threads:
+		2
+	shell:
+		"fastqc --quiet -t {threads} --outdir trimmed_data/FASTQC -f fastq {input}"
+
+rule multiqc_trim:
+	input:
+		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"])
+	output:
+		"trimmed_data/multiqc_report.html"
+	message:
+		"-- Running MultiQC for trimmed data--"
+	conda:
+		"envs/QC_env.yml"
+	shell:
+		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
+

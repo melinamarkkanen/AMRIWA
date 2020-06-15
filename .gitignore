@@ -1,0 +1,4 @@
+*.fastq.gz
+*_ameta
+*.fasta
+*.fastq
