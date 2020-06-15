@@ -33,7 +33,7 @@ Example bacth file:
 ```
 #!/bin/bash
 #SBATCH --job-name=Snakemake
-#SBATCH --account=Project_2002265
+#SBATCH --account=Project_2002265  # this is AMRIWA 
 #SBATCH --time=12:00:00
 #SBATCH --mem-per-cpu=2G
 #SBATCH --ntasks=1
