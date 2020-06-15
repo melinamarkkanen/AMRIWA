@@ -47,7 +47,7 @@ rule cutadapt:
 	conda:
 		"envs/cutadapt.yml"
 	shell:
-		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT \
+		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT -O 10 \
                                 {input.fw} {input.rv} -o {output.fw} -p {output.rv} > {output.log}"	
 
 rule fastqc_trim:
