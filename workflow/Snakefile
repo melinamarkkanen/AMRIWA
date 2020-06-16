@@ -76,11 +76,19 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-rule resfinder_annotation:
+rule fastq_to_fasta:
 	input:
 		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
 	output:
-		"results/{sample}_{read}_resdinder.txt"
+	message:
+	conda:
+	threads:
+		1
+	shell:
+
+rule resfinder_annotation:
+	input:
+	output:
 	message:
 		"-- Annotating w/ ResFinder --"
 	conda:

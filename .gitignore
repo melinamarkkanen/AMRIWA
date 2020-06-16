@@ -2,3 +2,5 @@
 *_ameta
 *.fasta
 *.fastq
+data/
+trimmed_data/

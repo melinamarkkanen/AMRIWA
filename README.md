@@ -45,8 +45,9 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 ```
 
 
-## TO DO:
+### TO DO:
 
+- fastq to fasta 
 - ARG annotation,  DIAMOND blastx individually, concatenate all results
 - METAXA pipeline,
-- 
+-
