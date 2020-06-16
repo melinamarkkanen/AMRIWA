@@ -4,3 +4,5 @@
 *.fastq
 data/
 trimmed_data/
+.snakemake/
+slurm*
