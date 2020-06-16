@@ -6,3 +6,4 @@ data/
 trimmed_data/
 .snakemake/
 slurm*
+.DS_Store
