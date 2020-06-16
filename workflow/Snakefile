@@ -1,21 +1,21 @@
 SAMPLES, = glob_wildcards("data/{sample}_R1_001.fastq.gz")
 
-rule all: 
+rule all:
 	input:
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
-		"data/multiqc_report.html", 
+		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
 rule fastqc_raw:
-	input:  
+	input:
 		"data/{sample}_{read}_001.fastq.gz"
-	output: 
+	output:
 		"data/FASTQC/{sample}_{read}_001_fastqc.zip"
-	message: 
+	message:
 		"-- Quality check of raw data with Fastqc --"
-	conda:	
+	conda:
 		"envs/QC_env.yml"
 	threads:
 		2
@@ -47,14 +47,14 @@ rule cutadapt:
 	conda:
 		"envs/cutadapt.yml"
 	shell:
-		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT -O 10 \
-                                {input.fw} {input.rv} -o {output.fw} -p {output.rv} > {output.log}"	
+		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT -O 10 -m 30 -q 20 \
+                                {input.fw} {input.rv} -o {output.fw} -p {output.rv} > {output.log}"
 
 rule fastqc_trim:
 	input:
 		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
 	output:
-		"trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip"	
+		"trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip"
 	message:
 		"-- Quality check of trimmed data with Fastqc --"
 	conda:
@@ -76,3 +76,16 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
+rule resfinder_annotation:
+	input:
+		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
+	output:
+		"results/{sample}_{read}_resdinder.txt"
+	message:
+		"-- Annotating w/ ResFinder --"
+	conda:
+		"envs/diamond_env.yml"
+	threads:
+		1
+	shell:
+		"diamond blastx -in -out "
