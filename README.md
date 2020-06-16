@@ -33,7 +33,7 @@ Example bacth file:
 ```
 #!/bin/bash
 #SBATCH --job-name=Snakemake
-#SBATCH --account=Project_2002265  # this is AMRIWA 
+#SBATCH --account=Project_2002265  # this is AMRIWA
 #SBATCH --time=12:00:00
 #SBATCH --mem-per-cpu=2G
 #SBATCH --ntasks=1
@@ -44,3 +44,9 @@ conda activate snakemake
 snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 ```
 
+
+## TO DO:
+
+- ARG annotation,  DIAMOND blastx individually, concatenate all results
+- METAXA pipeline,
+- 
