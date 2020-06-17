@@ -3,9 +3,11 @@ AMRIWA metagenome analysis
 
 # Using the Snakemake workflow
 
-Make a snakemake virtual environment using Mamba.  
-First install Mamba and then Snakemake.
+Make a snakemake virtual environment using Mamba in Puhti.
+Install mamba into conda environment and install snakemake using mamba..
 ```
+conda create -n mamba
+source activate mamba
 conda install -c conda-forge mamba
 mamba create -c bioconda -c conda-forge -n snakemake snakemake-minimal
 ```
@@ -49,5 +51,7 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 
 - fastq to fasta 
 - ARG annotation,  DIAMOND blastx individually, concatenate all results
-- METAXA pipeline,
--
+- METAXA pipeline
+- unpack and remove original sequence files
+- metadata file
+- 
