@@ -43,6 +43,7 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK -n
 
 conda deactivate
 conda deactivate
+```
 
 All data should be in the `data` folder (which is not included in git).  
 And after trimming trimmed data will be in `trimmed_data` folder (also not included in git).   
