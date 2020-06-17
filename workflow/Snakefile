@@ -84,10 +84,10 @@ rule multiqc_trim:
 #		"metaxa2/{sample}"
 #	conda:
 #		"envs/metaxa_env"
-#        threads:
+#       threads:
 #                2
 #	shell:
-#		"metaxa2 -1 {input.fw} -2 {input.rv} -o metaxa2/{sample} --align-none --plus --graphical F"
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -o metaxa2/{sample} --align-none --plus --graphical F -t {threads}"
 #
 #rule fastq_to_fasta:
 #	input:
