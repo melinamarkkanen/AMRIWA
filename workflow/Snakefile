@@ -76,24 +76,37 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-rule fastq_to_fasta:
-	input:
-		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
-	output:
-	message:
-	conda:
-	threads:
-		1
-	shell:
-
-rule resfinder_annotation:
-	input:
-	output:
-	message:
-		"-- Annotating w/ ResFinder --"
-	conda:
-		"envs/diamond_env.yml"
-	threads:
-		1
-	shell:
-		"diamond blastx -in -out "
+#rule metaxa2:
+#	input:
+#		fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
+#                rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz"
+#	output:
+#		"metaxa2/{sample}"
+#	conda:
+#		"envs/metaxa_env"
+#        threads:
+#                2
+#	shell:
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -o metaxa2/{sample} --align-none --plus --graphical F"
+#
+#rule fastq_to_fasta:
+#	input:
+#		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
+#	output:
+#	message:
+#	conda:
+#	threads:
+#		1
+#	shell:
+#
+#rule resfinder_annotation:
+#	input:
+#	output:
+#	message:
+#		"-- Annotating w/ ResFinder --"
+#	conda:
+#		"envs/diamond_env.yml"
+#	threads:
+#		1
+#	shell:
+#		"diamond blastx -in -out "
