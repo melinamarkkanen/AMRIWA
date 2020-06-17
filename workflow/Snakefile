@@ -5,6 +5,7 @@ rule all:
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
+		expand("metaxa2/{sample}", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -86,7 +87,7 @@ rule multiqc_trim:
 #       threads:
 #               2
 #       shell:
-#               "metaxa2 -1 {input.fw} -2 {input.rv} -o metaxa2/{sample} --align-none --plus --graphical F -t {threads}"
+#               "metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
 
 #rule fastq_to_fasta:
 #       input:
