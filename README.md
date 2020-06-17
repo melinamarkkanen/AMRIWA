@@ -3,8 +3,7 @@ AMRIWA metagenome analysis
 
 # Using the Snakemake workflow
 
-Make a snakemake virtual environment using Mamba in Puhti.
-Install mamba into conda environment and install snakemake using mamba.
+Make a snakemake virtual environment in Puhti using Mamba.
 ```
 conda create -n mamba
 source activate mamba
@@ -13,7 +12,7 @@ mamba create -c bioconda -c conda-forge -n snakemake snakemake-minimal
 ```
 
 The Snakemake file and the virtual environment `.yml` files are in the `workflow` folder.  
-The virtual environments for QC and cutadapt can be created first with:
+The virtual environments can be created first with:
 ```
 snakemake --use-conda --conda-create-envs-only --cores 1
 ```
@@ -22,8 +21,30 @@ Then check with dry-run that everything works.
 ```
 snakemake --use-conda -np
 ```
+Batch job for dry run in Puhti
+```
+#!/bin/bash
+#SBATCH --job-name=Snakemake
+#SBATCH --account=Project_2002265
+#SBATCH --time=00:15:00
+#SBATCH --mem-per-cpu=50
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task 1
+#SBATCH --partition=test
+#SBATCH --output=snakemake_out_%j.txt
 
-If everything is ok, proceed to trimming the reads. All data should be in the `data` folder (which is not included in git).  
+module load bioconda/3
+source activate mamba
+source activate snakemake
+
+cd /scratch/project_2002265/markkan5/AMRIWA/workflow
+
+snakemake --use-conda -j $SLURM_CPUS_PER_TASK -n
+
+conda deactivate
+conda deactivate
+
+All data should be in the `data` folder (which is not included in git).  
 And after trimming trimmed data will be in `trimmed_data` folder (also not included in git).   
 FastQC and MultiQC files for raw and trimmed data can be found from corresponding folders as well.
 ```
