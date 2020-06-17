@@ -87,7 +87,7 @@ rule metaxa2:
        threads:
                2
        shell:
-               "metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
+		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
 		"metaxa2_ttt -i {output}.taxonomy.txt -o {output}_metaxa"
 
 #rule fastq_to_fasta:
