@@ -90,7 +90,21 @@ rule metaxa2:
                2
        shell:
 		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
-		"metaxa2_ttt -i {output}.taxonomy.txt -o {output}_metaxa"
+#		"metaxa2_ttt -i {output}/{sample}.taxonomy.txt -o {output}/{sample}_metaxa"
+#		"metaxa2_dc -o metaxa_genus.txt {output}/{sample}_metaxa/{sample}level_6.txt"
+
+#rule mapping_ResFinder:
+#	input:
+#		fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
+#		rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz"
+#	output:
+#		""
+#	message:
+#		"-- Mapping reads to ResFinder w/ Bowtie2 --"
+#	threads:
+#		2
+#	shell:
+#		"bowtie -x resfinder_db/ResFinder -1 {input.fw} -2 {input.rv} --very-sensitive -t {threads} | samtools view -Sb - > {sample}.bam"
 
 #rule fastq_to_fasta:
 #       input:
@@ -106,13 +120,13 @@ rule metaxa2:
 #       shell:
 #               "seqtk seq -a {input} > {output}
 
-#rule resfinder_annotation:
+#rule CARD_annotation:
 #       input:
 #       output:
 #       message:
-#               "-- Annotating w/ ResFinder --"
+#               "-- Running DIAMOND w/ CARD --"
 #       conda:
-#               "envs/diamond_env.yml"
+#               "envs/diamond.yml"
 #       threads:
 #               1
 #       shell:

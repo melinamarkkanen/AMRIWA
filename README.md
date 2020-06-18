@@ -44,10 +44,17 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK -np
 conda deactivate
 conda deactivate
 ```
+Required folders:
+data
+ FASTQC
+trimmed_data
+ FASTQC
+metaxa2
+resfinder_db
+ResFinder_results
+CARD_db
+CARD_results
 
-All data should be in the `data` folder (which is not included in git).  
-And after trimming trimmed data will be in `trimmed_data` folder (also not included in git).   
-FastQC and MultiQC files for raw and trimmed data can be found from corresponding folders as well.
 ```
 snakemake --use-conda -j 32
 ```
