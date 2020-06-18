@@ -39,7 +39,7 @@ source activate snakemake
 
 cd /scratch/project_2002265/markkan5/AMRIWA/workflow
 
-snakemake --use-conda -j $SLURM_CPUS_PER_TASK -n
+snakemake --use-conda -j $SLURM_CPUS_PER_TASK -np
 
 conda deactivate
 conda deactivate
