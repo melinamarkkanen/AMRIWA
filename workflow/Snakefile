@@ -83,7 +83,7 @@ rule metaxa2:
        output:
                "metaxa2/{sample}"
        message:
-               "-- Runnin Metaxa2 --""
+               "-- Running Metaxa2 --""
        conda:
                "envs/metaxa.yml"
        threads:
