@@ -76,20 +76,35 @@ rule multiqc_trim:
 		"envs/QC_env.yml"
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
-rule metaxa2:
-       input:
-               fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
-               rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz"
-       output:
-               "metaxa2/{sample}"
-       message:
-               "-- Running Metaxa2 --""
-       conda:
-               "envs/metaxa.yml"
-       threads:
-               2
-       shell:
-		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
+
+#rule fastq_to_fasta:
+#       input:
+#               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
+#       output:
+#               expand("CARD_results/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#       message:
+#               "-- Converting fastq to FASTA --""
+#       conda:
+#               "envs/seqkit.yml"
+#       threads:
+#               1
+#       shell:
+#               "seqtk seq -a {input} > {output}
+
+#rule metaxa2:
+#       input:
+#               fw= ".fasta",
+#               rv= ".fasta"
+#       output:
+#               "metaxa2/{sample}"
+#       message:
+#               "-- Running Metaxa2 --""
+#       conda:
+#               "envs/metaxa.yml"
+#       threads:
+#               2
+#       shell:
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
 #		"metaxa2_ttt -i {output}/{sample}.taxonomy.txt -o {output}/{sample}_metaxa"
 #		"metaxa2_dc -o metaxa_genus.txt {output}/{sample}_metaxa/{sample}level_6.txt"
 
