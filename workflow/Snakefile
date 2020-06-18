@@ -82,6 +82,8 @@ rule metaxa2:
                rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz"
        output:
                "metaxa2/{sample}"
+       message:
+               "-- Runnin Metaxa2 --""
        conda:
                "envs/metaxa.yml"
        threads:
