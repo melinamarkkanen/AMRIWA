@@ -6,6 +6,9 @@ rule all:
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		expand("metaxa2/{sample}_metaxa", sample=SAMPLES),
+                expand("metaxa2/{sample}", sample=SAMPLES),
+#		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
+#		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -77,36 +80,39 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-#rule fastq_to_fasta:
+rule metaxa2_first:
+        input:
+                fw_gz= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
+                rv_gz= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)
+        output:
+                fw= expand("trimmed_data/{sample}_R1_trimmed.fastq", sample=SAMPLES),
+                rv= expand("trimmed_data/{sample}_R2_trimmed.fastq", sample=SAMPLES),
+                taxonomy= expand("metaxa2/{sample}", sample=SAMPLES)
+        message:
+                "-- Gunzipping and running metaxa2 --"
+        conda:
+                "envs/metaxa.yml"
+        threads:
+                2
+        shell:
+                "gunzip {input.fw_gz}"
+                "gunzip {input.rv_gz}"
+                "metaxa2 -1 {output.fw} -2 {output.rv} -o {output.taxonomy} --align-none --plus --graphical F -t {threads}"
+                "rm {output.fw} {output.rv}"
+#rule metaxa2_second:
 #       input:
-#               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
+#               expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES)
 #       output:
-#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#               expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES)
 #       message:
-#               "-- Converting fastq to FASTA --""
-#       conda:
-#               "envs/seqkit.yml"
-#       threads:
-#               1
-#       shell:
-#               "seqtk seq -a {input} > {output}
-
-#rule metaxa2:
-#       input:
-#               fw= ".fasta",
-#               rv= ".fasta"
-#       output:
-#               "metaxa2/{sample}"
-#       message:
-#               "-- Running Metaxa2 --""
+#               "-- Combining metaxa2 results --"
 #       conda:
 #               "envs/metaxa.yml"
 #       threads:
 #               2
 #       shell:
-#		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
-#		"metaxa2_ttt -i {output}/{sample}.taxonomy.txt -o {output}/{sample}_metaxa"
-#		"metaxa2_dc -o metaxa_genus.txt {output}/{sample}_metaxa/{sample}level_6.txt"
+#               "metaxa2_ttt -i {input} -o metaxa2/metaxa_genus.txt"
+#               "metaxa2_dc -o metaxa_genus.txt metaxa2/{sample}_level_6.txt"
 
 #rule mapping_ResFinder:
 #	input:
