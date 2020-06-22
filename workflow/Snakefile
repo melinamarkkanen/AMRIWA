@@ -131,7 +131,7 @@ rule metaxa2_first:
 #       input:
 #               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #       output:
-#               expand("CARD_results/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
 #       message:
 #               "-- Converting fastq to FASTA --""
 #       conda:
