@@ -131,7 +131,7 @@ rule metaxa2_first:
 #       input:
 #               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #       output:
-#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#               temp(expand("fasta/{sample}_{read}.fasta.gz, sample=SAMPLES, read=["R1", "R2"]))
 #       message:
 #               "-- Converting fastq to FASTA --""
 #       conda:
@@ -139,11 +139,13 @@ rule metaxa2_first:
 #       threads:
 #               1
 #       shell:
-#               "seqtk seq -a {input} > {output}
+#               "zcat {input} | seqtk seq -a > {output}
 
 #rule CARD_annotation:
 #       input:
+#		expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
 #       output:
+#		"CARD_results/"
 #       message:
 #               "-- Running DIAMOND w/ CARD --"
 #       conda:
@@ -151,4 +153,4 @@ rule metaxa2_first:
 #       threads:
 #               1
 #       shell:
-#               "diamond blastx -in -out "
+#               "diamond blastx -in {input} -out -outfmt '6"
