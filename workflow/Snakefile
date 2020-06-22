@@ -125,8 +125,7 @@ rule metaxa2_first:
 #	threads:
 #		2
 #	shell:
-#		"bowtie -x resfinder_db/ResFinder -1 {input.fw} -2 {input.rv} --very-sensitive -t {threads} | samtools view -Sb - > {sample}.bam"
-#		"samotools view -h {sample}.bam | awk '$7!="=" || ($7=="=" && and($2,0x40)) {print $0}' \" 
+#		"bowtie -x resfinder_db/ResFinder -1 {input.fw} -2 {input.rv} --very-sensitive -t {threads} | samtools view -Sb - > {sample}.bam" 
 
 #rule fastq_to_fasta:
 #       input:
