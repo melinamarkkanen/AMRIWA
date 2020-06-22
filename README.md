@@ -50,6 +50,7 @@ data
 trimmed_data
  FASTQC
 metaxa2
+fasta
 resfinder_db
 ResFinder_results
 CARD_db
