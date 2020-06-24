@@ -144,7 +144,7 @@ rule resfinder_annotation:
 	threads:
 		2
 	shell:
-		"boxtie2 -x /scratch/project_2002265/markkan5/resfinder_db/ResFinder \
+		"bowtie2 -x /scratch/project_2002265/markkan5/resfinder_db/ResFinder \
 			-1 {input.fw} -2 {input.rv} \
 			--very-sensitive -t {threads} | samtools view -Sb - > {output}"
 
