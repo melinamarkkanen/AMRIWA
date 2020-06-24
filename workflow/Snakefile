@@ -4,8 +4,8 @@ rule all:
 	input:
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
-		expand("trimmed_data/{sample}_{read}_trimmed.fastq", sample=SAMPLES, read=["R1", "R2"]),
-		expand("metaxa2/{sample}", sample=SAMPLES),
+#		expand("trimmed_data/{sample}_{read}_trimmed.fastq", sample=SAMPLES, read=["R1", "R2"]),
+#		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),		
 		"data/multiqc_report.html",
@@ -79,34 +79,31 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-rule gunzip:
-	input:
-		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
-	output: 
-		expand("trimmed_data/{sample}_{read}_trimmed.fastq", sample=SAMPLES, read=["R1", "R2"])
-	message:
-		"-- Gunzipping read files --"
-	shell:
-		"gunzip -c {input} > {output}"			# stuck here
+#rule gunzip:
+#	input:
+#		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
+#	output: 
+#		temp(expand("trimmed_data/{sample}_{read}_trimmed.fastq", sample=SAMPLES, read=["R1", "R2"]))
+#	message:
+#		"-- Gunzipping read files --"
+#	shell:
+#		"gunzip -c {input} > {output}"			# stuck here
 
-rule metaxa2_1:
-	input:
-		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq", sample=SAMPLES),
-		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq", sample=SAMPLES)	
-	output:
-		expand("metaxa2/{sample}", sample=SAMPLES)
-	message:
-		"-- Running metaxa2_1 --"
-	conda:
-		"envs/metaxa.yml"
-	threads:
-		2
-	shell:
-		"""
-		"touch {input.fw}"
-		"touch {input.rv}"
-		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
-		"""
+#rule metaxa2_1:
+#	input:
+#		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq", sample=SAMPLES),
+#		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq", sample=SAMPLES)	
+#	output:
+#		expand("metaxa2/{sample}", sample=SAMPLES)
+#	message:
+#		"-- Running metaxa2_1 --"
+#	conda:
+#		"envs/metaxa.yml"
+#	threads:
+#		2
+#	shell:
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -o {output} --align-none --plus --graphical F -t {threads}"
+
 #rule metaxa2_2:
 #	input:
 #		expand("metaxa2/{sample}.taxonomy", sample=SAMPLES)
@@ -120,7 +117,7 @@ rule metaxa2_1:
 #		1
 #	shell:
 #		"metaxa2_ttt -i {input} -o {output}"
-#
+
 #rule metaxa2_3:
 #	input:
 #		"metaxa2/{sample}_level_6.txt"
