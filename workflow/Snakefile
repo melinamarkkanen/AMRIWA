@@ -8,6 +8,7 @@ rule all:
 #		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),		
+		expand("ResFinder_results/{sample}.bam", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -132,18 +133,20 @@ rule multiqc_trim:
 #	shell:
 #		"metaxa2_dc -o {output} {input}"
 
-#rule resfinder_annotation:
-#	input:
-#	output:
-#	message:
-#		"-- Annotating w/ ResFinder --"
-#	conda:
-#		"envs/diamond_env.yml"
-#	threads:
-#		1
-#	shell:
-#		"diamond blastx -in -out "
-
+rule resfinder_annotation:
+	input:
+		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
+		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)
+	output:
+		expand("ResFinder_results/{sample}.bam", sample=SAMPLES)
+	message:
+		"-- Mapping w/ ResFinder --"
+	threads:
+		2
+	shell:
+		"boxtie2 -x /scratch/project_2002265/markkan5/resfinder_db/ResFinder \
+			-1 {input.fw} -2 {input.rv} \
+			--very-sensitive -t {threads} | samtools view -Sb - > {output}"
 
 #rule fastq_to_fasta:
 #	input:

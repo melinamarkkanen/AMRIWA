@@ -37,6 +37,8 @@ module load bioconda/3
 source activate mamba
 source activate snakemake
 
+module load biokit
+
 cd /scratch/project_2002265/markkan5/AMRIWA/workflow
 
 snakemake --use-conda -j $SLURM_CPUS_PER_TASK -np
@@ -77,6 +79,8 @@ Example batch file:
 module load bioconda/3
 source activate mamba
 source activate snakemake
+
+module load biokit
 
 cd /scratch/project_2002265/markkan5/AMRIWA
 
