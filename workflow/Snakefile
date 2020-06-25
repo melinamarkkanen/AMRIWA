@@ -8,7 +8,7 @@ rule all:
 #		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),		
-		expand("ResFinder_results/{sample}.bam", sample=SAMPLES),
+		expand("resfinder_out/{sample}.bam", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -133,20 +133,35 @@ rule multiqc_trim:
 #	shell:
 #		"metaxa2_dc -o {output} {input}"
 
-rule resfinder_annotation:
+rule resfinder_db:
+	input:
+		fasta= "resfinder_db/resfinder.fasta"
+	output:
+		indexed_db= "resfinder_db/resfinder.1.bt2"
+	message:
+		"-- ResFinder db --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"bowtie2-build {input.fasta} resfinder_db/resfinder"
+
+rule resfinder_mapping:
 	input:
 		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)
+		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
+		indexed_db= "resfinder_db/resfinder.1.bt2"
 	output:
-		expand("ResFinder_results/{sample}.bam", sample=SAMPLES)
+		bam= expand("resfinder_out/{sample}.bam", sample=SAMPLES)
 	message:
 		"-- Mapping w/ ResFinder --"
+	conda:
+		"envs/bowtie2.yml"
 	threads:
 		2
 	shell:
-		"bowtie2 -x /scratch/project_2002265/markkan5/resfinder_db/ResFinder \
-			-1 {input.fw} -2 {input.rv} \
-			--very-sensitive -t {threads} | samtools view -Sb - > {output}"
+		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} --very-sensitive -t {threads} | samtools view -Sb - > {output.bam}"
 
 #rule fastq_to_fasta:
 #	input:
