@@ -60,7 +60,7 @@ CARD_results
 snakemake --use-conda -j 32
 ```
 
-Probably easiest to run as a batch job in Puhti.
+Probably easiest to run as a batch job in Puhti. Add "--latency-wait" if needed.
 Example batch file:
 ```
 #!/bin/bash
