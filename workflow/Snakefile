@@ -161,7 +161,7 @@ rule resfinder_mapping:
 	threads:
 		2
 	shell:
-		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} --very-sensitive -t {threads} | samtools view -Sb - > {output.bam}"
+		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} --very-sensitive | samtools view -Sb - > {output.bam}"
 
 #rule fastq_to_fasta:
 #	input:
