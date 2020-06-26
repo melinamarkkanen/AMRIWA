@@ -9,8 +9,8 @@ rule all:
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),		
 		"resfinder_db/resfinder.1.bt2",
-		expand("resfinder_out/{sample}.bam", sample=SAMPLES),
-#		expand("resfinder_out/{sample}_sort.bam", sample=SAMPLES),
+#		expand("resfinder_out/{sample}.bam", sample=SAMPLES),
+		expand("resfinder_out/{sample}_sort.bam", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -150,41 +150,26 @@ rule resfinder_db:
 		"bowtie2-build {input.fasta} resfinder_db/resfinder"
 
 rule resfinder_mapping:
-	input:
-		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
-		indexed_db= "resfinder_db/resfinder.1.bt2"
-	output:
-		"resfinder_out/{sample}.bam"
-	message:
-		"-- Mapping w/ ResFinder --"
-	conda:
-		"envs/bowtie2.yml"
-	threads:
-		2
-	shell:
-		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} | samtools view -Sb - > {output}"
-
-#rule resfinder_sort:
-#       input:
-#               expand("resfinder_out/{sample}.sam", sample=SAMPLES)
-#       output:
-#               bam= expand("resfinder_out/{sample}.bam", sample=SAMPLES),
-#               sort= expand("resfinder_out/{sample}_sort.bam", sample=SAMPLES)
-#       message:
-#               "-- Sorting resfinder results --"
-#       conda:
-#               "envs/bowtie2.yml"
-#       threads:
-#               2
-#       shell:
-#               "samtools view -buh {input} | samtools sort -o {output.sort}"
+        input:
+                fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
+                rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
+                indexed_db= "resfinder_db/resfinder.1.bt2"
+        output:
+                "resfinder_out/{sample}_sort.bam"
+        message:
+                "-- Mapping w/ ResFinder --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                1
+        shell:
+                "bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Sbh - | samtools sort -o {output}"
 
 #rule fastq_to_fasta:
 #	input:
 #               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #	output:
-#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#               expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"])
 #	message:
 #               "-- Converting fastq to FASTA --""
 #	conda:
