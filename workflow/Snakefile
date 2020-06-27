@@ -7,10 +7,9 @@ rule all:
 #		expand("trimmed_data/{sample}_{read}_trimmed.fastq", sample=SAMPLES, read=["R1", "R2"]),
 #		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
-#		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),		
+#		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
-#		expand("resfinder_out/{sample}.bam", sample=SAMPLES),
-		expand("resfinder_out/{sample}_sort.bam", sample=SAMPLES),
+		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -90,7 +89,7 @@ rule multiqc_trim:
 #	message:
 #		"-- Gunzipping read files --"
 #	shell:
-#		"gunzip -c {input} > {output}"			# stuck here
+#		"gunzip -c {input} > {output}"
 
 #rule metaxa2_1:
 #	input:
@@ -120,7 +119,7 @@ rule multiqc_trim:
 #		1
 #	shell:
 #		"metaxa2_ttt -i {input} -o {output}"
-
+#
 #rule metaxa2_3:
 #	input:
 #		"metaxa2/{sample}_level_6.txt"
@@ -150,26 +149,69 @@ rule resfinder_db:
 		"bowtie2-build {input.fasta} resfinder_db/resfinder"
 
 rule resfinder_mapping:
-        input:
-                fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-                rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
-                indexed_db= "resfinder_db/resfinder.1.bt2"
-        output:
-                "resfinder_out/{sample}_sort.bam"
-        message:
-                "-- Mapping w/ ResFinder --"
-        conda:
-                "envs/bowtie2.yml"
-        threads:
-                1
-        shell:
-                "bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Sbh - | samtools sort -o {output}"
+	input:
+		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
+		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
+		indexed_db= "resfinder_db/resfinder.1.bt2"
+	output:
+		"mapped_reads/{sample}.bam"
+	message:
+		"-- Mapping w/ ResFinder --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Shu - > {output}"
+
+rule resfinder_sorting:
+	input:
+		"mapped_reads/{sample}.bam"
+	output:
+		"sorted_reads/{sample}_sort.bam"
+	message:
+		"-- Sorting reads --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"samtools sort {input} -O BAM > {output}"
+
+rule resfinder_indexing:
+	input:
+		expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES)
+	output:
+		expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
+	message:
+		"-- Indexing mapped reads --" 	
+	conda:
+		"envs/bowtie2.yml"      
+	threads:
+		1
+	shell:
+		"samtools index {input}"
+
+rule resfinder_filtering:
+	input:
+		bam= expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES),
+		bai= expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
+	output:
+		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES)
+	message:
+		"-- Filtering --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"samtools view {input.bam} -b -F 4 -o {output}" 
 
 #rule fastq_to_fasta:
 #	input:
 #               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #	output:
-#               expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"])
+#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
 #	message:
 #               "-- Converting fastq to FASTA --""
 #	conda:
