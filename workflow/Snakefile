@@ -134,6 +134,12 @@ rule multiqc_trim:
 #	shell:
 #		"metaxa2_dc -o {output} {input}"
 
+# Remove duplicates from fasta
+#cat *.fsa > resfinder.fasta
+#seqkit rmdup -s resfinder.fasta > unique_resfinder.fasta -d removed
+#[INFO] 18 duplicated records removed
+#mv unique_resfinder.fasta resfinder.fasta
+
 rule resfinder_db:
 	input:
 		fasta= "resfinder_db/resfinder.fasta"
