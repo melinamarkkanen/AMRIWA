@@ -100,9 +100,10 @@ Batch job for post processing ResFinder mapping results in Puhti:
 #SBATCH --error=resfinder_results_err_%j.txt
 
 module load biokit
-cd scratch/project_2002265/markkan5/AMRIWA/workflow/sorted_reads/
+cd /scratch/project_2002265/markkan5/AMRIWA/workflow/sorted_reads/
 
-name=$(sed -n "$SLURM_ARRAY_TASK_ID"p scratch/project_2002265/markkan5/AMRIWA/sample_data.txt)
+name=$(sed -n "$SLURM_ARRAY_TASK_ID"p /scratch/project_2002265/markkan5/AMRIWA/sample_data.txt)
+
 samtools idxstats $name".bam" | grep -v "*" | cut -f3 >> ../resfinder_out/$name"_counts"
 echo -e "GENE" > ../resfinder_out/gene_names
 samtools idxstats BFH1_S123.bam | grep -v "*" | cut -f1 >> ../resfinder_out/gene_names
