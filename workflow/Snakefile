@@ -12,6 +12,7 @@ rule all:
 		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
+		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -171,6 +172,7 @@ rule resfinder_mapping:
 		1
 	shell:
 		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Shu - > {output}"
+# add filter step
 
 rule resfinder_sorting:
 	input:
@@ -201,20 +203,21 @@ rule resfinder_indexing:
 	shell:
 		"samtools index {input}"
 
-#rule resfinder_filtering:
-#	input:
-#		bam= expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES),
-#		bai= expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
-#	output:
-#		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES)
-#	message:
-#		"-- Filtering --"
-#	conda:
-#		"envs/bowtie2.yml"
-#	threads:
-#		1
-#	shell:
-#		"samtools view {input.bam} -b -F 4 -h -o {output}
+rule resfinder_results:
+	input:
+		bam= expand("sorted_reads/{sample}.bam", sample=SAMPLES),
+		bai= expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES)
+	output:
+		"resfinder_out/{sample}_counts"
+	message:
+		"-- Preparing resfinder result files --"
+	threads:
+		1
+	shell:
+		"echo -e {wildcards.sample} > {output}"
+
+# Combine results into matrix outside Snakemake pipeline 
+# because it gets complex with escape charachters in the pipeline - see batch job in README.md.
 
 #rule fastq_to_fasta:
 #	input:
