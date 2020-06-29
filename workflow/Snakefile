@@ -9,7 +9,9 @@ rule all:
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
-		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES),
+		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
+		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
+		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html"
 
@@ -174,7 +176,7 @@ rule resfinder_sorting:
 	input:
 		"mapped_reads/{sample}.bam"
 	output:
-		"sorted_reads/{sample}_sort.bam"
+		"sorted_reads/{sample}.bam"
 	message:
 		"-- Sorting reads --"
 	conda:
@@ -182,13 +184,14 @@ rule resfinder_sorting:
 	threads:
 		1
 	shell:
-		"samtools sort {input} -O BAM > {output}"
+		"samtools sort -T sorted_reads/{wildcards.sample} "
+		"-O bam {input} > {output}"
 
 rule resfinder_indexing:
 	input:
-		expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES)
+		"sorted_reads/{sample}.bam"
 	output:
-		expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
+		"sorted_reads/{sample}.bam.bai"
 	message:
 		"-- Indexing mapped reads --" 	
 	conda:
@@ -198,20 +201,20 @@ rule resfinder_indexing:
 	shell:
 		"samtools index {input}"
 
-rule resfinder_filtering:
-	input:
-		bam= expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES),
-		bai= expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
-	output:
-		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES)
-	message:
-		"-- Filtering --"
-	conda:
-		"envs/bowtie2.yml"
-	threads:
-		1
-	shell:
-		"samtools view {input.bam} -b -F 4 -o {output}" 
+#rule resfinder_filtering:
+#	input:
+#		bam= expand("sorted_reads/{sample}_sort.bam", sample=SAMPLES),
+#		bai= expand("sorted_reads/{sample}_sort.bam.bai", sample=SAMPLES)
+#	output:
+#		expand("sorted_reads/{sample}_mapped.bam", sample=SAMPLES)
+#	message:
+#		"-- Filtering --"
+#	conda:
+#		"envs/bowtie2.yml"
+#	threads:
+#		1
+#	shell:
+#		"samtools view {input.bam} -b -F 4 -h -o {output}
 
 #rule fastq_to_fasta:
 #	input:
