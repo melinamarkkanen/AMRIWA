@@ -86,7 +86,28 @@ conda deactivate
 conda deactivate
 ```
 
+Batch job for post processing ResFinder mapping results in Puhti:
+```
+#!/bin/bash
+#SBATCH --job-name=resfinder_results
+#SBATCH --account=Project_2002265
+#SBATCH --time=10:00:00
+#SBATCH --mem-per-cpu=8G
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task 2
+#SBATCH --partition=small
+#SBATCH --output=resfinder_results_out_%j.txt
+#SBATCH --error=resfinder_results_err_%j.txt
 
+module load biokit
+cd scratch/project_2002265/markkan5/AMRIWA/workflow/sorted_reads/
+
+name=$(sed -n "$SLURM_ARRAY_TASK_ID"p scratch/project_2002265/markkan5/AMRIWA/sample_data.txt)
+samtools idxstats $name".bam" | grep -v "*" | cut -f3 >> ../resfinder_out/$name"_counts"
+echo -e "GENE" > ../resfinder_out/gene_names
+samtools idxstats BFH1_S123.bam | grep -v "*" | cut -f1 >> ../resfinder_out/gene_names
+paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/ARG_genemat.txt
+```
 ### TO DO:
 
 - fastq to fasta 
