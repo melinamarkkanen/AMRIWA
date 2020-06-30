@@ -14,7 +14,8 @@ rule all:
 		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
-		expand("resfinder_out/{sample}_counts", sample=SAMPLES)
+		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
+#		"CARD/protein_fasta_protein_homolog_model.dmnd"
 
 rule fastqc_raw:
 	input:
@@ -235,7 +236,9 @@ rule resfinder_results:
 
 #rule diamond_db:
 #	input:
+#		"CARD/protein_fasta_protein_homolog_model.fasta"
 #	output:
+#		"CARD/protein_fasta_protein_homolog_model.dmnd"
 #	message:
 #		"-- Creating DIAMOND database --"
 #	conda:
@@ -243,4 +246,4 @@ rule resfinder_results:
 #	threads:
 #		1
 #	shell:
-"		""
+#		"diamond makedb --in {input} -d CARD/protein_fasta_protein_homolog_model"
