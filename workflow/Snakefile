@@ -14,8 +14,7 @@ rule all:
 		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
-		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
-#		expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"])
+		expand("resfinder_out/{sample}_counts", sample=SAMPLES)
 
 rule fastqc_raw:
 	input:
@@ -233,3 +232,15 @@ rule resfinder_results:
 #		1
 #	shell:
 #		"seqtk fq2fa {input} -o {output}
+
+#rule diamond_db:
+#	input:
+#	output:
+#	message:
+#		"-- Creating DIAMOND database --"
+#	conda:
+#		"envs/diamond.yml"
+#	threads:
+#		1
+#	shell:
+"		""
