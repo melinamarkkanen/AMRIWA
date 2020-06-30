@@ -15,7 +15,9 @@ rule all:
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
-#		"CARD/protein_fasta_protein_homolog_model.dmnd"
+#		expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"]),
+#		"CARD/protein_fasta_protein_homolog_model.dmnd",
+#		"CARD/CARD_results"
 
 rule fastqc_raw:
 	input:
@@ -224,7 +226,7 @@ rule resfinder_results:
 #	input:
 #		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #	output:
-#		temp("fasta/{sample}_{read}_trimmed.fasta.gz",
+#		temp(expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
 #	message:
 #		"-- Converting fastq to FASTA --""
 #	conda:
@@ -247,3 +249,18 @@ rule resfinder_results:
 #		1
 #	shell:
 #		"diamond makedb --in {input} -d CARD/protein_fasta_protein_homolog_model"
+
+#rule run_diamond:
+#	input:
+#		expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
+#	output:
+#		"CARD/CARD_results"
+#	message:
+#		"Run DIAMOND"
+#	conda:
+#		"-- Running DIAMOND --"
+#	threads:
+#		2
+#	shell:
+#		"diamond blastx -d CARD/protein_fasta_protein_homolog_model -q {input} -o {output}"
+
