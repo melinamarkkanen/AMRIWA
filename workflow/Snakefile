@@ -15,7 +15,7 @@ rule all:
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
-#		expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"]),
+#		expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
 #		"CARD/protein_fasta_protein_homolog_model.dmnd",
 #		"CARD/CARD_results"
 
