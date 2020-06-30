@@ -14,7 +14,8 @@ rule all:
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
 		"data/multiqc_report.html",
-		"trimmed_data/multiqc_report.html"
+		"trimmed_data/multiqc_report.html",
+#		expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"])
 
 rule fastqc_raw:
 	input:
@@ -223,7 +224,7 @@ rule resfinder_results:
 #	input:
 #               expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 #	output:
-#               expand("fasta/{sample}_{read}_trimmed.fasta", sample=SAMPLES, read=["R1", "R2"])
+#               temp("fasta/{sample}_{read}_trimmed.fasta.gz")
 #	message:
 #               "-- Converting fastq to FASTA --""
 #	conda:
