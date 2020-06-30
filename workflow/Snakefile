@@ -232,4 +232,4 @@ rule resfinder_results:
 #	threads:
 #               1
 #	shell:
-#               "seqtk seq -a {input} > {output}
+#               "seqtk fq2fa {input} -o {output}
