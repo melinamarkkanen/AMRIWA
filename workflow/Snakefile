@@ -15,9 +15,9 @@ rule all:
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
-#		expand("fasta/{sample}_{read}_trimmed.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
-#		"CARD/protein_fasta_protein_homolog_model.dmnd",
-#		"CARD/CARD_results"
+		expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
+		"CARD/protein_fasta_protein_homolog_model.dmnd",
+		"CARD/CARD_results"
 
 rule fastqc_raw:
 	input:
@@ -222,45 +222,46 @@ rule resfinder_results:
 # Combine results into matrix outside Snakemake pipeline 
 # because it gets complex with escape charachters in the pipeline - see batch job in README.md.
 
-#rule fastq_to_fasta:
-#	input:
-#		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
-#	output:
-#		temp(expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
-#	message:
-#		"-- Converting fastq to FASTA --""
-#	conda:
-#		"envs/seqkit.yml"
-#	threads:
-#		1
-#	shell:
-#		"seqtk fq2fa {input} -o {output}"
+rule fastq_to_fasta:
+	input:
+		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
+	output:
+		temp(expand("fasta/{sample}_{read}.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
+	message:
+		"-- Converting fastq to FASTA --""
+	conda:
+		"envs/seqkit.yml"
+	threads:
+		1
+	shell:
+		"seqkit fq2fa {input} -o {output}"
 
-#rule diamond_db:
-#	input:
-#		"CARD/protein_fasta_protein_homolog_model.fasta"
-#	output:
-#		"CARD/protein_fasta_protein_homolog_model.dmnd"
-#	message:
-#		"-- Creating DIAMOND database --"
-#	conda:
-#		"envs/diamond.yml"
-#	threads:
-#		1
-#	shell:
-#		"diamond makedb --in {input} -d CARD/protein_fasta_protein_homolog_model"
+rule diamond_db:
+	input:
+		"CARD/protein_fasta_protein_homolog_model.fasta"
+	output:
+		"CARD/protein_fasta_protein_homolog_model.dmnd"
+	message:
+		"-- Creating DIAMOND database --"
+	conda:
+		"envs/diamond.yml"
+	threads:
+		1
+	shell:
+		"diamond makedb --in {input} -d CARD/protein_fasta_protein_homolog_model"
 
-#rule run_diamond:
-#	input:
-#		expand("fasta/{sample}_{read}_trimmed.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
-#	output:
-#		"CARD/CARD_results"
-#	message:
-#		"Run DIAMOND"
-#	conda:
-#		"-- Running DIAMOND --"
-#	threads:
-#		2
-#	shell:
-#		"diamond blastx -d CARD/protein_fasta_protein_homolog_model -q {input} -o {output}"
+rule run_diamond:
+	input:
+		fasta= expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
+		db= "CARD/protein_fasta_protein_homolog_model.dmnd"
+	output:
+		"CARD/CARD_results"
+	message:
+		"-- Running DIAMOND --"
+	conda:
+		"envs/diamond.yml"
+	threads:
+		2
+	shell:
+		"diamond blastx -d CARD/protein_fasta_protein_homolog_model -in {input.fasta} -o {output} --threads {threads}"
 
