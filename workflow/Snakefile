@@ -262,5 +262,5 @@ rule run_diamond:
 	threads:
 		2
 	shell:
-		"gunzip -c {input.fasta} | diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}"		# Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n?
+		"gunzip -c {input.fasta} | diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}"		# Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n; query-cover n; -id n
 
