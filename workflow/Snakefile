@@ -15,7 +15,6 @@ rule all:
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
-		expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
 
@@ -263,5 +262,5 @@ rule run_diamond:
 	threads:
 		2
 	shell:
-		"diamond blastx -d CARD/protein_fasta_protein_homolog_model -in {input.fasta} -o {output} --threads {threads}"
+		"gunzip -c {input.fasta} | diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}"
 
