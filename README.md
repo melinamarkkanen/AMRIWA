@@ -107,4 +107,5 @@ paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/
 - more log files as outputs eg. for ResFinder mapping
 - more temp files to save memory
 - add sample names to read headers in .bam files? (for downstream analysis of blastx output file)?
+- parse_diamond.py for CARD results
 -
