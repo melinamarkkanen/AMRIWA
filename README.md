@@ -44,24 +44,9 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK -np
 conda deactivate
 conda deactivate
 ```
-Required folders:
-data
- FASTQC
-trimmed_data
- FASTQC
-metaxa2
-fasta
-resfinder_db
-ResFinder_results
-CARD_db
-CARD_results
 
-```
-snakemake --use-conda -j 32
-```
+Batch job in Puhti. Add "--latency-wait" if needed.
 
-Probably easiest to run as a batch job in Puhti. Add "--latency-wait" if needed.
-Example batch file:
 ```
 #!/bin/bash
 #SBATCH --job-name=Snakemake
@@ -114,9 +99,11 @@ paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/
 ```
 ### TO DO:
 
-- fastq to fasta 
-- ARG annotation,  DIAMOND blastx individually, concatenate all results
+- DIAMOND blastx individually, concatenate all results
 - METAXA pipeline
 - unpack and remove original sequence files
 - metadata file
-- 
+- filter step for ResFinder mapping
+- more log files as outputs eg. for ResFinder mapping
+- more temp files to save memory
+-
