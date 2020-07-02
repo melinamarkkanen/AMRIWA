@@ -13,6 +13,7 @@ rule all:
 		expand("mapped_reads/{sample}_unfiltered.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
+		"resfinder_out/gene_names"
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
@@ -220,20 +221,22 @@ rule resfinder_indexing:
 	shell:
 		"samtools index {input}"
 
-rule resfinder_results:
+rule combine_results_1:
 	input:
-		bam= expand("sorted_reads/{sample}.bam", sample=SAMPLES),
-		bai= expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES)
+		"sorted_reads/BFH1_S123.bam"
 	output:
-		"resfinder_out/{sample}_counts"
+		"resfinder_out/gene_names"
 	message:
-		"-- Preparing resfinder result files --"
+		"-- Creating gene_names file --"
+	conda:
+		"envs/bowtie2.yml"
 	threads:
 		1
 	shell:
-		"echo -e {wildcards.sample} > {output}"
-
-# Combine results into matrix outside Snakemake pipeline.
+		"""
+		samtools idxstats {input} | grep -v "\*" | cut -f1 > {output}
+		sed -i '1 i\GENE' {output}
+		"""
 
 rule fastq_to_fasta:
 	input:
