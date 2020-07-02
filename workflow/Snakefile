@@ -273,5 +273,5 @@ rule run_diamond:
 		diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}
 		"""
 
-# Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n; query-cover n; -id n
+# Possible filter options for matches: --evalue 1e-50; also --max_target_seqs n (default -k 25); query-cover n; -id n
 
