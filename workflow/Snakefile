@@ -10,6 +10,7 @@ rule all:
 #		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
+		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
@@ -150,8 +151,8 @@ rule resfinder_db:
 
 rule resfinder_mapping:
 	input:
-		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES),
+		fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
+		rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz",
 		indexed_db= "resfinder_db/resfinder.1.bt2"
 	output:
 		"mapped_reads/{sample}.bam"
@@ -251,5 +252,7 @@ rule run_diamond:
 	threads:
 		2
 	shell:
-		"gunzip -c {input.fasta} | diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}"		# Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n; query-cover n; -id n
+		"gunzip -c {input.fasta} | diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads} --evalue 1e-50"
+
+# Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n; query-cover n; -id n
 
