@@ -85,20 +85,20 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-rule metaxa2_1:
-	input:
-		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)	
-	output:
-		expand("metaxa2/{sample}", sample=SAMPLES)
-	message:
-		"-- Running metaxa2.1 --"
-	conda:
-		"envs/metaxa.yml"
-	threads:
-		2
-	shell:
-		"metaxa2 -1 {input.fw} -2 {input.rv} -z gzip -o {output} --align-none --plus --graphical F -t {threads}"
+#rule metaxa2_1:
+#	input:
+#		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
+#		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)	
+#	output:
+#		expand("metaxa2/{sample}", sample=SAMPLES)
+#	message:
+#		"-- Running metaxa2.1 --"
+#	conda:
+#		"envs/metaxa.yml"
+#	threads:
+#		2
+#	shell:
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -z gzip -o {output} --align-none --plus --graphical F -t {threads}"
 
 #rule metaxa2_2:
 #	input:
