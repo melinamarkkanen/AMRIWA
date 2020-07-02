@@ -100,7 +100,7 @@ paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/
 ### TO DO:
 
 - DIAMOND blastx individually, concatenate all results
-- METAXA pipeline
+- METAXA pipeline (or outside snakemake?)
 - unpack and remove original sequence files
 - metadata file
 - filter step for ResFinder mapping
@@ -108,4 +108,6 @@ paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/
 - more temp files to save memory
 - add sample names to read headers in .bam files? (eg. with samtools reheader)
 - parse_diamond.py for CARD results
+- metaphlan
+- humann
 -
