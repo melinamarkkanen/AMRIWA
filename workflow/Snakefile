@@ -225,8 +225,7 @@ rule resfinder_results:
 	shell:
 		"echo -e {wildcards.sample} > {output}"
 
-# Combine results into matrix outside Snakemake pipeline 
-# because it gets complex with escape charachters in the pipeline - see batch job in README.md.
+# Combine results into matrix outside Snakemake pipeline.
 
 rule fastq_to_fasta:
 	input:
