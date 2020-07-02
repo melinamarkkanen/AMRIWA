@@ -179,9 +179,15 @@ rule resfinder_filtering:
 		"""
 		samtools view -h {input} | awk 'BEGIN {{FS="\t"; OFS="\t"}} \
 		{{if (/^@/ && substr($2, 3, 1)==":") {{print}} \			# print header; read is paired; the first segment in the template
-		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \			# add || and($2, 0x8)?
+		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \
 		| samtools view -Shu - > {output} 
 		"""
+# Check that there are both - reads mapped in pairs:
+## samtools view BFH1_S123.bam | cut -f 7 | grep -c '='		#10986
+# and reads mapping as one:
+## samtools view BFH1_S123.bam | cut -f 7 | grep -vc '='	#31285926
+# all:
+## samtools flagstat BFH1_S123.bam 				#31296922
 
 rule resfinder_sorting:
 	input:
