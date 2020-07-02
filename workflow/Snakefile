@@ -10,7 +10,7 @@ rule all:
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
-		expand("mapped_reads/{sample}.bam", sample=SAMPLES),
+		expand("mapped_reads/{sample}_unfiltered.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
@@ -162,8 +162,26 @@ rule resfinder_mapping:
 	threads:
 		1
 	shell:
-		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Shu - > {output}"
+		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Sb - > {output}"
 
+rule resfinder_filtering:
+	input:
+		"mapped_reads/{sample}_unfiltered.bam"
+	output:
+		temp("mapped_reads/{sample}.bam")
+	message:
+		"-- Filtering reads for sorting --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"""
+		samtools view -h {input} | awk 'BEGIN {{FS="\t"; OFS="\t"}} \
+		{{if (/^@/ && substr($2, 3, 1)==":") {{print}} \
+		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \
+		| samtools view -Shu - > {output}
+		"""
 
 rule resfinder_sorting:
 	input:
@@ -253,7 +271,7 @@ rule run_diamond:
 	shell:
 		"""
 		gunzip -c {input.fasta} | \
-		diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads} --evalue 1e-50 --max_target_seqs 1
+		diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}
 		"""
 
 # Possible filter options for matches: -evalue 1e-50; also -max_target_seqs n; query-cover n; -id n
