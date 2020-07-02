@@ -71,32 +71,6 @@ conda deactivate
 conda deactivate
 ```
 
-Batch job for post processing ResFinder mapping results in Puhti:
-```
-#!/bin/bash -l
-#SBATCH --job-name=resfinder_results
-#SBATCH --account=Project_2002265
-#SBATCH --time=00:15:00
-#SBATCH --mem-per-cpu=1G
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task 2
-#SBATCH --partition=small
-#SBATCH --output=resfinder_results_out_%A_%a.txt
-#SBATCH --error=resfinder_results_err_%A_%a.txt
-
-module load biokit
-cd /scratch/project_2002265/markkan5/AMRIWA/workflow/sorted_reads/
-
-#name=$(sed -n "$SLURM_ARRAY_TASK_ID"p /scratch/project_2002265/markkan5/AMRIWA/sample_data.txt)                                ## somehow not correct
-
-#echo -e $name > $name"_counts"                                                                                                 ## not working because the above is not correct
-#samtools idxstats $name".bam" | grep -v "*" | cut -f3 >> ../resfinder_out/$name"_counts"                                       ## not working because the above is not correct
-
-echo -e "GENE" > ../resfinder_out/gene_names
-samtools idxstats BFH1_S123.bam | grep -v "*" | cut -f1 >> ../resfinder_out/gene_names
-
-paste  ../resfinder_out/gene_names ../resfinder_out/*_counts > ../resfinder_out/ARG_genemat.txt
-```
 ### TO DO:
 
 - DIAMOND blastx individually, concatenate all results
