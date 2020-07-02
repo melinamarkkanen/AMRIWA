@@ -1,0 +1,11 @@
+name: metaxa2_env
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - metaxa =2.2
+  - hmmer =3.1
+  - blast =2.2
+  - mafft =7
+  - vsearch =2.7.0
+  - perl
