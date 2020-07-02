@@ -178,9 +178,9 @@ rule resfinder_filtering:
 	shell:
 		"""
 		samtools view -h {input} | awk 'BEGIN {{FS="\t"; OFS="\t"}} \
-		{{if (/^@/ && substr($2, 3, 1)==":") {{print}} \
-		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \
-		| samtools view -Shu - > {output}
+		{{if (/^@/ && substr($2, 3, 1)==":") {{print}} \			# print header; read is paired; the first segment in the template
+		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \			# add || and($2, 0x8)?
+		| samtools view -Shu - > {output} 
 		"""
 
 rule resfinder_sorting:
