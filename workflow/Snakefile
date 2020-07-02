@@ -7,7 +7,6 @@ rule all:
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html",,
 #		expand("metaxa2/{sample}", sample=SAMPLES),
-#		expand("metaxa2/{sample}.taxonomy.txt", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
@@ -155,16 +154,16 @@ rule resfinder_mapping:
 		rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz",
 		indexed_db= "resfinder_db/resfinder.1.bt2"
 	output:
-		"mapped_reads/{sample}.bam"
+		"mapped_reads/{sample}_filtered.bam"
 	message:
-		"-- Mapping w/ ResFinder --"
+		"-- Mapping w/ ResFinder and extracting the mapped reads --"
 	conda:
 		"envs/bowtie2.yml"
 	threads:
 		1
 	shell:
 		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Shu - > {output}"
-# add filter step
+
 
 rule resfinder_sorting:
 	input:
