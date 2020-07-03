@@ -80,7 +80,8 @@ conda deactivate
 - filter step for ResFinder mapping
 - more log files as outputs eg. for ResFinder mapping
 - more temp files to save memory
-- add sample names to read headers in .bam files? (eg. with samtools reheader)
+- add sample names to read headers in .bam files (eg. with samtools reheader)?
+  or in fasta.gz files just before blastx?
 - parse_diamond.py for CARD results
 - metaphlan
 - humann
