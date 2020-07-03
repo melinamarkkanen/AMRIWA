@@ -13,8 +13,7 @@ rule all:
 		expand("mapped_reads/{sample}_unfiltered.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
-		"resfinder_out/gene_names"
-		expand("resfinder_out/{sample}_counts", sample=SAMPLES),
+		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
 
@@ -225,7 +224,7 @@ rule combine_results_1:
 	input:
 		"sorted_reads/BFH1_S123.bam"
 	output:
-		"resfinder_out/gene_names"
+		temp("resfinder_out/gene_names")
 	message:
 		"-- Creating gene_names file --"
 	conda:
@@ -236,6 +235,36 @@ rule combine_results_1:
 		"""
 		samtools idxstats {input} | grep -v "\*" | cut -f1 > {output}
 		sed -i '1 i\GENE' {output}
+		"""
+
+rule combine_results_2:
+	input:
+		"sorted_reads/{sample}.bam"
+	output:
+		"resfinder_out/{sample}_counts"
+	message:
+		"-- Combine count data into genemat --"
+	conda:
+		"envs/bowtie2.yml"
+	threads:
+		1
+	shell:
+		"samtools idxstats {input} | grep -v "\*" | cut -f3 > {output}"
+
+rule combine_results_3:
+	input:
+		gene_names= "resfinder_out/gene_names",
+		counts= expand("resfinder_out/{sample}_counts", sample=SAMPLES)
+	output:
+		genemat= "resfinder_out/ARG_genemat.txt"
+	message:
+		"-- Creating ARG_genemat --"
+	threads:
+		1
+	shell:
+		"""
+#               echo -e {wildcards.sample} > {input.counts}                     ## 'Wildcards' object has no attribute 'sample'. So still missing headers in *_count files
+		paste {input.gene_names} {input.counts} > {output.genemat}
 		"""
 
 rule fastq_to_fasta:
