@@ -262,10 +262,7 @@ rule combine_results_3:
 	threads:
 		1
 	shell:
-		"""
-#               echo -e {wildcards.sample} > {input.counts}                     ## 'Wildcards' object has no attribute 'sample'. So still missing headers in *_count files
-		paste {input.gene_names} {input.counts} > {output.genemat}
-		"""
+		"paste {input.gene_names} {input.counts} > {output.genemat}"	## Still missing sample headers for counts!
 
 rule fastq_to_fasta:
 	input:
