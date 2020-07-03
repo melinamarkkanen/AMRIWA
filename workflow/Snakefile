@@ -1,5 +1,6 @@
 SAMPLES, = glob_wildcards("data/{sample}_R1_001.fastq.gz")
 
+
 rule all:
 	input:
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
