@@ -99,7 +99,7 @@ rule multiqc_trim:
 #	threads:
 #		2
 #	shell:
-#		"metaxa2 -1 {input.fw} -2 {input.rv} -z gzip -o {output} --align-none --plus --graphical F -t {threads}"
+#		"metaxa2 -1 {input.fw} -2 {input.rv} -f fasq -z gzip -o {output} --align-none --plus --graphical F -t {threads}"
 
 #rule metaxa2_2:
 #	input:
