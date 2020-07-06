@@ -7,8 +7,8 @@ rule all:
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html",
-		"metaphlan3/BFH1_S123_profile.txt",
-		"metaphlan3/BFH1_S123.bowtie2.bz2",
+		expand("metaphlan3/{sample}_profile.txt", sample=SAMPLES),
+		expand("metaphlan3/{sample}.bowtie2.bz2", sample=SAMPLES),
 #		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
@@ -88,13 +88,12 @@ rule multiqc_trim:
 	shell:
 		"multiqc -f --interactive --quiet trimmed_data/ -o trimmed_data/"
 
-# Metaphlan3 works only without wildcards for now.
 rule metaphlan3:
         input:
-                reads= "trimmed_data/BFH1_S123_R1_trimmed.fastq.gz"
+		reads= "trimmed_data/BFH1_S123_R1_trimmed.fastq.gz"
         output:
-                file= "metaphlan3/BFH1_S123_profile.txt",
-                bowtie2out= "metaphlan3/BFH1_S123.bowtie2.bz2"
+		file= "metaphlan3/{sample}_profile.txt",
+		bowtie2out= "metaphlan3/{sample}.bowtie2.bz2"
         message:
                 "-- Running Metaphlan3 --"
         conda:
@@ -102,8 +101,10 @@ rule metaphlan3:
         threads:
                 2
         shell:
-                "metaphlan {input.reads} --nproc {threads} --bowtie2out {output.bowtie2out} --input_type fastq > {output.file}"
-
+		"""
+		metaphlan --install
+		metaphlan {input.reads} --nproc {threads} --bowtie2out {output.bowtie2out} --sample_id {wildcards.sample} --input_type fastq > {output.file}
+		"""
 #rule metaxa2_1:
 #	input:
 #		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
