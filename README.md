@@ -119,16 +119,9 @@ zstdmt -d --rm $name"_R2_001.fastq.gz.zst
 
 ### TO DO:
 
-- DIAMOND blastx individually, concatenate all results
-- METAXA pipeline (or outside snakemake?)
-- unpack and remove original sequence files
-- metadata file
-- filter step for ResFinder mapping
+- metaxa2 pipeline -> or outside snakemake
 - more log files as outputs eg. for ResFinder mapping
 - more temp files to save memory
-- add sample names to read headers in .bam files (eg. with samtools reheader)?
-  or in fasta.gz files just before blastx?
+- add sample names in fasta.gz files just before blastx?
 - parse_diamond.py for CARD results
-- metaphlan
-- humann
 -
