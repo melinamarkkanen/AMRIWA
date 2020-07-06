@@ -102,9 +102,24 @@ rule metaphlan3:
                 2
         shell:
 		"""
-		metaphlan --install
+#		metaphlan --install
 		metaphlan {input.reads} --nproc {threads} --bowtie2out {output.bowtie2out} --sample_id {wildcards.sample} --input_type fastq > {output.file}
 		"""
+
+rule metaphlan3_merge:
+	input:
+		expand("metaphlan3/{sample}_profile.txt", sample=SAMPLES)
+	output:
+		"metaphlan3/merged_abundance_table.txt"
+	message:
+		"-- Merging Metaphlan3 results into table --"
+	conda:
+		"envs/humann3.yml"
+	threads:
+		1
+	shell:
+		"merge_metaphlan_tables.py {input} > {output}"
+
 #rule metaxa2_1:
 #	input:
 #		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
