@@ -26,6 +26,8 @@ rule decompress:
 		"data/{sample}_{read}_001.fastq.gz.zst"
 	output:
 		"data/{sample}_{read}_001.fastq.gz"
+	message:
+		"-- Decomressing read files --"
 	conda:
 		"envs/zstd.yml"
 	threads:
