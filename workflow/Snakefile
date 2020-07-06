@@ -101,10 +101,8 @@ rule metaphlan3:
         threads:
                 2
         shell:
-		"""
 #		metaphlan --install
-		metaphlan {input.reads} --nproc {threads} --bowtie2out {output.bowtie2out} --sample_id {wildcards.sample} --input_type fastq > {output.file}
-		"""
+		"metaphlan {input.reads} --nproc {threads} --bowtie2out {output.bowtie2out} --sample_id {wildcards.sample} --input_type fastq > {output.file}"
 
 rule metaphlan3_merge:
 	input:
