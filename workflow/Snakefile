@@ -21,7 +21,7 @@ rule all:
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
 
-rule uncompress:
+rule decompress:
 	input:
 		"data/{sample}_{read}_001.fastq.gz.zst"
 	output:
