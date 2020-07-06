@@ -1,0 +1,12 @@
+name: humann3_env
+channels:
+  - biobakery
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+    - humann =3.0.0.alpha.3
+    - python =3.7
+    - metaphlan >=3.0
+    - bowtie2 >=2.1
+    - diamond >=0.9.0
