@@ -70,7 +70,7 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 conda deactivate
 conda deactivate
 ```
-Download and uncompress data:
+Download  data from allas:
 
 First set password for Allas for project. Must be run every time prior to actual batch job.
 ```
@@ -78,7 +78,7 @@ module load allas
 allas-conf -k project_2002265
 ```
 
-Then download and uncompress data with batch job:
+Then download data with batch job:
 ```
 #!/bin/bash -l
 #SBATCH -J download_data
@@ -108,13 +108,6 @@ swift download 2002265_Melina_Markkanen_AMRIWA_metagenomes
 # remove the files that are not used here
 rm *_ameta
 rm FASTQC.tar.zst
-
-# load allas tools
-module load allas
-
-# uncompress and remove the original files
-zstdmt -d --rm $name"_R1_001.fastq.gz.zst
-zstdmt -d --rm $name"_R2_001.fastq.gz.zst
 ```
 
 ### TO DO:
