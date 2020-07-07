@@ -3,7 +3,6 @@ SAMPLES, = glob_wildcards("data/{sample}_R1_001.fastq.gz")
 
 rule all:
 	input:
-		expand("data/{sample}_{read}_001.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		expand("trimmed_data/FASTQC/{sample}_{read}_trimmed_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
 		"data/multiqc_report.html",
@@ -20,20 +19,6 @@ rule all:
 		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
-
-rule decompress:
-	input:
-		"data/{sample}_{read}_001.fastq.gz.zst"
-	output:
-		"data/{sample}_{read}_001.fastq.gz"
-	message:
-		"-- Decomressing read files --"
-	conda:
-		"envs/zstd.yml"
-	threads:
-		1
-	shell:
-		"zstd -d --rm -q {input}"
 
 rule fastqc_raw:
 	input:
