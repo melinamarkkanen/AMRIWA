@@ -33,7 +33,7 @@ rule decompress:
 	threads:
 		1
 	shell:
-		"zstdmt -d --rm {input} -q"
+		"zstd -d --rm -q {input}"
 
 rule fastqc_raw:
 	input:
