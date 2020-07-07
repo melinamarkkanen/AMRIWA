@@ -316,9 +316,9 @@ rule fastq_to_fasta:
 	input:
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
 	output:
-		temp(expand("fasta/{sample}_{read}.fasta.gz"), sample=SAMPLES, read=["R1", "R2"])
+		temp(expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]))
 	message:
-		"-- Converting fastq to FASTA --""
+		"-- Converting fastq to FASTA --"
 	conda:
 		"envs/seqkit.yml"
 	threads:
