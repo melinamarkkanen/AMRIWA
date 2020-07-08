@@ -9,6 +9,7 @@ rule all:
 		"trimmed_data/multiqc_report.html",
 		expand("metaphlan3/{sample}_profile.txt", sample=SAMPLES),
 		expand("metaphlan3/{sample}.bowtie2.bz2", sample=SAMPLES),
+		"metaphlan3/merged_abundance_table.txt",
 #		expand("metaxa2/{sample}", sample=SAMPLES),
 #		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
@@ -16,7 +17,7 @@ rule all:
 		expand("mapped_reads/{sample}_unfiltered.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
-		"resfinder_out/ARG_genemat.txt",
+#		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
 
@@ -284,24 +285,27 @@ rule combine_results_2:
 	shell:
 		"samtools idxstats {input} | grep -v "\*" | cut -f3 > {output}"
 
-rule combine_results_3:
-	input:
-		gene_names= "resfinder_out/gene_names",
-		counts= expand("resfinder_out/{sample}_counts", sample=SAMPLES)
-	output:
-		genemat= "resfinder_out/ARG_genemat.txt"
-	message:
-		"-- Creating ARG_genemat --"
-	threads:
-		1
-	shell:
-		"paste {input.gene_names} {input.counts} > {output.genemat}"	## Still missing sample headers for counts!
+#rule combine_results_3:
+#	input:
+#		gene_names= "resfinder_out/gene_names",
+#		counts= expand("resfinder_out/{sample}_counts", sample=SAMPLES)
+#	output:
+#		genemat= "resfinder_out/ARG_genemat.txt"
+#	message:
+#		"-- Creating ARG_genemat --"
+#	threads:
+#		1
+#	shell:
+#		"""
+#               echo -e {wildcards.sample} > {input.counts}                     ## 'Wildcards' object has no attribute 'sample'. So still missing headers in *_count files
+#               paste {input.gene_names} {input.counts} > {output.genemat}
+#               """
 
 rule fastq_to_fasta:
 	input:
-		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"])
+		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
 	output:
-		temp(expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]))
+		temp("fasta/{sample}_{read}.fasta.gz")
 	message:
 		"-- Converting fastq to FASTA --"
 	conda:
@@ -310,6 +314,18 @@ rule fastq_to_fasta:
 		1
 	shell:
 		"seqkit fq2fa {input} -o {output}"
+
+rule rename_headers:
+	input:
+		"fasta/{sample}_{read}.fasta.gz"
+	output:
+		temp("fasta/renamed_{sample}_{read}.fasta.gz")
+	message:
+		"-- Adding sample names to multifasta file headers --"
+	threads:
+		1
+	shell:
+		"zcat {input} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output}"
 
 rule diamond_db:
 	input:
@@ -340,7 +356,7 @@ rule run_diamond:
 	shell:
 		"""
 		gunzip -c {input.fasta} | \
-		diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - -o {output} --threads {threads}
+		diamond blastx -d CARD/protein_fasta_protein_homolog_model --max-target-seqs 5 -q - -o {output} --threads {threads}
 		"""
 
 # Possible filter options for matches: --evalue 1e-50; also --max_target_seqs n (default -k 25); query-cover n; -id n
