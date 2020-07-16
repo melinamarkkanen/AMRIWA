@@ -83,8 +83,8 @@ Then download data with batch job:
 #!/bin/bash
 #SBATCH -J download_data
 #SBATCH --account=project_2002265
-#SBATCH -o download_data_out_%A_%a.txt
-#SBATCH -e download_data_err_%A_%a.txt
+#SBATCH -o download_data_%j_out.txt
+#SBATCH -e download_data_%j_err.txt
 #SBATCH -t 04:00:00
 #SBATCH --mem-per-cpu=1G
 #SBATCH -n 1
