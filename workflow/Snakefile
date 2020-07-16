@@ -8,16 +8,14 @@ rule all:
 		"data/multiqc_report.html",
 		"trimmed_data/multiqc_report.html",
 		expand("metaphlan3/{sample}_profile.txt", sample=SAMPLES),
-		expand("metaphlan3/{sample}.bowtie2.bz2", sample=SAMPLES),
 		"metaphlan3/merged_abundance_table.txt",
-#		expand("metaxa2/{sample}", sample=SAMPLES),
-#		expand("metaxa2/{sample}_level_6.txt", sample=SAMPLES),
 		"resfinder_db/resfinder.1.bt2",
 		expand("trimmed_data/{sample}_{read}_trimmed.fastq.gz", sample=SAMPLES, read=["R1", "R2"]),
 		expand("mapped_reads/{sample}_unfiltered.bam", sample=SAMPLES),
+		expand("logs/bowtie2/{sample}.log", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
-#		"resfinder_out/ARG_genemat.txt",
+		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
 		"CARD/CARD_results"
 
@@ -119,49 +117,6 @@ rule metaphlan3_merge:
 	shell:
 		"merge_metaphlan_tables.py {input} > {output}"
 
-#rule metaxa2_1:
-#	input:
-#		fw= expand("trimmed_data/{sample}_R1_trimmed.fastq.gz", sample=SAMPLES),
-#		rv= expand("trimmed_data/{sample}_R2_trimmed.fastq.gz", sample=SAMPLES)	
-#	output:
-#		expand("metaxa2/{sample}", sample=SAMPLES)
-#	message:
-#		"-- Running metaxa2.1 --"
-#	conda:
-#		"envs/metaxa.yml"
-#	threads:
-#		2
-#	shell:
-#		"metaxa2 -1 {input.fw} -2 {input.rv} -f fasq -z gzip -o {output} --align-none --plus --graphical F -t {threads}"
-
-#rule metaxa2_2:
-#	input:
-#		expand("metaxa2/{sample}.taxonomy", sample=SAMPLES)
-#	output:
-#		"metaxa2/{sample}_level_6.txt"
-#	message:
-#		"-- Running metaxa2_2 --"
-#	conda:
-#		"envs/metaxa.yml"
-#	threads:
-#		1
-#	shell:
-#		"metaxa2_ttt -i {input} -o {output}"
-#
-#rule metaxa2_3:
-#	input:
-#		"metaxa2/{sample}_level_6.txt"
-#	output:
-#		"metaxa2/metaxa_genus.txt"
-#	message: 
-#		"-- Running metaxa2_2 --"
-#	conda:
-#		"envs/metaxa.yml"
-#	threads:
-#		1
-#	shell:
-#		"metaxa2_dc -o {output} {input}"
-
 # Before rule "resfinder_db" create and remove duplicates from resfinder.fasta
 #cat *.fsa > resfinder.fasta
 #seqkit rmdup -s resfinder.fasta > unique_resfinder.fasta -d removed
@@ -189,6 +144,8 @@ rule resfinder_mapping:
 		indexed_db= "resfinder_db/resfinder.1.bt2"
 	output:
 		"mapped_reads/{sample}_filtered.bam"
+	log:
+		"logs/bowtie2/{sample}.log"
 	message:
 		"-- Mapping w/ ResFinder and extracting the mapped reads --"
 	conda:
@@ -196,7 +153,10 @@ rule resfinder_mapping:
 	threads:
 		1
 	shell:
-		"bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | samtools view -Sb - > {output}"
+		"""
+                (bowtie2 -x resfinder_db/resfinder -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | \
+                samtools view -Sb - > {output}) 2> {log}
+                """
 
 rule resfinder_filtering:
 	input:
@@ -285,21 +245,30 @@ rule combine_results_2:
 	shell:
 		"samtools idxstats {input} | grep -v "\*" | cut -f3 > {output}"
 
-#rule combine_results_3:
-#	input:
-#		gene_names= "resfinder_out/gene_names",
-#		counts= expand("resfinder_out/{sample}_counts", sample=SAMPLES)
-#	output:
-#		genemat= "resfinder_out/ARG_genemat.txt"
-#	message:
-#		"-- Creating ARG_genemat --"
-#	threads:
-#		1
-#	shell:
-#		"""
-#               echo -e {wildcards.sample} > {input.counts}                     ## 'Wildcards' object has no attribute 'sample'. So still missing headers in *_count files
-#               paste {input.gene_names} {input.counts} > {output.genemat}
-#               """
+rule combine_results_3:
+        input:
+                "resfinder_out/{sample}_counts"
+        output:
+                temp("resfinder_out/renamed_{sample}_counts")
+        message:
+                "-- Adding sample names --"
+        threads:
+                1
+        shell:
+                "sed '1 i\{wildcards.sample}' {input} > {output}"
+
+rule combine_results_4:
+        input:
+                gene_names= "resfinder_out/gene_names",
+                counts= expand("resfinder_out/renamed_{sample}_counts", sample=SAMPLES)
+        output:
+                "resfinder_out/ARG_genemat.txt" 
+        message:
+                "-- Creating ARG_genemat --"
+        threads:
+                1
+        shell:
+                "paste {input.gene_names} {input.counts} > {output}"
 
 rule fastq_to_fasta:
 	input:
@@ -355,9 +324,6 @@ rule run_diamond:
 		2
 	shell:
 		"""
-		gunzip -c {input.fasta} | \
-		diamond blastx -d CARD/protein_fasta_protein_homolog_model --max-target-seqs 5 -q - -o {output} --threads {threads}
-		"""
-
-# Possible filter options for matches: --evalue 1e-50; also --max_target_seqs n (default -k 25); query-cover n; -id n
-
+                gunzip -c {input.fasta} | \
+                diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - --max-target-seqs 1 -o {output} --threads {threads} --outfmt 6 --evalue 1e-5
+                """
