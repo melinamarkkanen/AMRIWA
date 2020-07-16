@@ -93,7 +93,7 @@ Then download data with batch job:
 #SBATCH -p small
 
 # go to target dir
-cd /scratch/project_2002265/markkan5/AMRIWA/workflow/test_data
+cd /scratch/project_2002265/markkan5/AMRIWA/workflow/data
 
 # make sure the connection to Allas is open
 source /appl/opt/allas-cli-utils/allas_conf -f -k $OS_PROJECT_NAME
