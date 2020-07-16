@@ -80,24 +80,20 @@ allas-conf -k project_2002265
 
 Then download data with batch job:
 ```
-#!/bin/bash -l
+#!/bin/bash
 #SBATCH -J download_data
 #SBATCH --account=project_2002265
 #SBATCH -o download_data_out_%A_%a.txt
 #SBATCH -e download_data_err_%A_%a.txt
 #SBATCH -t 04:00:00
 #SBATCH --mem-per-cpu=1G
-#SBATCH --array=1-96
 #SBATCH -n 1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH -p small
 
 # go to target dir
-cd /scratch/project_2002265/markkan5/AMRIWA/workflow/data
-
-# set environmental variable for sample names
-name=$(sed -n "$SLURM_ARRAY_TASK_ID"p /scratch/project_2002265/markkan5/AMRIWA/sample_names.txt)
+cd /scratch/project_2002265/markkan5/AMRIWA/workflow/test_data
 
 # make sure the connection to Allas is open
 source /appl/opt/allas-cli-utils/allas_conf -f -k $OS_PROJECT_NAME
@@ -109,8 +105,59 @@ swift download 2002265_Melina_Markkanen_AMRIWA_metagenomes
 rm *_ameta
 rm FASTQC.tar.zst
 ```
+Decompress data:
+```
+#!/bin/bash
+#SBATCH -J decompress
+#SBATCH --account=project_2002265
+#SBATCH -o decompress_%j_out.txt
+#SBATCH -e decompress_%j_err.txt
+#SBATCH -t 10:00:00
+#SBATCH --mem-per-cpu=1G
+#SBATCH -n 1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH -p small
+
+# go to dir and load zstd tool
+cd /scratch/project_2002265/markkan5/AMRIWA/workflow/data
+module load allas
+
+# decompress reads R1 and R2
+zstd -d --rm -q *_R1_001.fastq.gz.zst
+zstd -d --rm -q *_R2_001.fastq.gz.zst
+```
+
+Running Metaxa2 in Puhti:
+```
+#!/bin/bash -l
+#SBATCH -J metaxa
+#SBATCH --account=project_2002265
+#SBATCH -o metaxa2_out_%A_%a.txt
+#SBATCH -e metaxa2_err_%A_%a.txt
+#SBATCH -t 72:00:00
+#SBATCH --mem-per-cpu=2G
+#SBATCH --array=1-96
+#SBATCH -n 1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=32
+#SBATCH -p small
+
+cd /scratch/project_2002265/markkan5/AMRIWA/Metaxa2
+
+module load biokit
+
+name=$(sed -n "$SLURM_ARRAY_TASK_ID"p ../sample_names.txt)
+
+metaxa2 -1 /scratch/project_2002265/markkan5/AMRIWA/workflow/trimmed_data/$name"_R1_trimmed.fastq.gz" \
+        -2 /scratch/project_2002265/markkan5/AMRIWA/workflow/trimmed_data/$name"_R2_trimmed.fastq.gz" \
+        -f fastq -z gzip -o $name --align none --graphical F --cpu $SLURM_CPUS_PER_TASK --plus
+
+metaxa2_ttt -i $name".taxonomy.txt" -o $name
+```
 
 ### TO DO:
 
 - metaxa2 pipeline -> or outside snakemake
 -  
+`
