@@ -1,6 +1,0 @@
-name: zstd_env
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - zstd =1.4.4
