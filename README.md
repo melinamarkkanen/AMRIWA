@@ -113,9 +113,4 @@ rm FASTQC.tar.zst
 ### TO DO:
 
 - metaxa2 pipeline -> or outside snakemake
-- more log files as outputs eg. for ResFinder mapping
-- more temp files to save memory
-- add sample names (">SAMPLE-") in fasta.gz files just before blastx?
-- parse_diamond.py for CARD results
-- add header to ResFinder *_counts files to get the ARG_genemat
-- 
+-  
