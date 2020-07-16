@@ -42,6 +42,8 @@ rule multiqc_raw:
 		"-- Running MultiQC for raw data --"
 	conda:
 		"envs/QC_env.yml"
+	threads:
+		1
 	shell:
 		"multiqc -f --interactive --quiet data/ -o data/"
 
@@ -57,6 +59,8 @@ rule cutadapt:
 		"-- Running Cutadapt --"
 	conda:
 		"envs/cutadapt.yml"
+	threads:
+		1
 	shell:
 		"cutadapt -a CTGTCTCTTATACACATCT -A CTGTCTCTTATACACATCT -O 10 -m 30 -q 20 \
                                 {input.fw} {input.rv} -o {output.fw} -p {output.rv} > {output.log}"
