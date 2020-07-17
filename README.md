@@ -128,6 +128,13 @@ zstd -d --rm -q *_R1_001.fastq.gz.zst
 zstd -d --rm -q *_R2_001.fastq.gz.zst
 ```
 
+Install Metaxa2:
+```
+wget https://microbiology.se/sw/Metaxa2_2.2.1.tar.gz
+tar -zxvf Metaxa2_2.2.1.tar.gz
+./install_metaxa2
+```
+
 Running Metaxa2 in Puhti:
 ```
 #!/bin/bash -l
