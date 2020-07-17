@@ -147,7 +147,7 @@ rule resfinder_mapping:
 		rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz",
 		indexed_db= "resfinder_db/resfinder.1.bt2"
 	output:
-		"mapped_reads/{sample}_filtered.bam"
+		"mapped_reads/{sample}_unfiltered.bam"
 	log:
 		"logs/bowtie2/{sample}.log"
 	message:
