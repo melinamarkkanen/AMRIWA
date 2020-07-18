@@ -10,3 +10,4 @@ dependencies:
     - metaphlan >=3.0
     - bowtie2 >=2.1
     - diamond >=0.9.0
+    - hclust2 >=0.99
