@@ -93,7 +93,7 @@ rule multiqc_trim:
 
 rule metaphlan3:
         input:
-		reads= "trimmed_data/BFH1_S123_R1_trimmed.fastq.gz"
+		reads= "trimmed_data/{sample}_R1_trimmed.fastq.gz"
         output:
 		file= "metaphlan3/{sample}_profile.txt",
 		bowtie2out= "metaphlan3/{sample}.bowtie2.bz2"
