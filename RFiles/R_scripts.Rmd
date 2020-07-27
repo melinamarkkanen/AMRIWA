@@ -78,7 +78,7 @@ metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "B
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
+# The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
 # Metaphlan3
 ```{r}
@@ -146,7 +146,7 @@ metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | 
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# The results are almost identical to the ones from Metaxa2 analysis: The explanatory variable "country" explains some of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
+# The results are almost identical to the ones from Metaxa2 analysis: The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
 # ResFinder
 ## Load data
@@ -158,6 +158,35 @@ adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), 
 ## sed -i 's/BH34-B_S99/BH34.B_S99/g' mod_ARG_genemat.txt
 
 ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+```
+## Load ResFinder gene lengths
+```{r}
+# Modify "resfinder.fasta" file so that only hits remain
+## seqkit grep -f ARG_genes.txt resfinder.fasta > filtered_resfinder.fasta
+# Check if there are correct number of lines
+## grep ">" filtered_resfinder.fasta | wc -l
+# Print out the gene lengths of these genes into file "lengths_resfinder.txt"
+## cat filtered_resfinder.fasta | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) "\t"; } $0 !~ ">" {c+=length($0);} END { print c; }' > lengths_resfinder.txt
+# Reorder in excel to match with file "ARG_genemat_norm"
+lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
+colnames(lengths_resfinder) <- c("Length")
+```
+## HC normalization
+```{r}
+# Divide by ResFinder hit gene lengths
+ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
+
+# Divide by SSU counts and normalize to bacterial 16S rRNA length (1550)
+ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
+
+# Check if correct:
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+
+# Save and load again to exclude row.names
+write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+
+ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+ARG_genemat_norm$row.names<-NULL
 ```
 ## Normalize ARG counts to SSU
 ```{r}
@@ -182,7 +211,39 @@ colnames(tax_table_resfinder) <- c("Gene", "Class")
 resfinder_PHY <- phyloseq(otu_table(ARG_genemat_norm, taxa_are_rows = TRUE), sample_data(metadata), 
     tax_table(as.matrix(tax_table_resfinder)))
 ```
+## Filter samples
+```{r}
+# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
+# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
+resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+```
+## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
+```{r}
+# Ordinate and plot data
+resfinder_PHY_ord <- ordinate(resfinder_PHY_ww, method = "PCoA", distance = "horn")
+p3 <- plot_ordination(resfinder_PHY_ww, resfinder_PHY_ord, color = "country", label = "name")
+resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
+    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
+    theme_minimal() + labs(title = "ResFinder")
+resfinder.p3
+
+# Test significance between all pairs
+resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Benin"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Burkina Faso"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+# The explanatory variable "country" explains some (~10.1 % [HC: ~10.2 %]) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.5 % [HC: ~12.9 %]) between Burkina Faso and Finland.
+```
 
 
 
