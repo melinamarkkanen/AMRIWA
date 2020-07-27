@@ -3,10 +3,6 @@ title: "R_scripts"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Set working directory
 ```{r}
 setwd("/Users/mamema/Documents/Metagenomes_AMRIWA/R/AMRIWA")
