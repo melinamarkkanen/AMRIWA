@@ -162,6 +162,15 @@ metaxa2 -1 /scratch/project_2002265/markkan5/AMRIWA/workflow/trimmed_data/$name"
 
 metaxa2_ttt -i $name".taxonomy.txt" -o $name
 ```
+Combine outputs to get genus level taxa
+```{r}
+metaxa2_dc -o metaxa_genus.txt *level_6.txt
+```
+Run hclust2 locally for metaphlan results
+# Merge abundance table
+```{r}
+```
+# 
 
 ### TO DO:
 
