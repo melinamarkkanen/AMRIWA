@@ -45,8 +45,7 @@ conda deactivate
 conda deactivate
 ```
 
-Batch job in Puhti. Add "--latency-wait" if needed.
-
+Batch job in Puhti
 ```
 #!/bin/bash
 #SBATCH --job-name=Snakemake
@@ -70,14 +69,12 @@ snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 conda deactivate
 conda deactivate
 ```
-Download  data from allas:
-
+# Download data from allas:
 First set password for Allas for project. Must be run every time prior to actual batch job.
 ```
 module load allas
 allas-conf -k project_2002265
 ```
-
 Then download data with batch job:
 ```
 #!/bin/bash
@@ -105,7 +102,7 @@ swift download 2002265_Melina_Markkanen_AMRIWA_metagenomes
 rm *_ameta
 rm FASTQC.tar.zst
 ```
-Decompress data:
+# Decompress data:
 ```
 #!/bin/bash
 #SBATCH -J decompress
@@ -127,14 +124,13 @@ module load allas
 zstd -d --rm -q *_R1_001.fastq.gz.zst
 zstd -d --rm -q *_R2_001.fastq.gz.zst
 ```
-
-Install Metaxa2:
+# Metaxa2
+Install
 ```
 wget https://microbiology.se/sw/Metaxa2_2.2.1.tar.gz
 tar -zxvf Metaxa2_2.2.1.tar.gz
 ./install_metaxa2
 ```
-
 Running Metaxa2 in Puhti:
 ```
 #!/bin/bash -l
@@ -166,11 +162,53 @@ Combine outputs to get genus level taxa
 ```{r}
 metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
-Run hclust2 locally for metaphlan results
-# Merge abundance table
-```{r}
+# hclust2 v.1.0.0
+First modify metaphlan output "merged_abundance_table.txt" by removing second column.
 ```
-# 
+sed 1d merged_abundance_table.txt | cut -f1,3-98 > merged_abundance_table_reformatted.txt
+```
+Select genus level taxa
+```
+grep -E "(g__)|(^clade_name)" merged_abundance_table_reformatted.txt | grep -v "t__" | grep -v "s__"$
+```
+
+Add metadata "country", "location" and "sample_type" to rows 2, 3 and 4. 
+Sort by country and then location in Excel (> metaphlan_genus_reordered.txt).
+Simplify sample names
+```
+sed -i 's/_profile//g' metaphlan_genus_reordered.txt
+```
+Run hclust2 locally in conda environment with python 2.7, hclust2, graphlan and export2graphlan.
+./hclust2.sh
+```
+#!/bin/sh
+cd /Users/mamema/Desktop/hclust2
+source /Users/mamema/miniconda3/bin/activate
+conda activate hclust2_env
+
+hclust2.py \
+  -i metaphlan_genus.txt \
+  -o metaphlan.png \
+  --skip_rows 1 \
+  --ftop 50 \
+  --f_dist_f correlation \		
+  --s_dist_f euclidean \
+  --cell_aspect_ratio 0.5 \
+  -l --fperc 99 \
+  --flabel_size 4 \
+  --slabel_size 2 \
+  --metadata_rows 3 \
+  --legend_file metaphlan.legend.png \
+  --max_flabel_len 100 \
+  --metadata_height 0.075 \
+  --minv 0.01 \
+  --dpi 300 \
+  --slinkage complete
+
+conda deactivate
+```
+
+
 
 ### TO DO:
 
