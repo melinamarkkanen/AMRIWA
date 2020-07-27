@@ -1,0 +1,9 @@
+*.fastq.gz
+*_ameta
+*.fasta
+*.fastq
+data/
+trimmed_data/
+.snakemake/
+slurm*
+.Rproj.user

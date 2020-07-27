@@ -1,0 +1,9 @@
+---
+title: "R_scripts"
+output: html_document
+---
+
+# Set working directory
+```{r}
+setwd("/Users/mamema/Documents/Metagenomes_AMRIWA/R/AMRIWA")
+```
