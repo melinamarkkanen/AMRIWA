@@ -26,5 +26,38 @@ metadata <-read.table("metadata.txt", sep="\t", header = T, row.names = 1, fill 
 ```
 # Metaxa2
 ```{r}
+# Load data
+metaxa_genus <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaxa_genus.txt")
+
+# Create OTU table
+OTU_metaxa <- metaxa_genus[,-1]
+
+# Create tax table
+tax_table_metaxa <- data.frame(str_split_fixed(data.frame(metaxa_genus) [,1], ";", 6))
+colnames(tax_table_metaxa) <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
+
+# Combine into phyloseq object
+metaxa_PHY <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata))
 ```
+## Add SSU counts into metadata
+```{r}
+metadata$SSU_counts <- sample_sums(metaxa_PHY)
+```
+## Exclude samples
+```{r}
+# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+metaxa_PHY_ww = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+
+# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
+metaxa_PHY_ww = subset_samples(metaxa_PHY_ww, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+```
+
+
+
+
+
+
+
+
 
