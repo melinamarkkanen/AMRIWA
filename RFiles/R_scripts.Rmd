@@ -18,7 +18,6 @@ library(ggplot2)
 library(viridis)
 library(stringr)
 library(vegan)
-library(cowplot)
 ```
 ## Load metadata
 ```{r}
