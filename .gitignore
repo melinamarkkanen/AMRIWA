@@ -7,3 +7,4 @@ trimmed_data/
 .snakemake/
 slurm*
 .DS_Store
+.Rproj.user
