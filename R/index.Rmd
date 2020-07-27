@@ -1,0 +1,18 @@
+---
+title: "index.Rmd"
+author: "Melina Markkanen"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    fig_caption: true
+    fig_width: 6
+    fig_height: 4
+---
+
+***
+  
+```{r child = "R_scripts.Rmd"}
+```
+  
+***
