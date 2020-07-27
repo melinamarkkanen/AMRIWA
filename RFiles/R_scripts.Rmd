@@ -44,7 +44,7 @@ metaxa_PHY <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE),
 ```{r}
 metadata$SSU_counts <- sample_sums(metaxa_PHY)
 ```
-## Exclude samples
+## Filter samples
 ```{r}
 # With low quality (BFH24_S142, BH63_S118, FH10_S171)
 metaxa_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
@@ -66,15 +66,15 @@ metaxa.p1 <- p1 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) 
 metaxa.p1
 
 # Test significance using pair-wise adonis
-metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Burkina Faso"))
+metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Burkina Faso"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
@@ -111,30 +111,38 @@ tax_table_metaphlan <- apply(tax_table_metaphlan, 2, function(y) (gsub(".__", ""
 
 # Combine into phyloseq object
 metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows = TRUE), tax_table(as.matrix(tax_table_metaphlan)), sample_data(metadata))
-
-# Exclude virus
+```
+## Filter smaples
+```{r}
+# Virus
 metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Virus")
+
+# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+metaphlan_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+
+# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
+metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 ```
 ## Ordinate Metaphlan3 results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY, metaphlan_PHY_ord, color = "country", label = "name")
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY_ww, method = "PCoA", distance = "horn")
+p2 <- plot_ordination(metaphlan_PHY_ww, metaphlan_PHY_ord, color = "country", label = "name")
 metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
 metaphlan.p2
 
 # Test significance using pair-wise adonis
-metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Benin" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Benin" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | country == "Benin"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 ```
