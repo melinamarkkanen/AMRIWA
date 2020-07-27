@@ -19,5 +19,38 @@ library(vegan)
 ## Load metadata
 ```{r}
 metadata <-read.table("metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
-View(metadata)
+```
+# Metaxa
+## Load data
+```{r}
+metaxa_genus <- read.delim("metaxa_genus.txt")
+```
+## Create phyloseq object
+```{r}
+# Create OTU table
+OTU_metaxa <- metaxa_genus[,-1]
+
+# Create tax_table
+tax_table_metaxa <- data.frame(str_split_fixed(data.frame(metaxa_genus) [,1], ";", 6))
+colnames(tax_table_metaxa) <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
+
+# Combine to phyloseq object
+metaxa_PHY <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata))
+```
+## Attach SSU counts to metadata
+```{r}
+# Exclude Unknown
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unknown"))
+
+# Check SSU_counts
+sample_sums(metaxa_PHY)
+
+# Add column to metadata file
+metadata$SSU_counts <- sample_sums(metaxa_PHY)
+```
+## Plot PcoA ordinations
+```{r}
+# Change into relative data
+metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
 ```
