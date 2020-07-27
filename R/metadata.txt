@@ -1,99 +1,99 @@
-sample	total_seqs	country	location	sample_type	source
-BFH10_S128	31970832	Burkina Faso	Clinique SOUKA	waste water	delivery room, surgery
-BFH11_S129	31323748	Burkina Faso	Clinique SOUKA	waste water	laboratory
-BFH12_S130	24455299	Burkina Faso	Clinique SOUKA	waste water	peadiatrics
-BFH13_S131	31789060	Burkina Faso	Source de Vie, Ouagadougou	waste water	delivery room
-BFH14_S132	33699519	Burkina Faso	Source de Vie, Ouagadougou	waste water	hospitalization, maternity
-BFH15_S133	30866760	Burkina Faso	Source de Vie, Ouagadougou	waste water	hospitalization, maternity, surgery
-BFH16_S134	30339644	Burkina Faso	Koudougou Hospital	waste water	peadiatrics hospitalization
-BFH17_S135	20806017	Burkina Faso	Koudougou Hospital	waste water	medicine hospitalization
-BFH18_S136	25525401	Burkina Faso	Koudougou Hospital	waste water	delivery room
-BFH19_S137	40690044	Burkina Faso	Koudougou Hospital	waste water	gynecology, operating room
-BFH1_S123	31296922	Burkina Faso	Nanoro Hospital	waste water	big well1
-BFH20_S138	35522537	Burkina Faso	Koudougou Hospital	waste water	maternity hospitalization
-BFH21_S139	37303978	Burkina Faso	Koudougou Hospital	waste water	surgery emergency, hospitalization
-BFH22_S140	31174357	Burkina Faso	Koudougou Hospital	waste water	laboratory
-BFH23_S141	32179782	Burkina Faso	Koudougou Hospital	waste water	emergency, external consultation
-BFH24_S142	379559	Burkina Faso	Koudougou Hospital	waste water	operating room, surgery
-BFH25_S143	30244795	Burkina Faso	Koudougou Hospital	waste water	big well
-BFH26_S144	33545565	Burkina Faso	Koudougou Hospital	waste water	exit after treatment in the municipality channel
-BFH27_S145	37328542	Burkina Faso	Koudougou Hospital	waste water	marigot
-BFH28_S146	33172295	Burkina Faso	Koudougou Hospital	waste water	peadiatric emergency
-BFH29_S147	35716080	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	urology, infectious diseases, pneumology
-BFH30_S148	32489187	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	urology, infectious diseases, pneumology, daily hospital, dialysis, blood bank, cren
-BFH31_S149	30710532	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	anatomy pathology laboratory, orl, ophtalmology, laboratory of hematology-biochemestry, surgery
-BFH32_S150	34745325	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	hospitalization, visceral surgery, central sterilization, gastrology, internal medicine, peadiatric emergency
-BFH33_S151	33691290	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	kitchen, laboratory, trauma, endoscopy, peadiatrics 2, cardiology consultation
-BFH34_S152	29813072	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	bacteriology lab
-BFH35_S153	30094227	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	operating room, neurosurgery, traumatology
-BFH36_S154	31562139	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	operating room, maternity
-BFH37_S155	31814692	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	mortuary
-BFH38.A_S156	33769292	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	delivery room
-BFH38.B_S157	29306477	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	delivery room
-BFH39_S158	37285184	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	emergency, resuscitation, dental surgery, nuclear medicine
-BFH40_S159	33530176	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	mortuary, emergency, maternity, visceral surgery emergency operating room
-BFH41_S160	36561092	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	connection point with onea channel
-BFH42_S161	36975601	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	kossodo, after onea treatment 
-BFH4_S124	31061754	Burkina Faso	Nanoro Hospital	waste water	pediatrics
-BFH6_S125	31826369	Burkina Faso	Clinique SOUKA	waste water	hospitalization, maternity, surgery
-BFH8_S126	34313152	Burkina Faso	Clinique SOUKA	waste water	surgery
-BFH9_S127	34142532	Burkina Faso	Clinique SOUKA	waste water	mortuary
-BH01_S76	27407263	Benin	Hopital de Zone Calavi	waste water	neonatology, septic tank
-BH02_S77	30776607	Benin	Hopital de Zone Calavi	waste water	pediatric, septic tank
-BH03_S78	31557514	Benin	Hopital de Zone Calavi	waste water	surgery room, septic tank
-BH04_S79	30960560	Benin	Hopital de Zone Calavi	sandy sediment sludge	medicine ward, empty sump
-BH05_S80	28189897	Benin	Hopital de Zone Calavi	waste water	maternity ward, septic tank
-BH06_S81	31542754	Benin	Hopital de Zone Calavi	waste water	mortuary ward, septic tank
-BH07_S82	25844679	Benin	Hopital de Zone Calavi	waste water	laundry room, open pit sump
-BH09_S83	24778124	Benin	Hopital de Zone Calavi	waste water	surgery room of demanding operations, sump
-BH10_S84	28280242	Benin	Hopital de Zone Calavi	sludge 	surgery room for demanding operation, septic tank
-BH11_S85	30309348	Benin	Hopital de Zone Calavi	well water	well 100 m away from the hosptital
-BH13_S86	28810065	Benin	Menontin hospital	well water	street gutter 100 m away from the hospital, water
-BH14_S87	25410661	Benin	Menontin hospital	sediment sludge	street gutter 100 m away from the hospital
-BH20_S88	28575708	Benin	Menontin hospital	human feces	patient 50 years old with fracture of thighbone, 1 month hospitalization
-BH22_S89	29323384	Benin	Menontin hospital	human feces	patient 33 years old with fracture of thighbone, 1 month hospitalization
-BH24_S90	24364569	Benin	Menontin hospital	human feces	patient 24 years old with polytrauma, 1 month hospitalization
-BH25_S91	25747866	Benin	Menontin hospital	human feces	patient 27 years old with osteosynthesis, 2 months hospitalization
-BH27_S92	32767933	Benin	Menontin hospital	waste water	central septic tank for intensive care unit laundry room laboratory unit and maternal and child health unit
-BH29_S93	34564913	Benin	Menontin hospital	waste water	surgery unit, open tank
-BH30_S94	33870040	Benin	Menontin hospital	waste water	surgery unit 1st peripheral, septic tank
-BH31_S95	33667074	Benin	Menontin hospital	waste water	surgery unit 2nd pheripheral, septic tank
-BH32_S96	32785554	Benin	Menontin hospital	soil	moist soil between tanks of samples BH31 and BH34
-BH33_S97	11847765	Benin	Menontin hospital	waste water	surgery unit 3rd peripheral, septic tank
-BH34.A_S98	27133354	Benin	Menontin hospital	waste water	surgery unit central septic tank, 1,3 m water depth, sample taken 10cm below surface
-BH34.B_S99	30318104	Benin	Menontin hospital	waste water	surgery unit central septic tank, 1,3 m water depth, sample taken 10cm below surface
-BH35_S100	32498243	Benin	Menontin hospital	waste water	surgery for minor operations, septic tank
-BH36_S101	28850979	Benin	Menontin hospital	waste water	maternity ward, septic tank
-BH37_S102	21904246	Benin	Menontin hospital	waste water	central septic tank for BH35 and BH36, surface layer
-BH38_S103	27773551	Benin	Menontin hospital	waste water	central septic tank for BH35 and BH36, deeper, 1,4 cm surface layer
-BH39_S104	23610041	Benin	Menontin hospital	waste water	septic tank collecting all laboratory waters from the hospital
-BH44_S105	28824180	Benin	Hospital Saint Jean	waste water	central septic tank, waste water from 10 cm 
-BH45_S106	26092242	Benin	Hospital Saint Jean	waste water	central septic tank, waste water from 1 m 
-BH46_S107	28582340	Benin	Hospital Saint Jean	waste water	pediatric clinic septic tank, waste water from 20 cm
-BH47_S108	36833527	Benin	Hospital Saint Jean	waste water	hospitalization ward, vaccination room septic tank
-BH48_S109	40990194	Benin	Hospital Saint Jean	waste water	water pool surrounding the surgery room, septic tank
-BH49_S110	35334695	Benin	Hospital Saint Jean	waste water	maternity clinic, septic tank
-BH50_S111	37185528	Benin	Hospital Saint Jean	waste water	peripheral septic tank, mainly collecting toilet waters, sample from under floating stuff
-BH52_S112	36821916	Benin	Hospital Saint Jean	clean water	tank for washing hands
-BH58_S113	36202259	Benin	Central clinic of Calavi	waste water	sump next to septic tank BH60, water from 2 m depth
-BH59_S114	30838888	Benin	Central clinic of Calavi	waste water	sump next to septic tank BH60, water from 10 cm depth
-BH60_S115	34846238	Benin	Central clinic of Calavi	waste water	emergency, surgery, ophtamology and ward sections, water from 50 cm depth, septic tank
-BH61_S116	38187260	Benin	Central clinic of Calavi	waste water	maternity, surgery and laboratory sections,  water from 1 m depth, septic tank
-BH62_S117	21588357	Benin	Central clinic of Calavi	waste water	maternity, surgery and laboratory sections, water from 10  cm depth, septic tank
-BH63_S118	405337	Benin	Central clinic of Calavi	waste water	laundry septic tank, water from 20 cm depth
-BSE100_S122	35389787	Benin	Savalou area	river water	river Caiman, drinking water for Ouesse village
-BSE74_S119	39718037	Benin	Savalou area	river water	river Zoun, drinking water for the village people who live in the farm
-BSE79_S120	28373002	Benin	Savalou area	river water	bedrock river water, used for ritual purposes and drinking in Aglomodjodji village
-BSE93_S121	37658434	Benin	Savalou area	tap water	drinking water in Aglomodjodji village
-FH10_S171	276592	Finland	Lapland Central Hospital	waste water	G section of drain
-FH1_S162	21241656	Finland	Helsinki University Hospital	waste water	Meilahti triangle hospital main drain
-FH2_S163	37912083	Finland	Helsinki University Hospital	waste water	Meilahti hospital main drain
-FH3_S164	30808621	Finland	Helsinki University Hospital	waste water	new childrens hospital main drain
-FH4_S165	24220212	Finland	Central Finland Health Care District	waste water	main drain
-FH5_S166	26946811	Finland	Central Finland Health Care District	waste water	cancer, hematology, maxillofacial surgery clinic
-FH6_S167	25185582	Finland	Central Finland Health Care District	waste water	emergency, day hospital
-FH7_S168	26389416	Finland	"Turku University Hospital
+sample	name	total_seqs	country	location	sample_type	source
+BFH10_S128	BFH10_S128	31970832	Burkina Faso	Clinique SOUKA	waste water	delivery room, surgery
+BFH11_S129	BFH11_S129	31323748	Burkina Faso	Clinique SOUKA	waste water	laboratory
+BFH12_S130	BFH12_S130	24455299	Burkina Faso	Clinique SOUKA	waste water	peadiatrics
+BFH13_S131	BFH13_S131	31789060	Burkina Faso	Source de Vie, Ouagadougou	waste water	delivery room
+BFH14_S132	BFH14_S132	33699519	Burkina Faso	Source de Vie, Ouagadougou	waste water	hospitalization, maternity
+BFH15_S133	BFH15_S133	30866760	Burkina Faso	Source de Vie, Ouagadougou	waste water	hospitalization, maternity, surgery
+BFH16_S134	BFH16_S134	30339644	Burkina Faso	Koudougou Hospital	waste water	peadiatrics hospitalization
+BFH17_S135	BFH17_S135	20806017	Burkina Faso	Koudougou Hospital	waste water	medicine hospitalization
+BFH18_S136	BFH18_S136	25525401	Burkina Faso	Koudougou Hospital	waste water	delivery room
+BFH19_S137	BFH19_S137	40690044	Burkina Faso	Koudougou Hospital	waste water	gynecology, operating room
+BFH1_S123	BFH1_S123	31296922	Burkina Faso	Nanoro Hospital	waste water	big well1
+BFH20_S138	BFH20_S138	35522537	Burkina Faso	Koudougou Hospital	waste water	maternity hospitalization
+BFH21_S139	BFH21_S139	37303978	Burkina Faso	Koudougou Hospital	waste water	surgery emergency, hospitalization
+BFH22_S140	BFH22_S140	31174357	Burkina Faso	Koudougou Hospital	waste water	laboratory
+BFH23_S141	BFH23_S141	32179782	Burkina Faso	Koudougou Hospital	waste water	emergency, external consultation
+BFH24_S142	BFH24_S142	379559	Burkina Faso	Koudougou Hospital	waste water	operating room, surgery
+BFH25_S143	BFH25_S143	30244795	Burkina Faso	Koudougou Hospital	waste water	big well
+BFH26_S144	BFH26_S144	33545565	Burkina Faso	Koudougou Hospital	waste water	exit after treatment in the municipality channel
+BFH27_S145	BFH27_S145	37328542	Burkina Faso	Koudougou Hospital	waste water	marigot
+BFH28_S146	BFH28_S146	33172295	Burkina Faso	Koudougou Hospital	waste water	peadiatric emergency
+BFH29_S147	BFH29_S147	35716080	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	urology, infectious diseases, pneumology
+BFH30_S148	BFH30_S148	32489187	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	urology, infectious diseases, pneumology, daily hospital, dialysis, blood bank, cren
+BFH31_S149	BFH31_S149	30710532	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	anatomy pathology laboratory, orl, ophtalmology, laboratory of hematology-biochemestry, surgery
+BFH32_S150	BFH32_S150	34745325	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	hospitalization, visceral surgery, central sterilization, gastrology, internal medicine, peadiatric emergency
+BFH33_S151	BFH33_S151	33691290	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	kitchen, laboratory, trauma, endoscopy, peadiatrics 2, cardiology consultation
+BFH34_S152	BFH34_S152	29813072	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	bacteriology lab
+BFH35_S153	BFH35_S153	30094227	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	operating room, neurosurgery, traumatology
+BFH36_S154	BFH36_S154	31562139	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	operating room, maternity
+BFH37_S155	BFH37_S155	31814692	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	mortuary
+BFH38.A_S156	BFH38.A_S156	33769292	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	delivery room
+BFH38.B_S157	BFH38.B_S157	29306477	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	delivery room
+BFH39_S158	BFH39_S158	37285184	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	emergency, resuscitation, dental surgery, nuclear medicine
+BFH40_S159	BFH40_S159	33530176	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	mortuary, emergency, maternity, visceral surgery emergency operating room
+BFH41_S160	BFH41_S160	36561092	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	connection point with onea channel
+BFH42_S161	BFH42_S161	36975601	Burkina Faso	Yalgado teaching hospital of Ouagadougou	waste water	kossodo, after onea treatment 
+BFH4_S124	BFH4_S124	31061754	Burkina Faso	Nanoro Hospital	waste water	pediatrics
+BFH6_S125	BFH6_S125	31826369	Burkina Faso	Clinique SOUKA	waste water	hospitalization, maternity, surgery
+BFH8_S126	BFH8_S126	34313152	Burkina Faso	Clinique SOUKA	waste water	surgery
+BFH9_S127	BFH9_S127	34142532	Burkina Faso	Clinique SOUKA	waste water	mortuary
+BH01_S76	BH01_S76	27407263	Benin	Hopital de Zone Calavi	waste water	neonatology, septic tank
+BH02_S77	BH02_S77	30776607	Benin	Hopital de Zone Calavi	waste water	pediatric, septic tank
+BH03_S78	BH03_S78	31557514	Benin	Hopital de Zone Calavi	waste water	surgery room, septic tank
+BH04_S79	BH04_S79	30960560	Benin	Hopital de Zone Calavi	sandy sediment sludge	medicine ward, empty sump
+BH05_S80	BH05_S80	28189897	Benin	Hopital de Zone Calavi	waste water	maternity ward, septic tank
+BH06_S81	BH06_S81	31542754	Benin	Hopital de Zone Calavi	waste water	mortuary ward, septic tank
+BH07_S82	BH07_S82	25844679	Benin	Hopital de Zone Calavi	waste water	laundry room, open pit sump
+BH09_S83	BH09_S83	24778124	Benin	Hopital de Zone Calavi	waste water	surgery room of demanding operations, sump
+BH10_S84	BH10_S84	28280242	Benin	Hopital de Zone Calavi	sludge 	surgery room for demanding operation, septic tank
+BH11_S85	BH11_S85	30309348	Benin	Hopital de Zone Calavi	well water	well 100 m away from the hosptital
+BH13_S86	BH13_S86	28810065	Benin	Menontin hospital	well water	street gutter 100 m away from the hospital, water
+BH14_S87	BH14_S87	25410661	Benin	Menontin hospital	sediment sludge	street gutter 100 m away from the hospital
+BH20_S88	BH20_S88	28575708	Benin	Menontin hospital	human feces	patient 50 years old with fracture of thighbone, 1 month hospitalization
+BH22_S89	BH22_S89	29323384	Benin	Menontin hospital	human feces	patient 33 years old with fracture of thighbone, 1 month hospitalization
+BH24_S90	BH24_S90	24364569	Benin	Menontin hospital	human feces	patient 24 years old with polytrauma, 1 month hospitalization
+BH25_S91	BH25_S91	25747866	Benin	Menontin hospital	human feces	patient 27 years old with osteosynthesis, 2 months hospitalization
+BH27_S92	BH27_S92	32767933	Benin	Menontin hospital	waste water	central septic tank for intensive care unit laundry room laboratory unit and maternal and child health unit
+BH29_S93	BH29_S93	34564913	Benin	Menontin hospital	waste water	surgery unit, open tank
+BH30_S94	BH30_S94	33870040	Benin	Menontin hospital	waste water	surgery unit 1st peripheral, septic tank
+BH31_S95	BH31_S95	33667074	Benin	Menontin hospital	waste water	surgery unit 2nd pheripheral, septic tank
+BH32_S96	BH32_S96	32785554	Benin	Menontin hospital	soil	moist soil between tanks of samples BH31 and BH34
+BH33_S97	BH33_S97	11847765	Benin	Menontin hospital	waste water	surgery unit 3rd peripheral, septic tank
+BH34.A_S98	BH34.A_S98	27133354	Benin	Menontin hospital	waste water	surgery unit central septic tank, 1,3 m water depth, sample taken 10cm below surface
+BH34.B_S99	BH34.B_S99	30318104	Benin	Menontin hospital	waste water	surgery unit central septic tank, 1,3 m water depth, sample taken 10cm below surface
+BH35_S100	BH35_S100	32498243	Benin	Menontin hospital	waste water	surgery for minor operations, septic tank
+BH36_S101	BH36_S101	28850979	Benin	Menontin hospital	waste water	maternity ward, septic tank
+BH37_S102	BH37_S102	21904246	Benin	Menontin hospital	waste water	central septic tank for BH35 and BH36, surface layer
+BH38_S103	BH38_S103	27773551	Benin	Menontin hospital	waste water	central septic tank for BH35 and BH36, deeper, 1,4 cm surface layer
+BH39_S104	BH39_S104	23610041	Benin	Menontin hospital	waste water	septic tank collecting all laboratory waters from the hospital
+BH44_S105	BH44_S105	28824180	Benin	Hospital Saint Jean	waste water	central septic tank, waste water from 10 cm 
+BH45_S106	BH45_S106	26092242	Benin	Hospital Saint Jean	waste water	central septic tank, waste water from 1 m 
+BH46_S107	BH46_S107	28582340	Benin	Hospital Saint Jean	waste water	pediatric clinic septic tank, waste water from 20 cm
+BH47_S108	BH47_S108	36833527	Benin	Hospital Saint Jean	waste water	hospitalization ward, vaccination room septic tank
+BH48_S109	BH48_S109	40990194	Benin	Hospital Saint Jean	waste water	water pool surrounding the surgery room, septic tank
+BH49_S110	BH49_S110	35334695	Benin	Hospital Saint Jean	waste water	maternity clinic, septic tank
+BH50_S111	BH50_S111	37185528	Benin	Hospital Saint Jean	waste water	peripheral septic tank, mainly collecting toilet waters, sample from under floating stuff
+BH52_S112	BH52_S112	36821916	Benin	Hospital Saint Jean	clean water	tank for washing hands
+BH58_S113	BH58_S113	36202259	Benin	Central clinic of Calavi	waste water	sump next to septic tank BH60, water from 2 m depth
+BH59_S114	BH59_S114	30838888	Benin	Central clinic of Calavi	waste water	sump next to septic tank BH60, water from 10 cm depth
+BH60_S115	BH60_S115	34846238	Benin	Central clinic of Calavi	waste water	emergency, surgery, ophtamology and ward sections, water from 50 cm depth, septic tank
+BH61_S116	BH61_S116	38187260	Benin	Central clinic of Calavi	waste water	maternity, surgery and laboratory sections,  water from 1 m depth, septic tank
+BH62_S117	BH62_S117	21588357	Benin	Central clinic of Calavi	waste water	maternity, surgery and laboratory sections, water from 10  cm depth, septic tank
+BH63_S118	BH63_S118	405337	Benin	Central clinic of Calavi	waste water	laundry septic tank, water from 20 cm depth
+BSE100_S122	BSE100_S122	35389787	Benin	Savalou area	river water	river Caiman, drinking water for Ouesse village
+BSE74_S119	BSE74_S119	39718037	Benin	Savalou area	river water	river Zoun, drinking water for the village people who live in the farm
+BSE79_S120	BSE79_S120	28373002	Benin	Savalou area	river water	bedrock river water, used for ritual purposes and drinking in Aglomodjodji village
+BSE93_S121	BSE93_S121	37658434	Benin	Savalou area	tap water	drinking water in Aglomodjodji village
+FH10_S171	FH10_S171	276592	Finland	Lapland Central Hospital	waste water	G section of drain
+FH1_S162	FH1_S162	21241656	Finland	Helsinki University Hospital	waste water	Meilahti triangle hospital main drain
+FH2_S163	FH2_S163	37912083	Finland	Helsinki University Hospital	waste water	Meilahti hospital main drain
+FH3_S164	FH3_S164	30808621	Finland	Helsinki University Hospital	waste water	new childrens hospital main drain
+FH4_S165	FH4_S165	24220212	Finland	Central Finland Health Care District	waste water	main drain
+FH5_S166	FH5_S166	26946811	Finland	Central Finland Health Care District	waste water	cancer, hematology, maxillofacial surgery clinic
+FH6_S167	FH6_S167	25185582	Finland	Central Finland Health Care District	waste water	emergency, day hospital
+FH7_S168	FH7_S168	26389416	Finland	"Turku University Hospital
 "	waste water	main drain
-FH8_S169	28285872	Finland	"Turku University Hospital
+FH8_S169	FH8_S169	28285872	Finland	"Turku University Hospital
 "	waste water	biological replicate of FH7
-FH9_S170	23656949	Finland	Lapland Central Hospital	waste water	H section of drain 
+FH9_S170	FH9_S170	23656949	Finland	Lapland Central Hospital	waste water	H section of drain 
