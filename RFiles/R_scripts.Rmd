@@ -149,6 +149,7 @@ adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), 
 # The results are almost identical to the ones from Metaxa2 analysis: The explanatory variable "country" explains some of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
 # ResFinder
+## Load data
 ```{r}
 # Modify mapping output file "ARG_genemat.txt" in command line to match sample names in metadata file
 ## sed 's/BFH38-A_S156/BFH38.A_S156/g' ARG_genemat.txt > mod_ARG_genemat.txt
@@ -156,9 +157,42 @@ adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), 
 ## sed -i 's/BH34-A_S98/BH34.A_S98/g' mod_ARG_genemat.txt
 ## sed -i 's/BH34-B_S99/BH34.B_S99/g' mod_ARG_genemat.txt
 
-# Load data
 ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 ```
+## Normalize ARG counts to SSU
+```{r}
+ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
+
+# Check if correct:
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+
+# Save and load again to exclude row.names
+write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+
+ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+ARG_genemat_norm$row.names<-NULL
+```
+## Create phyloseq object
+```{r}
+# Create tax table
+tax_table_resfinder <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_resfinder.txt", header=FALSE, sep=";")
+colnames(tax_table_resfinder) <- c("Gene", "Class")
+
+# Combine to phyloseq object
+resfinder_PHY <- phyloseq(otu_table(ARG_genemat_norm, taxa_are_rows = TRUE), sample_data(metadata), 
+    tax_table(as.matrix(tax_table_resfinder)))
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
