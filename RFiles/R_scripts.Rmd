@@ -6,8 +6,22 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-# Test
+# Set working directory
 ```{r}
-
+setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
 ```
+# Load libraries
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+library(phyloseq)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(stringr)
+library(vegan)
+library(cowplot)
+```
+# Load metadata
+```{r}
+metadata <-read.table("metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+```
+
