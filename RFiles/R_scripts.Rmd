@@ -57,11 +57,16 @@ metaxa_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S11
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 metaxa_PHY_ww = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Clear taxa that is not present in any of the remaining samples
+any(taxa_sums(metaxa_PHY_ww) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY_ww) > 0, metaxa_PHY_ww)
+any(taxa_sums(metaxa_PHY) == 0)
 ```
 ## Ordinate Metaxa2 result to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Change into relative data
-metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY_ww, function(x) x/sum(x))
+metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
 
 # Ordinate and plot data
 metaxa_rel_PHY_ord <- ordinate(metaxa_rel_PHY, method = "PCoA", distance = "horn")
@@ -72,15 +77,15 @@ metaxa.p1 <- p1 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) 
 metaxa.p1
 
 # Test significance using pair-wise adonis
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Burkina Faso"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Burkina Faso"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
@@ -128,27 +133,32 @@ metaphlan_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Clear taxa that is not present in any of the remaining samples
+any(taxa_sums(metaphlan_PHY_ww) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaphlan_PHY_ww) > 0, metaphlan_PHY_ww)
+any(taxa_sums(metaphlan_PHY) == 0)
 ```
 ## Ordinate Metaphlan3 results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_ww, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY_ww, metaphlan_PHY_ord, color = "country", label = "name")
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY, method = "PCoA", distance = "horn")
+p2 <- plot_ordination(metaphlan_PHY, metaphlan_PHY_ord, color = "country", label = "name")
 metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
 metaphlan.p2
 
 # Test significance using pair-wise adonis
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Benin" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Benin" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
+metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | country == "Benin"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
@@ -224,40 +234,45 @@ resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Check if there are taxa that are not present in any of the remaining samples
+any(taxa_sums(resfinder_PHY_ww) == 0)
+resfinder_PHY <- prune_taxa(taxa_sums(resfinder_PHY_ww) > 0, resfinder_PHY_ww)
+any(taxa_sums(resfinder_PHY) == 0)
 ```
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-resfinder_PHY_ord <- ordinate(resfinder_PHY_ww, method = "PCoA", distance = "horn")
-p3 <- plot_ordination(resfinder_PHY_ww, resfinder_PHY_ord, color = "country", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY, method = "PCoA", distance = "horn")
+p3 <- plot_ordination(resfinder_PHY, resfinder_PHY_ord, color = "country", label = "name")
 resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY, (country == "Finland" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY, (country == "Burkina Faso" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Burkina Faso"))
+resfinder_temp <- subset_samples(resfinder_PHY, (country == "Finland" | country == "Burkina Faso"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some (~10.1 % [HC: ~10.2 %]) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.5 % [HC: ~12.9 %]) between Burkina Faso and Finland.
+# The explanatory variable "country" explains some (~10.1 % [Normalized by gene lengths: ~10.2 %]) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.5 % [Normalized by gene lengths: ~12.9 %]) between Burkina Faso and Finland.
 ```
 # Diversity indexes by Metaxa2
 ```{r}
 # Take a look at the indexes (now not the relative data, we'll see...)
-metaxa_tab <-microbiome::alpha(metaxa_PHY_ww, index = "all")
+metaxa_tab <-microbiome::alpha(metaxa_PHY, index = "all")
 kable(head(metaxa_tab))
 
 # Create data table
-metaxa.meta <- meta(metaxa_PHY_ww)
+metaxa.meta <- meta(metaxa_PHY)
 kable(head(metaxa.meta))
 
 # Add indexes to data table
@@ -312,11 +327,11 @@ print(p6)
 # Diversity indexes by Metaphlan3
 ```{r}
 # Take a look at the indexes
-metaphlan_tab <-microbiome::alpha(metaphlan_PHY_ww, index = "all")
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY, index = "all")
 kable(head(metaphlan_tab))
 
 # Create data table
-metaphlan.meta <- meta(metaphlan_PHY_ww)
+metaphlan.meta <- meta(metaphlan_PHY)
 kable(head(metaxa.meta))
 
 # Add indexes to data table
@@ -367,11 +382,11 @@ print(p9)
 ```{r}
 # Shannon
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_shannon")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
 ## Create data table
-resfinder.meta <- meta(resfinder_PHY_ww)
+resfinder.meta <- meta(resfinder_PHY)
 kable(head(resfinder.meta))
 
 ## Add indexes to data table
@@ -390,7 +405,7 @@ print(p10)
 
 # Gini Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_gini_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_gini_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -411,7 +426,7 @@ print(p11)
 
 # Inverse Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_inverse_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_inverse_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -433,7 +448,7 @@ print(p12)
 # Taxonomic composition by Metaxa2 using microbiome package
 ```{r}
 # Load data
-metaxa.com <- metaxa_PHY_ww
+metaxa.com <- metaxa_PHY
 taxic_metaxa <- as.data.frame(metaxa.com@tax_table) 
 
 # Add OTU ids
@@ -465,7 +480,7 @@ metaxa_top6class.p13 +
 # Taxonomic composition by Metaphlan3 using microbiome package
 ```{r}
 # Load data
-metaphlan.com <- metaphlan_PHY_ww
+metaphlan.com <- metaphlan_PHY
 taxic_metaphlan <- as.data.frame(metaphlan.com@tax_table) 
 
 # Add OTU ids
@@ -494,7 +509,6 @@ metaphlan_top6class.p14 <- plot_composition(metaphlan_top6class.rel, group_by = 
 metaphlan_top6class.p14 + 
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
 ```
-
 
 
 
