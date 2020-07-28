@@ -176,7 +176,7 @@ ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names
 lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
 colnames(lengths_resfinder) <- c("Length")
 ```
-## HC normalization
+## Normalization with gene lengths
 ```{r}
 # Divide by ResFinder hit gene lengths
 ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
@@ -429,9 +429,47 @@ print(p12)
 
 # The alpha diversity of resistance genes deteced by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
 ```
+# Taxonomic composition by Metaxa2 using microbiome
+```{r}
+# Load data
+metaxa.com <- metaxa_PHY_ww
+taxic <- as.data.frame(metaxa.com@tax_table) 
+
+# Add OTU ids
+taxic$OTU <- rownames(taxic) 
+colnames(taxic)
+
+# Convert into a matrix.
+taxmat <- as.matrix(taxic)
+
+# Convert into phyloseq compatible file.
+new.tax <- tax_table(taxmat)  
+
+# Incroporate into new phyloseq object
+tax_table(metaxa.com) <- new.tax 
+
+# Class level
+metaxa_top6genus <- aggregate_top_taxa(metaxa.com, top = 6, "Class")
+
+metaxa_top6class.rel <- microbiome::transform(metaxa_top6class, "compositional")
+
+metaxa_top6class.p13 <- plot_composition(metaxa_top6class.rel, group_by = "country") + 
+  theme(legend.position = "bottom") + theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) + 
+    ggtitle("Relative abundance of top 6 classes, Metaxa2")
+
+metaxa_top6class.p13 + 
+    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
+
+```
 
 
 
+
+# Boxplot of composition
+```{r}
+
+```
 
 
 
