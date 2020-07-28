@@ -509,7 +509,15 @@ metaphlan_top6class.p14 <- plot_composition(metaphlan_top6class.rel, group_by = 
 metaphlan_top6class.p14 + 
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
 ```
+# Heatmap
+```{r}
+#metaxa_heat <- format_to_besthit(metaxa_PHY)
 
+#heat.sample <- plot_taxa_heatmap(metaxa_heat, subset.top = 12,
+#    VariableA = "country",
+#    heatcolors = rev(brewer.pal(100, "Blues")),
+#    transformation = "log10")
+```
 
 
 
