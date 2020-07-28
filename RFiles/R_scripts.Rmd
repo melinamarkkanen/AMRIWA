@@ -308,7 +308,42 @@ print(p6)
 
 # The alpha diversity is the highest in Benin compared to Burkina Faso and Finland. Of Burkina Faso and Finland the diversity is higher in Burkina Faso. 
 ```
+# Diversity indexes by Metaphlan3
+```{r}
+# Take a look at the indexes
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY_ww, index = "all")
+kable(head(metaphlan_tab))
 
+# Create data table
+metaphlan.meta <- meta(metaphlan_PHY_ww)
+kable(head(metaxa.meta))
+
+# Add indexes to data table
+## Shannon
+metaphlan.meta$diversity_shannon <- metaphlan_tab$diversity_shannon
+## Gini Simpson
+metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
+## Inverse Simpson
+metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simpson
+
+# Check whether the distribution of the diversity is normal
+hist(metaphlan.meta$diversity_shannon)
+shapiro.test(metaphlan.meta$diversity_shannon)
+qqnorm(metaphlan.meta$diversity_shannon)
+
+hist(metaphlan.meta$diversity_gini_simpson)
+shapiro.test(metaphlan.meta$diversity_gini_simpson)
+qqnorm(metaphlan.meta$diversity_gini_simpson)
+
+hist(metaphlan.meta$diversity_inverse_simpson)
+shapiro.test(metaphlan.meta$diversity_inverse_simpson)
+qqnorm(metaxa.meta$diversity_inverse_simpson)
+
+# Create a list of pairwise comparisons
+div.country <- levels(metaphlan.meta$country)
+country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
+print(country.pairs)
+```
 
 
 
