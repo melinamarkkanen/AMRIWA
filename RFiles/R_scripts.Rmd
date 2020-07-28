@@ -427,48 +427,84 @@ p12 <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
 p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p12)
 
-# The alpha diversity of resistance genes deteced by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
+# The alpha diversity of resistance genes detected by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
 ```
-# Taxonomic composition by Metaxa2 using microbiome
+# Taxonomic composition by Metaxa2 using microbiome package
 ```{r}
 # Load data
 metaxa.com <- metaxa_PHY_ww
-taxic <- as.data.frame(metaxa.com@tax_table) 
+taxic_metaxa <- as.data.frame(metaxa.com@tax_table) 
 
 # Add OTU ids
-taxic$OTU <- rownames(taxic) 
-colnames(taxic)
+taxic_metaxa$OTU <- rownames(taxic_metaxa) 
+colnames(taxic_metaxa)
 
 # Convert into a matrix.
-taxmat <- as.matrix(taxic)
+taxmat_metaxa <- as.matrix(taxic_metaxa)
 
 # Convert into phyloseq compatible file.
-new.tax <- tax_table(taxmat)  
+new.tax_metaxa <- tax_table(taxmat_metaxa)  
 
 # Incroporate into new phyloseq object
-tax_table(metaxa.com) <- new.tax 
+tax_table(metaxa.com) <- new.tax_metaxa
 
 # Class level
-metaxa_top6genus <- aggregate_top_taxa(metaxa.com, top = 6, "Class")
+metaxa_top6class <- aggregate_top_taxa(metaxa.com, top = 6, "Class")
 
 metaxa_top6class.rel <- microbiome::transform(metaxa_top6class, "compositional")
 
 metaxa_top6class.p13 <- plot_composition(metaxa_top6class.rel, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
-  theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
     ggtitle("Relative abundance of top 6 classes, Metaxa2")
 
 metaxa_top6class.p13 + 
-    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
-
+    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
 ```
+# Taxonomic composition by Metaphlan3 using microbiome package
+```{r}
+# Load data
+metaphlan.com <- metaphlan_PHY_ww
+taxic_metaphlan <- as.data.frame(metaphlan.com@tax_table) 
 
+# Add OTU ids
+taxic_metaphlan$OTU <- rownames(taxic_metaphlan) 
+colnames(taxic_metaphlan)
 
+# Convert into a matrix.
+taxmat_metaphlan <- as.matrix(taxic_metaphlan)
 
+# Convert into phyloseq compatible file.
+new.tax_metaphlan <- tax_table(taxmat_metaphlan)  
+
+# Incroporate into new phyloseq object
+tax_table(metaphlan.com) <- new.tax_metaphlan
+
+# Class level
+metaphlan_top6class <- aggregate_top_taxa(metaphlan.com, top = 6, "Class")
+
+metaphlan_top6class.rel <- microbiome::transform(metaphlan_top6class, "compositional")
+
+metaphlan_top6class.p14 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
+  theme(legend.position = "bottom") + theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
+    ggtitle("Relative abundance of top 6 classes, Metaphlan3")
+
+metaphlan_top6class.p14 + 
+    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
+```
 
 # Boxplot of composition
 ```{r}
+nsamples(metaphlan_PHY_ww)
 
+metaphlan_bp <- core(metaphlan_PHY_ww, detection = 10, prevalence = 10/nsamples(metaphlan_PHY_ww))
+hist(log10(taxa_sums(metaphlan_bp)))
+
+ps4.rel <- microbiome::transform(ps4, "compositional")
+
+
+ <- plot_taxa_boxplot(ps4.rel, "Genus", 10, "SampleType", color = "Set2", "Relative abundance of top 10 genera")
 ```
 
 
