@@ -18,6 +18,7 @@ library(ggplot2)
 library(viridis)
 library(stringr)
 library(vegan)
+library(RColorBrewer)
 ```
 ## Load metadata
 ```{r}
@@ -179,7 +180,7 @@ ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
 ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
 
 # Check if correct:
-identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
 write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
