@@ -360,7 +360,24 @@ print(p9)
 
 # The resukts are identical to those from Metaxa2.
 ```
+# Diversity indexes by ResFinder
+```{r}
+# Take a look at the indexes
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "all")
+kable(head(resfinder_tab))
 
+# Create data table
+metaphlan.meta <- meta(metaphlan_PHY_ww)
+kable(head(metaxa.meta))
+
+# Add indexes to data table
+## Shannon
+metaphlan.meta$diversity_shannon <- metaphlan_tab$diversity_shannon
+## Gini Simpson
+metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
+## Inverse Simpson
+metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simpson
+```
 
 
 
