@@ -352,31 +352,82 @@ p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
 p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p8)
 
+# The outlier samole in here is FH5_S166
+
 ## Inverse Simpson
 p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p9)
 
-# The resukts are identical to those from Metaxa2.
+# The results are identical to those from Metaxa2.
 ```
 # Diversity indexes by ResFinder
 ```{r}
-# Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "all")
+# Shannon
+## Take a look at the indexes
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
-# Create data table
-metaphlan.meta <- meta(metaphlan_PHY_ww)
-kable(head(metaxa.meta))
+## Create data table
+resfinder.meta <- meta(resfinder_PHY_ww)
+kable(head(resfinder.meta))
 
-# Add indexes to data table
-## Shannon
-metaphlan.meta$diversity_shannon <- metaphlan_tab$diversity_shannon
-## Gini Simpson
-metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
-## Inverse Simpson
-metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simpson
+## Add indexes to data table
+resfinder.meta$diversity_shannon <- resfinder_tab$diversity_shannon
+
+# Check whether the distribution of the diversity is normal
+hist(resfinder.meta$diversity_shannon)
+shapiro.test(resfinder.meta$diversity_shannon) # Does not fit the assumption of normal distribution > wilcox test.
+qqnorm(resfinder.meta$diversity_shannon)
+
+# Plot
+p10 <- ggviolin(resfinder.meta, x = "country", y = "diversity_shannon",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p10 <- p10 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p10)
+
+# Gini Simpson
+## Take a look at the indexes
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_gini_simpson")
+kable(head(resfinder_tab))
+
+## Add indexes to data table
+resfinder.meta$diversity_gini_simpson <- resfinder_tab$diversity_gini_simpson
+
+# Check whether the distribution of the diversity is normal
+hist(resfinder.meta$diversity_gini_simpson)
+shapiro.test(resfinder.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
+qqnorm(resfinder.meta$diversity_gini_simpson)
+
+# Plot
+p11 <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p11 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p11)
+
+# The outlier sample here is FH6-S167
+
+# Inverse Simpson
+## Take a look at the indexes
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_inverse_simpson")
+kable(head(resfinder_tab))
+
+## Add indexes to data table
+resfinder.meta$diversity_inverse_simpson <- resfinder_tab$diversity_inverse_simpson
+
+# Check whether the distribution of the diversity is normal
+hist(metaphlan.meta$diversity_inverse_simpson)
+shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
+qqnorm(metaxa.meta$diversity_inverse_simpson)
+
+# Plot
+p12 <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+print(p12)
+
+# The alpha diversity of resistance genes deteced by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
 ```
 
 
