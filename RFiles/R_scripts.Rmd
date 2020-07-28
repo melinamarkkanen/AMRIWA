@@ -269,11 +269,11 @@ metaxa.meta$diversity_inverse_simpson <- metaxa_tab$diversity_inverse_simpson
 
 # Check whether the distribution of the diversity is normal
 hist(metaxa.meta$diversity_shannon)
-shapiro.test(metaxa.meta$diversity_shannon) # Does not fit the assumption of normal distribution > t-test.
+shapiro.test(metaxa.meta$diversity_shannon) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaxa.meta$diversity_shannon)
 
 hist(metaxa.meta$diversity_gini_simpson)
-shapiro.test(metaxa.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > t-test.
+shapiro.test(metaxa.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaxa.meta$diversity_gini_simpson)
 
 hist(metaxa.meta$diversity_inverse_simpson)
@@ -328,21 +328,37 @@ metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simp
 
 # Check whether the distribution of the diversity is normal
 hist(metaphlan.meta$diversity_shannon)
-shapiro.test(metaphlan.meta$diversity_shannon)
+shapiro.test(metaphlan.meta$diversity_shannon) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaphlan.meta$diversity_shannon)
 
 hist(metaphlan.meta$diversity_gini_simpson)
-shapiro.test(metaphlan.meta$diversity_gini_simpson)
+shapiro.test(metaphlan.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaphlan.meta$diversity_gini_simpson)
 
 hist(metaphlan.meta$diversity_inverse_simpson)
-shapiro.test(metaphlan.meta$diversity_inverse_simpson)
+shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
 qqnorm(metaxa.meta$diversity_inverse_simpson)
 
-# Create a list of pairwise comparisons
-div.country <- levels(metaphlan.meta$country)
-country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
-print(country.pairs)
+# Plot
+## Shannon
+p7 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p7 <- p7 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p7)
+
+## Gini Simpson
+p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p8)
+
+## Inverse Simpson
+p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+print(p9)
+
+# The resukts are identical to those from Metaxa2.
 ```
 
 
