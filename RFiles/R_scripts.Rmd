@@ -19,6 +19,10 @@ library(viridis)
 library(stringr)
 library(vegan)
 library(RColorBrewer)
+library(BiocManager)
+BiocManager::install("microbiome")
+library(microbiome)
+library(knitr)
 ```
 ## Load metadata
 ```{r}
@@ -244,7 +248,14 @@ adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), 
 
 # The explanatory variable "country" explains some (~10.1 % [HC: ~10.2 %]) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.5 % [HC: ~12.9 %]) between Burkina Faso and Finland.
 ```
+# Diversity indexes by Metaxa2
+```{r}
+# Take a look at the indexes
+metaxa_tab <-microbiome::alpha(metaxa_PHY_ww, index = "all")
+kable(head(metaxa_tab))
 
+
+```
 
 
 
