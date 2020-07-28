@@ -14,7 +14,6 @@ setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
 library(phyloseq)
 library(dplyr)
-library(ggplot2)
 library(viridis)
 library(stringr)
 library(vegan)
@@ -22,6 +21,8 @@ library(RColorBrewer)
 library(BiocManager)
 BiocManager::install("microbiome")
 library(microbiome)
+library(microbiomeutilities)
+library(ggplot2)
 library(knitr)
 library(ggpubr)
 ```
@@ -494,18 +495,7 @@ metaphlan_top6class.p14 +
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
 ```
 
-# Boxplot of composition
-```{r}
-nsamples(metaphlan_PHY_ww)
 
-metaphlan_bp <- core(metaphlan_PHY_ww, detection = 10, prevalence = 10/nsamples(metaphlan_PHY_ww))
-hist(log10(taxa_sums(metaphlan_bp)))
-
-ps4.rel <- microbiome::transform(ps4, "compositional")
-
-
- <- plot_taxa_boxplot(ps4.rel, "Genus", 10, "SampleType", color = "Set2", "Relative abundance of top 10 genera")
-```
 
 
 
