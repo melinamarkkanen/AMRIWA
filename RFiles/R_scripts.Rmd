@@ -479,6 +479,43 @@ metaxa_top6class.p13 <- plot_composition(metaxa_top6class.rel, group_by = "count
 metaxa_top6class.p13 + 
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
 ```
+# Top 12 genera merged by location, Metaxa2
+```{r}
+metaxa_PHY_genus <- tax_glom(metaxa_PHY, "Genus")
+
+metaxa_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaxa_PHY_genus), TRUE)[1:12]), 
+    metaxa_PHY_genus)
+
+# Transform_1
+metaxa_PHY_genus_abun_trans <- transform_sample_counts(metaxa_PHY_genus_abun, function(x) x / sum(x))
+
+# Merge by location
+mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
+
+# Transform_2
+mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
+
+# Normalize by sample number / location
+otu_table(mrg_loc_trans) <- otu_table(mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
+    1]
+
+# Set colors
+nb.cols <- 12
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+# Facet labs
+country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
+
+# Plot
+metaxa.p14 <- plot_bar(mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=75, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) +
+  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.8, keyheight = 1.8, title = "Genus"))
+metaxa.p14
+```
 # Taxonomic composition by Metaphlan3 using microbiome package
 ```{r}
 # Load data
@@ -503,33 +540,36 @@ metaphlan_top6class <- aggregate_top_taxa(metaphlan.com, top = 6, "Class")
 
 metaphlan_top6class.rel <- microbiome::transform(metaphlan_top6class, "compositional")
 
-metaphlan_top6class.p14 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
+metaphlan_top6class.p15 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
     ggtitle("Relative abundance of top 6 classes, Metaphlan3")
 
-metaphlan_top6class.p14 + 
+metaphlan_top6class.p15 + 
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
 
 # The relative abundance of top 6 classes seems identical between the two methods Metaxa2 and Metaphlan.
 # Deltaproteobacteria seems more common in Beninise samples compared to BF and Finland. In which instead the proportion of Gammaproteobacteria is higher. Betaproteobacteria are present in lower proportion in Finnish samples.
 ```
-# Genera merged by location, Metaphlan3
+# Top 12 genera merged by location, Metaphlan3
 ```{r}
 metaphlan_PHY_genus <- tax_glom(metaphlan_PHY, "Genus")
 
 metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus), TRUE)[1:12]), 
     metaphlan_PHY_genus)
 
+# Transform_1
+metaphlan_PHY_genus_abun_trans <- transform_sample_counts(metaphlan_PHY_genus_abun, function(x) x / sum(x))
+
 # Merge by location
-mrg_loc <- merge_samples(metaphlan_PHY_genus_abun, "location")
+mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
+
+# Transform_2
+mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
 
 # Normalize by sample number / location
-otu_table(mrg_loc) <- otu_table(mrg_loc)[, ]/as.matrix(table(sample_data(metaphlan_PHY)$location))[, 
+otu_table(mrg_loc_trans) <- otu_table(mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
     1]
-
-# Transform
-mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
 
 # Set colors
 nb.cols <- 12
@@ -538,7 +578,7 @@ mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
 # Plot
-metaphlan.p15 <- plot_bar(mrg_loc, fill = "Genus", title = "12 most abundant genera") + 
+metaphlan.p16 <- plot_bar(mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
   facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle=75, hjust=1, size = 10),
@@ -546,11 +586,10 @@ metaphlan.p15 <- plot_bar(mrg_loc, fill = "Genus", title = "12 most abundant gen
         ylab("Relative abundance (%)") + xlab("") +
   scale_fill_manual(values=mycolors) +
   guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.8, keyheight = 1.8, title = "Genus"))
-metaphlan.p15
+metaphlan.p16
 ```
 # DRAFT Heatmap of Metaxa2 results
 ```{r}
-
 heat.sample <- plot_taxa_heatmap(metaxa_PHY,
                                  subset.top = 50,
                                  taxonomic.level = "Genus",
