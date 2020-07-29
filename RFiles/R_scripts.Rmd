@@ -25,6 +25,7 @@ library(microbiomeutilities)
 library(ggplot2)
 library(knitr)
 library(ggpubr)
+library(pheatmap)
 ```
 ## Load metadata
 ```{r}
@@ -205,6 +206,7 @@ ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/A
 ARG_genemat_norm$row.names<-NULL
 ```
 ## Normalize ARG counts to SSU
+### Do not run if the above is run
 ```{r}
 ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
 
@@ -507,21 +509,32 @@ metaphlan_top6class.p14 <- plot_composition(metaphlan_top6class.rel, group_by = 
     ggtitle("Relative abundance of top 6 classes, Metaphlan3")
 
 metaphlan_top6class.p14 + 
-    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF")) 
+    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
+
+# The relative abundance of top 6 classes seems identical between the two methods Metaxa2 and Metaphlan.
+# Deltaproteobacteria seems more common in Beninise samples compared to BF and Finland. In which instead the proportion of Gammaproteobacteria is higher. Betaproteobacteria are present in lower proportion in Finnish samples.
 ```
-# Heatmap
+# DRAFT Heatmap of Metaxa2 results
 ```{r}
-#metaxa_heat <- format_to_besthit(metaxa_PHY)
 
-#heat.sample <- plot_taxa_heatmap(metaxa_heat, subset.top = 12,
-#    VariableA = "country",
-#    heatcolors = rev(brewer.pal(100, "Blues")),
-#    transformation = "log10")
+heat.sample <- plot_taxa_heatmap(metaxa_PHY,
+                                 subset.top = 50,
+                                 taxonomic.level = "Genus",
+                                 VariableA = "country",
+                                 heatcolors = rev(brewer.pal(12, "GnBu")),
+                                 transformation = "log10",
+                                 cluster_cols = F)
+# taxonomic.level ?
+heat.sample
 ```
-
-
-
-
+# DRAFT Boxplot of relative abundance of top 6 class
+```{r}
+pn <- plot_taxa_boxplot(metaxa_PHY,
+                        taxonomic.level = "Class",
+                        top.otu = 6, VariableA = "country",
+                        title = "Relative abudance plot", color = "Dark2")
+print(pn)
+```
 
 
 
