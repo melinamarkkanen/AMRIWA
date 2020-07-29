@@ -130,7 +130,7 @@ metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows = TRUE), tax_ta
 metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Virus")
 
 # With low quality (BFH24_S142, BH63_S118, FH10_S171)
-metaphlan_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
@@ -144,7 +144,7 @@ any(taxa_sums(metaphlan_PHY) == 0)
 ```{r}
 # Ordinate and plot data
 metaphlan_PHY_ord <- ordinate(metaphlan_PHY, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY, metaphlan_PHY_ord, color = "country", label = "name")
+p2 <- plot_ordination(metaphlan_PHY, metaphlan_PHY_ord, color = "country", label = "sample_type")
 metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
@@ -163,7 +163,17 @@ metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | cou
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# The results are almost identical to the ones from Metaxa2 analysis: The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
+# The explanatory variable "country" explains only very little of the difference in the grouping of taxonomy between. Instead, sample types other than waste water seem to group together. Let's test if this is significant.
+
+metaphlan_temp <- subset_samples(metaphlan_PHY, (sample_type == "waste water" | sample_type == "soil"))
+metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
+adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
+
+metaphlan_temp <- subset_samples(metaphlan_PHY, (sample_type == "waste water" | sample_type == "river water"))
+metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
+adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
+
+# Not really.
 ```
 # ResFinder
 ## Load data
@@ -328,57 +338,68 @@ print(p6)
 ```
 # Diversity indexes by Metaphlan3
 ```{r}
-# Take a look at the indexes
-metaphlan_tab <-microbiome::alpha(metaphlan_PHY, index = "all")
+# Shannon
+## Take a look at the indexes
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY, index = "diversity_shannon")
 kable(head(metaphlan_tab))
 
-# Create data table
+## Create data table
 metaphlan.meta <- meta(metaphlan_PHY)
-kable(head(metaxa.meta))
+kable(head(metaphlan.meta))
 
-# Add indexes to data table
-## Shannon
+## Add indexes to data table
 metaphlan.meta$diversity_shannon <- metaphlan_tab$diversity_shannon
-## Gini Simpson
-metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
-## Inverse Simpson
-metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simpson
 
 # Check whether the distribution of the diversity is normal
 hist(metaphlan.meta$diversity_shannon)
 shapiro.test(metaphlan.meta$diversity_shannon) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaphlan.meta$diversity_shannon)
 
-hist(metaphlan.meta$diversity_gini_simpson)
-shapiro.test(metaphlan.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
-qqnorm(metaphlan.meta$diversity_gini_simpson)
-
-hist(metaphlan.meta$diversity_inverse_simpson)
-shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
-qqnorm(metaxa.meta$diversity_inverse_simpson)
-
 # Plot
-## Shannon
 p7 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p7 <- p7 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p7)
 
-## Gini Simpson
+# Gini Simpson
+## Take a look at the indexes
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY, index = "diversity_gini_simpson")
+kable(head(metaphlan_tab))
+
+## Add indexes to data table
+metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
+
+# Check whether the distribution of the diversity is normal
+hist(metaphlan.meta$diversity_gini_simpson)
+shapiro.test(metaphlan.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
+qqnorm(metaphlan.meta$diversity_gini_simpson)
+
+# Plot
 p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+p8 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p8)
 
-# The outlier samole in here is FH5_S166
+# Inverse Simpson
+## Take a look at the indexes
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY, index = "diversity_inverse_simpson")
+kable(head(metaphlan_tab))
 
-## Inverse Simpson
+## Add indexes to data table
+metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simpson
+
+# Check whether the distribution of the diversity is normal
+hist(metaphlan.meta$diversity_inverse_simpson)
+shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
+qqnorm(metaphlan.meta$diversity_inverse_simpson)
+
+# Plot
 p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p9)
 
-# The results are identical to those from Metaxa2.
+# When using gini simpson the differences are significant. It is less likely that two individuals randomly selected from a sample will belong to different species among Finnish samples compared to BF and Beninise. -> Check outlier.
 ```
 # Diversity indexes by ResFinder
 ```{r}
@@ -424,8 +445,6 @@ p11 <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
 p11 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p11)
 
-# The outlier sample here is FH6-S167
-
 # Inverse Simpson
 ## Take a look at the indexes
 resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_inverse_simpson")
@@ -435,9 +454,9 @@ kable(head(resfinder_tab))
 resfinder.meta$diversity_inverse_simpson <- resfinder_tab$diversity_inverse_simpson
 
 # Check whether the distribution of the diversity is normal
-hist(metaphlan.meta$diversity_inverse_simpson)
-shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
-qqnorm(metaxa.meta$diversity_inverse_simpson)
+hist(resfinder.meta$diversity_inverse_simpson)
+shapiro.test(resfinder.meta$diversity_inverse_simpson) 
+qqnorm(resfinder.meta$diversity_inverse_simpson)
 
 # Plot
 p12 <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
@@ -490,23 +509,23 @@ metaxa_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaxa_PHY_genus), TRUE
 metaxa_PHY_genus_abun_trans <- transform_sample_counts(metaxa_PHY_genus_abun, function(x) x / sum(x))
 
 # Merge by location
-mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
+metaxa_mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
 
 # Transform_2
-mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
+metaxa_mrg_loc_trans <- transform_sample_counts(metaxa_mrg_loc, function(x) x / sum(x))
 
 # Normalize by sample number / location
-otu_table(mrg_loc_trans) <- otu_table(mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
+otu_table(metaxa_mrg_loc_trans) <- otu_table(metaxa_mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
     1]
 
 # Set colors
 nb.cols <- 12
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(8, "Accent"))(nb.cols)
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
 # Plot
-metaxa.p14 <- plot_bar(mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
+metaxa.p14 <- plot_bar(metaxa_mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
   facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle=75, hjust=1, size = 10),
@@ -537,6 +556,7 @@ tax_table(metaphlan.com) <- new.tax_metaphlan
 
 # Class level
 metaphlan_top6class <- aggregate_top_taxa(metaphlan.com, top = 6, "Class")
+# Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds
 
 metaphlan_top6class.rel <- microbiome::transform(metaphlan_top6class, "compositional")
 
@@ -547,9 +567,6 @@ metaphlan_top6class.p15 <- plot_composition(metaphlan_top6class.rel, group_by = 
 
 metaphlan_top6class.p15 + 
     scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
-
-# The relative abundance of top 6 classes seems identical between the two methods Metaxa2 and Metaphlan.
-# Deltaproteobacteria seems more common in Beninise samples compared to BF and Finland. In which instead the proportion of Gammaproteobacteria is higher. Betaproteobacteria are present in lower proportion in Finnish samples.
 ```
 # Top 12 genera merged by location, Metaphlan3
 ```{r}
@@ -562,13 +579,13 @@ metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus)
 metaphlan_PHY_genus_abun_trans <- transform_sample_counts(metaphlan_PHY_genus_abun, function(x) x / sum(x))
 
 # Merge by location
-mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
+metaphlan_mrg_loc <- merge_samples(metaxa_PHY_genus_abun_trans, "location")
 
 # Transform_2
-mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
+metaphlan_mrg_loc_trans <- transform_sample_counts(metaphlan_mrg_loc, function(x) x / sum(x))
 
 # Normalize by sample number / location
-otu_table(mrg_loc_trans) <- otu_table(mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
+otu_table(metaphlan_mrg_loc_trans) <- otu_table(metaphlan_mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaxa_PHY)$location))[, 
     1]
 
 # Set colors
@@ -578,7 +595,7 @@ mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
 # Plot
-metaphlan.p16 <- plot_bar(mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
+metaphlan.p16 <- plot_bar(metaphlan_mrg_loc_trans, fill = "Genus", title = "12 most abundant genera") + 
   facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle=75, hjust=1, size = 10),
@@ -587,23 +604,33 @@ metaphlan.p16 <- plot_bar(mrg_loc_trans, fill = "Genus", title = "12 most abunda
   scale_fill_manual(values=mycolors) +
   guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.8, keyheight = 1.8, title = "Genus"))
 metaphlan.p16
+
+# Plot both
+plot_grid(metaxa.p14, metaphlan.p16)
 ```
 # DRAFT Heatmap of Metaxa2 results
 ```{r}
-heat.sample <- plot_taxa_heatmap(metaxa_PHY,
+heat.metaxa <- plot_taxa_heatmap(metaxa_PHY_genus,
                                  subset.top = 50,
-                                 taxonomic.level = "Genus",
                                  VariableA = "country",
                                  heatcolors = rev(brewer.pal(12, "GnBu")),
                                  transformation = "log10",
-                                 cluster_cols = F)
-heat.sample
+                                 cluster_cols = T)
+heat.metaxa
+
+heat.metaphlan <- plot_taxa_heatmap(metaphlan_PHY_genus,
+                                 subset.top = 50,
+                                 VariableA = "country",
+                                 heatcolors = rev(brewer.pal(12, "GnBu")),
+                                 transformation = "log10",
+                                 cluster_cols = T)
+heat.metaphlan
 ```
-# DRAFT Boxplot of relative abundance of top 6 class
+# DRAFT Boxplot of relative abundance of top 10 genera
 ```{r}
-pn <- plot_taxa_boxplot(metaxa_PHY,
-                        taxonomic.level = "Class",
-                        top.otu = 6, VariableA = "country",
+pn <- plot_taxa_boxplot(metaxa_PHY_genus_abun,
+                        taxonomic.level = "Genus",
+                        top.otu = 12, VariableA = "country",
                         title = "Relative abudance plot", color = "Dark2")
 print(pn)
 ```
