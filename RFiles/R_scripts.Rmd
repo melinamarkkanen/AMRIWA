@@ -514,6 +514,40 @@ metaphlan_top6class.p14 +
 # The relative abundance of top 6 classes seems identical between the two methods Metaxa2 and Metaphlan.
 # Deltaproteobacteria seems more common in Beninise samples compared to BF and Finland. In which instead the proportion of Gammaproteobacteria is higher. Betaproteobacteria are present in lower proportion in Finnish samples.
 ```
+# Genera merged by location, Metaphlan3
+```{r}
+metaphlan_PHY_genus <- tax_glom(metaphlan_PHY, "Genus")
+
+metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus), TRUE)[1:12]), 
+    metaphlan_PHY_genus)
+
+# Merge by location
+mrg_loc <- merge_samples(metaphlan_PHY_genus_abun, "location")
+
+# Normalize by sample number / location
+otu_table(mrg_loc) <- otu_table(mrg_loc)[, ]/as.matrix(table(sample_data(metaphlan_PHY)$location))[, 
+    1]
+
+# Transform
+mrg_loc_trans <- transform_sample_counts(mrg_loc, function(x) x / sum(x))
+
+# Set colors
+nb.cols <- 12
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+# Facet labs
+country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
+
+# Plot
+metaphlan.p15 <- plot_bar(mrg_loc, fill = "Genus", title = "12 most abundant genera") + 
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=75, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) +
+  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.8, keyheight = 1.8, title = "Genus"))
+metaphlan.p15
+```
 # DRAFT Heatmap of Metaxa2 results
 ```{r}
 
@@ -524,7 +558,6 @@ heat.sample <- plot_taxa_heatmap(metaxa_PHY,
                                  heatcolors = rev(brewer.pal(12, "GnBu")),
                                  transformation = "log10",
                                  cluster_cols = F)
-# taxonomic.level ?
 heat.sample
 ```
 # DRAFT Boxplot of relative abundance of top 6 class
