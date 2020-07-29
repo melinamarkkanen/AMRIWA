@@ -628,11 +628,22 @@ heat.metaphlan
 ```
 # DRAFT Boxplot of relative abundance of top 10 genera
 ```{r}
-pn <- plot_taxa_boxplot(metaxa_PHY_genus_abun,
+
+# Reduce size
+metaxa_PHY_abun <- core(metaxa_PHY, detection = 10, prevalence = 20 / 89)
+
+metaxa_box <- plot_taxa_boxplot(metaxa_PHY_abun,
                         taxonomic.level = "Genus",
                         top.otu = 12, VariableA = "country",
                         title = "Relative abudance plot", color = "Dark2")
-print(pn)
+print(metaxa_box)
+
+metaphlan_box <- plot_taxa_boxplot(metaphlan_PHY_genus,
+                        taxonomic.level = "Genus",
+                        top.otu = 12, VariableA = "country",
+                        title = "Relative abudance plot", color = "Dark2")
+print(metaphlan_box)
+# Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds -> Fix
 ```
 
 
