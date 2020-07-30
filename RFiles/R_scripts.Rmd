@@ -13,6 +13,7 @@ setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
 ## Load libraries
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
 library(phyloseq)
+source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
 library(dplyr)
 library(viridis)
 library(stringr)
@@ -26,6 +27,7 @@ library(ggplot2)
 library(knitr)
 library(ggpubr)
 library(pheatmap)
+library(ape)
 ```
 ## Load metadata
 ```{r}
@@ -644,6 +646,38 @@ metaphlan_box <- plot_taxa_boxplot(metaphlan_PHY_genus,
                         title = "Relative abudance plot", color = "Dark2")
 print(metaphlan_box)
 # Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds -> Fix
+```
+# Sum of the relative abundances of ResFinder results
+```{r}
+# Average 16S counts
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+
+plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
+
+# Testing models to support the data
+## Linear
+model.ln<-lm(SUM~location, data=lo_data)
+summary(model.ln)
+shapiro.test(lo_data$SUM)
+plot(model.ln)
+## Log
+## Poisson
+## Negative binomial
+```
+
+# Beta diversity
+```{r}
+# Add tree to the phyloseq object
+random_tree = rtree(ntaxa(metaxa_PHY), rooted=TRUE, tip.label=taxa_names(metaxa_PHY))
+physeq1 <- merge_phyloseq(metaxa_PHY, sample_data(metadata), random_tree)
+
+physeq2 <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata), random_tree)
+identical(physeq1, physeq2)
+```
+
+# Rarefication?
+```{r}
 ```
 
 
