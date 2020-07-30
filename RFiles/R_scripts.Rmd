@@ -28,6 +28,7 @@ library(knitr)
 library(ggpubr)
 library(pheatmap)
 library(ape)
+library(multcomp)
 ```
 ## Load metadata
 ```{r}
@@ -647,9 +648,9 @@ metaphlan_box <- plot_taxa_boxplot(metaphlan_PHY_genus,
 print(metaphlan_box)
 # Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds -> Fix
 ```
-# Sum of the relative abundances of ResFinder results
+# Sum of the relative abundances of ResFinder results by location
 ```{r}
-# Average 16S counts
+# Average 16S counts bu location
 lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
@@ -660,11 +661,226 @@ model.ln<-lm(SUM~location, data=lo_data)
 summary(model.ln)
 shapiro.test(lo_data$SUM)
 plot(model.ln)
+
+# The p value is > 0.05 and differs significantly from normal distribution
+
 ## Log
+model.logln<-lm(log(SUM)~location, data=lo_data)
+summary(model.logln)
+shapiro.test(log(lo_data$SUM))
+plot(model.logln)
+
+# P value 0.005464 but data not normally distributed. Also S shaped QQ plot reffering to overdispersion.
+
 ## Poisson
+model.pois = glm(SUM ~ location , data = lo_data, family = poisson)
+summary(model.pois)
+plot(model.pois)
+
+# P value <2e-16, Residual deviance: 65342438  on 75  degrees of freedom, AIC: 65343564.
+
+## Quasipoisson
+model.qpois<-glm(SUM~location, data=lo_data, family="quasipoisson")
+summary(model.qpois)
+plot(model.qpois)
+
 ## Negative binomial
+model.nb <- glm.nb(SUM~location, data=lo_data)
+summary(model.nb)
+plot(model.nb)
+
+# Summarize and compare models
+data.frame(linear=coef(model.ln),
+                 loglinear=exp(coef(model.logln)),
+                 poisson=exp(coef(model.pois)),
+                 qpoisson=exp(coef(model.qpois)),
+                 negbin=exp(coef(model.nb)))
+# Critical value
+qchisq(0.95, df.residual(model.pois))
+
+deviance(model.ln)
+deviance(model.logln)
+deviance(model.pois)
+deviance(model.qpois)
+deviance(model.nb)
+
+# None of the models fits the data.
 ```
 
+```{r}
+# Plot using neg. binom. model
+
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+
+fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
+
+lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata = lo_data, type = "response", se.fit = T)$se.fit)
+
+nb.cols <- 14
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+
+ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
+        scale_fill_manual(values = mycolors) +
+    geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
+    size = 2.3, alpha = 0.5, width = 0.3) + 
+    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    geom_point(size = 0.9) +
+    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    labs(y = "Sum abundance/16S", 
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+
+# Extract outliers
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+
+boxplot(lo_data$SUM)
+boxplot(lo_data$SUM, plot=FALSE)$out
+outliers <- boxplot(lo_data$SUM, plot=FALSE)$out
+print(outliers)
+
+# Exclude outliers
+## where they at
+lo_data[which(lo_data$SUM %in% outliers),]
+## remove
+lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
+boxplot(lo_data$SUM)
+
+# New  plot
+fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
+
+lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata = lo_data, type = "response", se.fit = T)$se.fit)
+
+nb.cols <- 14
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+
+ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
+    scale_fill_manual(values = mycolors) +
+    geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
+    size = 2.3, alpha = 0.5, width = 0.3) + 
+    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    geom_point(size = 0.9) + ylim(0, 150000) +
+    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    labs(y = "Sum abundance/16S", 
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+
+plot_grid(ARG.sum.lo, ARG.sum.lo_outl)
+```
+# Sum of the relative abundances of ResFinder results by country
+```{r}
+# Average 16S counts bu location
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+
+plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
+
+# Testing models to support the data
+## Linear
+model.ln<-lm(SUM~country, data=co_data)
+summary(model.ln)
+shapiro.test(lo_data$SUM)
+plot(model.ln)
+
+# The p value is > 0.05 and differs significantly from normal distribution
+
+## Log
+model.logln<-lm(log(SUM)~country, data=co_data)
+summary(model.logln)
+shapiro.test(log(co_data$SUM))
+plot(model.logln)
+
+# P value 0.7534 and data not normally distributed.
+
+## Poisson
+model.pois = glm(SUM ~ country , data = co_data, family = poisson)
+summary(model.pois)
+plot(model.pois)
+
+# P value <2e-16, Residual deviance: 77293085  on 86  degrees of freedom, AIC: 77294188.
+
+## Quasipoisson
+model.qpois<-glm(SUM~country, data=co_data, family="quasipoisson")
+summary(model.qpois)
+plot(model.qpois)
+
+# P value <2e-16, Residual deviance: 77293085  on 86  degrees of freedom AIC: NA
+
+## Negative binomial
+model.nb <- glm.nb(SUM~country, data=co_data)
+summary(model.nb)
+plot(model.nb)
+
+# P value < 2e-16, Residual deviance: 113.98  on 86  degrees of freedom, AIC: 2248, Theta:  0.4747 Std. Err.:  0.0585 
+
+1/model.nb$theta
+-2*(logLik(model.pois)-logLik(model.nb))
+
+
+# Summarize and compare models
+data.frame(linear=coef(model.ln),
+                 loglinear=exp(coef(model.logln)),
+                 poisson=exp(coef(model.pois)),
+                 qpoisson=exp(coef(model.qpois)),
+                 negbin=exp(coef(model.nb)))
+# Critical value
+qchisq(0.95, df.residual(model.nb))
+
+deviance(model.ln)
+deviance(model.logln)
+deviance(model.pois)
+deviance(model.qpois)
+deviance(model.nb)
+
+# None of the models fits the data.
+```
+
+```{r}
+# Plot using neg. binom. model
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+
+fit <- glm.nb(SUM ~ country, data = co_data, link = log)
+
+co_data <- cbind(co_data, Mean = predict(fit, newdata = co_data, type = "response"), SE = predict(fit, newdata = co_data, type = "response", se.fit = T)$se.fit)
+
+ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
+        scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) +
+    geom_line() + geom_jitter(data = co_data, aes(x = country, y = SUM, color = country), 
+    size = 2.3, alpha = 0.5, width = 0.3) + 
+    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    geom_point(size = 0.9) +
+    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    labs(y = "Sum abundance/16S", 
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+
+# Extract outliers
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+
+boxplot(co_data$SUM)
+boxplot(co_data$SUM, plot=FALSE)$out
+outliers <- boxplot(co_data$SUM, plot=FALSE)$out
+print(outliers)
+
+# Exclude outliers
+## where they at
+co_data[which(co_data$SUM %in% outliers),]
+## remove
+co_data <- co_data[-which(co_data$SUM %in% outliers),]
+boxplot(co_data$SUM)
+
+# New  plot
+fit <- glm.nb(SUM ~ country, data = co_data, link = log)
+
+co_data <- cbind(co_data, Mean = predict(fit, newdata = co_data, type = "response"), SE = predict(fit, newdata = co_data, type = "response", se.fit = T)$se.fit)
+
+ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
+    scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) +
+    geom_line() + geom_jitter(data = co_data, aes(x = country, y = SUM, color = country), 
+    size = 2.3, alpha = 0.5, width = 0.3) + 
+    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    geom_point(size = 0.9) + ylim(0, 150000) +
+    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    labs(y = "Sum abundance/16S", 
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+
+plot_grid(ARG.sum.co, ARG.sum.co_outl)
+```
 # Beta diversity
 ```{r}
 # Add tree to the phyloseq object
