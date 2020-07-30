@@ -997,6 +997,7 @@ a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = 
     scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
     "Resistance gene") + ylab("Sum abundance/16S") + xlab("")
 p
+
 ```
 # Top 12 ARG gene classes, sum abundance
 ```{r}
@@ -1010,6 +1011,30 @@ b <- pl + geom_bar(aes(color = Class, fill = Class), stat = "identity", position
     scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
     "Resistance class") + ylab("Sum abundance/16S") + xlab("")
 b
+```
+# Betalactams
+```{r}
+resfinder_PHY_betalactams = subset_taxa(resfinder_PHY, Class=="Aminoglycoside")
+resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
+
+# Top12
+resfinder_PHY_betalactams_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_betalactams_Gene), TRUE)[1:12]), 
+    resfinder_PHY_betalactams_Gene)
+
+# Clean
+resfinder_PHY_betalactams_Gene_abund <- subset_samples(resfinder_PHY_betalactams_Gene_abund, sample_sums(resfinder_PHY_betalactams_Gene_abund) != 
+    0)
+
+# Normalize by sample number
+otu_table(resfinder_PHY_betalactams_Gene_abund) <- (otu_table(resfinder_PHY_betalactams_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_betalactams_Gene_abund)$location))[, 
+    1])
+
+p <- plot_bar(resfinder_PHY_betalactams_Gene_abund, fill = "Gene", "location")
+a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = "stack") + 
+    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
+    "Betalactam gene") + ylab("Sum abundance/16S") + xlab("")
+p
+
 ```
 # Beta diversity
 ```{r}
