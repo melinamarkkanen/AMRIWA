@@ -13,7 +13,7 @@ setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
 ## Load libraries
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
 library(phyloseq)
-source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
+#source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
 library(dplyr)
 library(viridis)
 library(stringr)
@@ -60,11 +60,14 @@ metadata$SSU_counts <- sample_sums(metaxa_PHY)
 metaxa_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-metaxa_PHY_ww = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+metaxa_PHY = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Suspicious samples (very high ARG level)
+metaxa_PHY = subset_samples(metaxa_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Clear taxa that is not present in any of the remaining samples
-any(taxa_sums(metaxa_PHY_ww) == 0)
-metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY_ww) > 0, metaxa_PHY_ww)
+any(taxa_sums(metaxa_PHY) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY) > 0, metaxa_PHY)
 any(taxa_sums(metaxa_PHY) == 0)
 ```
 ## Ordinate Metaxa2 result to study whether the taxonomy can be explained by the variable "country"
@@ -93,7 +96,7 @@ metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Burk
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
+# The explanatory variable "country" explains some (~16.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
 # Testing whether the taxonomic composition is grouped significantly by location in each country, Metaxa2
 ```{r}
@@ -109,7 +112,7 @@ Finland <- subset_samples(metaxa_rel_PHY, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
-# In Benin the ARG profile is explained by  25.0 % by the location. Whereas in Burkina Faso the same percentage is  24.2 %. In Finland the grouping by location is not significant.
+# In Benin the ARG profile is explained by  26.3 % by the location. Whereas in Burkina Faso the same percentage is  24.2 %. In Finland the grouping by location is not significant.
 ```
 
 # Metaphlan3
@@ -153,11 +156,14 @@ metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Virus")
 metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+metaphlan_PHY = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Suspicious samples (very high ARG level)
+metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Clear taxa that is not present in any of the remaining samples
-any(taxa_sums(metaphlan_PHY_ww) == 0)
-metaxa_PHY <- prune_taxa(taxa_sums(metaphlan_PHY_ww) > 0, metaphlan_PHY_ww)
+any(taxa_sums(metaphlan_PHY) == 0)
+metaphlan_PHY <- prune_taxa(taxa_sums(metaphlan_PHY) > 0, metaphlan_PHY)
 any(taxa_sums(metaphlan_PHY) == 0)
 ```
 ## Ordinate Metaphlan3 results to study wheather the taxonomy can be explained by the variable "country"
@@ -183,7 +189,8 @@ metaphlan_temp <- subset_samples(metaphlan_PHY, (country == "Burkina Faso" | cou
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# The explanatory variable "country" explains only very little of the difference in the grouping of taxonomy between. Instead, sample types other than waste water seem to group together. Let's test if this is significant.
+# The explanatory variable "country" explains less than 10 % of the grouping in every pair wise comparison.
+# There seems to be a small group of samples differing from other ones. They represent mostly other than ww samples. Let's see if this grouping is significant.
 
 metaphlan_temp <- subset_samples(metaphlan_PHY, (sample_type == "waste water" | sample_type == "soil"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
@@ -193,7 +200,7 @@ metaphlan_temp <- subset_samples(metaphlan_PHY, (sample_type == "waste water" | 
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# Not really.
+# Not really. Whether the sample is river water or waste water seems to explain 4.6 % of the grouping.
 ```
 # Testing wheter the taxonomic composition is grouped significantly by location in each country
 ```{r}
@@ -209,7 +216,7 @@ Finland <- subset_samples(metaphlan_PHY, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
-# In Benin the ARG profile is explained by  25.5 % by the location. Whereas in Burkina Faso the same percentage is  22.2 %. In Finland the grouping by location is not significant.
+# In Benin the ARG profile is explained by  29.7 % by the location. Whereas in Burkina Faso the same percentage is  22.2 %. In Finland the grouping by location is not significant.
 ```
 
 # ResFinder
@@ -255,16 +262,16 @@ ARG_genemat_norm$row.names<-NULL
 ## Normalize ARG counts to SSU
 ### Do not run if the above is run
 ```{r}
-ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
+#ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
 
 # Check if correct:
-identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+#identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
-write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+#write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
 
-ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
-ARG_genemat_norm$row.names<-NULL
+#ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+#ARG_genemat_norm$row.names<-NULL
 ```
 ## Create phyloseq object
 ```{r}
@@ -282,11 +289,14 @@ resfinder_PHY <- phyloseq(otu_table(ARG_genemat_norm, taxa_are_rows = TRUE), sam
 resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+resfinder_PHY = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Suspicious samples (very high ARG level)
+resfinder_PHY = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Check if there are taxa that are not present in any of the remaining samples
-any(taxa_sums(resfinder_PHY_ww) == 0)
-resfinder_PHY <- prune_taxa(taxa_sums(resfinder_PHY_ww) > 0, resfinder_PHY_ww)
+any(taxa_sums(resfinder_PHY) == 0)
+resfinder_PHY <- prune_taxa(taxa_sums(resfinder_PHY) > 0, resfinder_PHY)
 any(taxa_sums(resfinder_PHY) == 0)
 ```
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
@@ -312,11 +322,11 @@ resfinder_temp <- subset_samples(resfinder_PHY, (country == "Finland" | country 
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some (~10.1 % [Normalized by gene lengths: ~10.2 %]) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.5 % [Normalized by gene lengths: ~12.9 %]) between Burkina Faso and Finland.
+# The explanatory variable "country" explains some (~11.6 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.9%) between Burkina Faso and Finland.
 ```
 # Diversity indexes by Metaxa2
-```{r}
-# Take a look at the indexes (now not the relative data, we'll see...)
+```{r, results='hide'}
+# Take a look at the indexes (Can't work with the metaxa_rel_PHY, since it has "double" = non-integer data.)
 metaxa_tab <-microbiome::alpha(metaxa_PHY, index = "all")
 kable(head(metaxa_tab))
 
@@ -371,7 +381,7 @@ p6 <- ggviolin(metaxa.meta, x = "country", y = "diversity_inverse_simpson",
 p6 <- p6 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p6)
 
-# The alpha diversity is the highest in Benin compared to Burkina Faso and Finland. Of Burkina Faso and Finland the diversity is higher in Burkina Faso. 
+# Inverse simpson index shows significant results. The alpha diversity is the highest in Benin compared to Burkina Faso and Finland. Of Burkina Faso and Finland the diversity is higher in Burkina Faso. 
 ```
 # Diversity indexes by Metaphlan3
 ```{r}
@@ -411,10 +421,15 @@ hist(metaphlan.meta$diversity_gini_simpson)
 shapiro.test(metaphlan.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(metaphlan.meta$diversity_gini_simpson)
 
+# Create a list of pairwise comparisons
+div.country <- levels(metaphlan.meta$country)
+country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
+print(country.pairs)
+
 # Plot
 p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p8 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p8)
 
 # Inverse Simpson
@@ -436,7 +451,7 @@ p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
 p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p9)
 
-# When using gini simpson the differences are significant. It is less likely that two individuals randomly selected from a sample will belong to different species among Finnish samples compared to BF and Beninise. -> Check outlier.
+# Inverse Simpson index shows weakly significant results. There are no significant differences in the alpha diversities of the countries taxonomical composition.
 ```
 # Diversity indexes by ResFinder
 ```{r}
@@ -502,6 +517,19 @@ p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test")
 print(p12)
 
 # The alpha diversity of resistance genes detected by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
+
+# Plot by individual sample
+nb.cols <- 14
+mycolors <- colorRampPalette(brewer.pal(12, "Paired"))(nb.cols)
+
+loc <- plot_richness(resfinder_PHY, measures = c("Shannon", "Simpson"), 
+                     color="location", shape = "country")
+
+resfinder.in <- loc + geom_boxplot() +
+  scale_fill_manual(values=mycolors) +
+  geom_point(size=3) + theme_linedraw() + 
+  theme(axis.text.x = element_text(angle = 90, size =5))
+resfinder.in
 ```
 # Taxonomic composition by Metaxa2 using microbiome package
 ```{r}
@@ -523,17 +551,17 @@ new.tax_metaxa <- tax_table(taxmat_metaxa)
 tax_table(metaxa.com) <- new.tax_metaxa
 
 # Class level
-metaxa_top6class <- aggregate_top_taxa(metaxa.com, top = 6, "Class")
+metaxa_top5class <- aggregate_top_taxa(metaxa.com, top = 5, "Class")
 
-metaxa_top6class.rel <- microbiome::transform(metaxa_top6class, "compositional")
+metaxa_top5class.rel <- microbiome::transform(metaxa_top6class, "compositional")
 
-metaxa_top6class.p13 <- plot_composition(metaxa_top6class.rel, group_by = "country") + 
+metaxa_top5class.p13 <- plot_composition(metaxa_top5class.rel, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
     ggtitle("Relative abundance of top 6 classes, Metaxa2")
 
-metaxa_top6class.p13 + 
-    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
+metaxa_top5class.p13 + 
+    scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E", "#FFFFFF"))
 ```
 # Top 12 genera merged by location, Metaxa2
 ```{r}
@@ -557,7 +585,7 @@ otu_table(metaxa_mrg_loc_trans) <- otu_table(metaxa_mrg_loc_trans)[, ]/as.matrix
 
 # Set colors
 nb.cols <- 12
-mycolors <- colorRampPalette(brewer.pal(8, "Accent"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
@@ -592,18 +620,18 @@ new.tax_metaphlan <- tax_table(taxmat_metaphlan)
 tax_table(metaphlan.com) <- new.tax_metaphlan
 
 # Class level
-metaphlan_top6class <- aggregate_top_taxa(metaphlan.com, top = 6, "Class")
+metaphlan_top5class <- aggregate_top_taxa(metaphlan.com, top = 5, "Class")
 # Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds
 
-metaphlan_top6class.rel <- microbiome::transform(metaphlan_top6class, "compositional")
+metaphlan_top5class.rel <- microbiome::transform(metaphlan_top5class, "compositional")
 
-metaphlan_top6class.p15 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
+metaphlan_top5class.p15 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
     ggtitle("Relative abundance of top 6 classes, Metaphlan3")
 
-metaphlan_top6class.p15 + 
-    scale_fill_manual(values = c("#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02", "#FFFFFF"))
+metaphlan_top5class.p15 + 
+    scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E","#FFFFFF"))
 ```
 # Top 12 genera merged by location, Metaphlan3
 ```{r}
@@ -627,7 +655,7 @@ otu_table(metaphlan_mrg_loc_trans) <- otu_table(metaphlan_mrg_loc_trans)[, ]/as.
 
 # Set colors
 nb.cols <- 12
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
@@ -647,6 +675,10 @@ plot_grid(metaxa.p14, metaphlan.p16)
 ```
 # DRAFT Heatmap of Metaxa2 results
 ```{r}
+# Change into relative data
+#metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
+#metaxa_rel_PHY_genus <- tax_glom(metaxa_rel_PHY, "Genus")
+
 heat.metaxa <- plot_taxa_heatmap(metaxa_PHY_genus,
                                  subset.top = 50,
                                  VariableA = "country",
@@ -667,20 +699,22 @@ heat.metaphlan
 ```{r}
 
 # Reduce size
-metaxa_PHY_abun <- core(metaxa_rel_PHY, detection = 10, prevalence = 20 / 89)
+metaxa_PHY_abun <- core(metaxa_PHY, detection = 10, prevalence = 20 / 86)
 
 metaxa_box <- plot_taxa_boxplot(metaxa_PHY_abun,
-                        taxonomic.level = "Genus",
-                        top.otu = 12, VariableA = "country",
+                        taxonomic.level = "Class",
+                        top.otu = 5, VariableA = "country",
                         title = "Relative abudance plot", color = "Dark2")
 print(metaxa_box)
 
-metaphlan_box <- plot_taxa_boxplot(metaphlan_PHY_genus,
-                        taxonomic.level = "Genus",
-                        top.otu = 12, VariableA = "country",
+# Reduce size
+metaphlan_PHY_abun <- core(metaphlan_PHY, detection = 10, prevalence = 20 / 86)
+metaphlan_box <- plot_taxa_boxplot(metaphlan_PHY_abun,
+                        taxonomic.level = "Class",
+                        top.otu = 5, VariableA = "country",
                         title = "Relative abudance plot", color = "Dark2")
 print(metaphlan_box)
-# Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds -> Fix
+# Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds
 ```
 # Sum of the relative abundances of ResFinder results by location
 ```{r}
@@ -935,7 +969,7 @@ fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
 ```
-# Testing whether the resistomes are grouped significantly by location in each country
+# Testing whether the (alpha diversities in?) resistomes are grouped significantly by location in each country
 ```{r}
 Benin <- subset_samples(resfinder_PHY, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
@@ -951,16 +985,8 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 
 # In Benin the ARG profile is explained by 21.2 % by the location. Whereas in Burkina Faso the same percentage is 20.5 %. In Finland the grouping by location is not significant.
 ```
-# Top 12 ARG genes, sum abundance
+# Top 12 ARG genes, relative abundance
 ```{r}
-# Filter suspicious samples
-resfinder_PHY = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
-
-# Clean?
-any(taxa_sums(resfinder_PHY) == 0)
-resfinder_PHY <- prune_taxa(taxa_sums(resfinder_PHY) > 0, resfinder_PHY)
-any(taxa_sums(resfinder_PHY) == 0)
-  
 resfinder_PHY_Gene <- tax_glom(resfinder_PHY, "Gene")
 
 resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
