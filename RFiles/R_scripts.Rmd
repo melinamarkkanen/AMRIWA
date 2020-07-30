@@ -95,6 +95,23 @@ adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permut
 
 # The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
+# Testing wheter the taxonomic composition is grouped significantly by location in each country, Metaxa2
+```{r}
+Benin <- subset_samples(metaxa_rel_PHY, (country == "Benin"))
+Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
+adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
+
+BF <- subset_samples(metaxa_rel_PHY, (country == "Burkina Faso"))
+BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
+adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
+
+Finland <- subset_samples(metaxa_rel_PHY, (country == "Finland"))
+Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
+adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
+
+# In Benin the ARG profile is explained by  25.0 % by the location. Whereas in Burkina Faso the same percentage is  24.2 %. In Finland the grouping by location is not significant.
+```
+
 # Metaphlan3
 ```{r}
 # Modify data in command-line to match sample names in metadata file
@@ -127,7 +144,7 @@ tax_table_metaphlan <- apply(tax_table_metaphlan, 2, function(y) (gsub(".__", ""
 # Combine into phyloseq object
 metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows = TRUE), tax_table(as.matrix(tax_table_metaphlan)), sample_data(metadata))
 ```
-## Filter smaples
+## Filter samples
 ```{r}
 # Virus
 metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Virus")
@@ -178,6 +195,23 @@ adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_tem
 
 # Not really.
 ```
+# Testing wheter the taxonomic composition is grouped significantly by location in each country
+```{r}
+Benin <- subset_samples(metaphlan_PHY, (country == "Benin"))
+Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
+adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
+
+BF <- subset_samples(metaphlan_PHY, (country == "Burkina Faso"))
+BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
+adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
+
+Finland <- subset_samples(metaphlan_PHY, (country == "Finland"))
+Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
+adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
+
+# In Benin the ARG profile is explained by  25.5 % by the location. Whereas in Burkina Faso the same percentage is  22.2 %. In Finland the grouping by location is not significant.
+```
+
 # ResFinder
 ## Load data
 ```{r}
@@ -727,7 +761,7 @@ ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
     geom_point(size = 0.9) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 
 # Extract outliers
 lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
@@ -757,10 +791,10 @@ ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
     geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
     size = 2.3, alpha = 0.5, width = 0.3) + 
     geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
-    geom_point(size = 0.9) + ylim(0, 150000) +
+    geom_point(size = 0.9) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 
 plot_grid(ARG.sum.lo, ARG.sum.lo_outl)
 ```
@@ -847,7 +881,7 @@ ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
     geom_point(size = 0.9) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 
 # Extract outliers
 co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
@@ -874,13 +908,50 @@ ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
     geom_line() + geom_jitter(data = co_data, aes(x = country, y = SUM, color = country), 
     size = 2.3, alpha = 0.5, width = 0.3) + 
     geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
-    geom_point(size = 0.9) + ylim(0, 150000) +
+    geom_point(size = 0.9) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 
 plot_grid(ARG.sum.co, ARG.sum.co_outl)
 ```
+# Check significances
+```{r}
+# By location
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+
+fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
+
+# Tukey's post hoc test
+glht.mod <- glht(fit, mcp(location = "Tukey"))
+summary(glht(glht.mod))
+
+# By country
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+
+fit <- glm.nb(SUM ~ country, data = co_data, link = log)
+
+# Tukey's post hoc test
+glht.mod <- glht(fit, mcp(country = "Tukey"))
+summary(glht(glht.mod))
+```
+# Testing wheter the resistomes are grouped significantly by location in each country
+```{r}
+Benin <- subset_samples(resfinder_PHY, (country == "Benin"))
+Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
+adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
+
+BF <- subset_samples(resfinder_PHY, (country == "Burkina Faso"))
+BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
+adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
+
+Finland <- subset_samples(resfinder_PHY, (country == "Finland"))
+Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
+adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
+
+# In Benin the ARG profile is explained by 21.2 % by the location. Whereas in Burkina Faso the same percentage is 20.5 %. In Finland the grouping by location is not significant.
+```
+
 # Beta diversity
 ```{r}
 # Add tree to the phyloseq object
