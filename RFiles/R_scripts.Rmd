@@ -67,7 +67,7 @@ any(taxa_sums(metaxa_PHY_ww) == 0)
 metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY_ww) > 0, metaxa_PHY_ww)
 any(taxa_sums(metaxa_PHY) == 0)
 ```
-## Ordinate Metaxa2 result to study wheather the taxonomy can be explained by the variable "country"
+## Ordinate Metaxa2 result to study whether the taxonomy can be explained by the variable "country"
 ```{r}
 # Change into relative data
 metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
@@ -95,7 +95,7 @@ adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permut
 
 # The explanatory variable "country" explains some (~15.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
 ```
-# Testing wheter the taxonomic composition is grouped significantly by location in each country, Metaxa2
+# Testing whether the taxonomic composition is grouped significantly by location in each country, Metaxa2
 ```{r}
 Benin <- subset_samples(metaxa_rel_PHY, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
@@ -667,7 +667,7 @@ heat.metaphlan
 ```{r}
 
 # Reduce size
-metaxa_PHY_abun <- core(metaxa_PHY, detection = 10, prevalence = 20 / 89)
+metaxa_PHY_abun <- core(metaxa_rel_PHY, detection = 10, prevalence = 20 / 89)
 
 metaxa_box <- plot_taxa_boxplot(metaxa_PHY_abun,
                         taxonomic.level = "Genus",
@@ -799,7 +799,7 @@ ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
 plot_grid(ARG.sum.lo, ARG.sum.lo_outl)
 ```
 # Sum of the relative abundances of ResFinder results by country
-```{r}
+```{r, results='hide'}
 # Average 16S counts bu location
 co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
 
@@ -915,7 +915,7 @@ ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
 
 plot_grid(ARG.sum.co, ARG.sum.co_outl)
 ```
-# Check significances
+# Check signifigances
 ```{r}
 # By location
 lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
@@ -935,7 +935,7 @@ fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
 ```
-# Testing wheter the resistomes are grouped significantly by location in each country
+# Testing whether the resistomes are grouped significantly by location in each country
 ```{r}
 Benin <- subset_samples(resfinder_PHY, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
@@ -951,7 +951,40 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 
 # In Benin the ARG profile is explained by 21.2 % by the location. Whereas in Burkina Faso the same percentage is 20.5 %. In Finland the grouping by location is not significant.
 ```
+# Top 12 ARG genes, sum abundance
+```{r}
+# Filter suspicious samples
+resfinder_PHY = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
+# Clean?
+any(taxa_sums(resfinder_PHY) == 0)
+resfinder_PHY <- prune_taxa(taxa_sums(resfinder_PHY) > 0, resfinder_PHY)
+any(taxa_sums(resfinder_PHY) == 0)
+  
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY, "Gene")
+
+resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
+    resfinder_PHY_Gene)
+
+p <- plot_bar(resfinder_PHY_Gene_abund, fill = "Gene")
+a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = "stack") + 
+    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
+    "Resistance gene") + ylab("Sum abundance/16S") + xlab("")
+p
+```
+# Top 12 ARG gene classes, sum abundance
+```{r}
+resfinder_PHY_Class <- tax_glom(resfinder_PHY, "Class")
+
+resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)[1:12]), 
+    resfinder_PHY_Class)
+
+pl <- plot_bar(resfinder_PHY_Class_abund, fill = "Class")
+b <- pl + geom_bar(aes(color = Class, fill = Class), stat = "identity", position = "stack") + 
+    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
+    "Resistance class") + ylab("Sum abundance/16S") + xlab("")
+b
+```
 # Beta diversity
 ```{r}
 # Add tree to the phyloseq object
