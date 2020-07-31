@@ -631,39 +631,6 @@ metaxa.p14 <- plot_bar(metaxa_mrg_loc_trans, fill = "Genus", title = "15 most ab
   guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
 metaxa.p14
 ```
-# Taxonomic composition by Metaphlan3 using microbiome package
-```{r}
-# Load data
-metaphlan.com <- metaphlan_PHY_ww
-taxic_metaphlan <- as.data.frame(metaphlan.com@tax_table) 
-
-# Add OTU ids
-taxic_metaphlan$OTU <- rownames(taxic_metaphlan) 
-colnames(taxic_metaphlan)
-
-# Convert into a matrix.
-taxmat_metaphlan <- as.matrix(taxic_metaphlan)
-
-# Convert into phyloseq compatible file.
-new.tax_metaphlan <- tax_table(taxmat_metaphlan)  
-
-# Incroporate into new phyloseq object
-tax_table(metaphlan.com) <- new.tax_metaphlan
-
-# Class level
-metaphlan_top5class <- aggregate_top_taxa(metaphlan.com, top = 5, "Class")
-# Error: Error in as(x, "matrix")[i, j, drop = FALSE] : subscript out of bounds
-
-metaphlan_top5class.rel <- microbiome::transform(metaphlan_top5class, "compositional")
-
-metaphlan_top5class.p15 <- plot_composition(metaphlan_top6class.rel, group_by = "country") + 
-  theme(legend.position = "bottom") + theme_classic() +
-  theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
-    ggtitle("Relative abundance of top 6 classes, Metaphlan3")
-
-metaphlan_top5class.p15 + 
-    scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E","#FFFFFF"))
-```
 # Top 15 genera merged by location, Metaphlan3
 ```{r}
 metaphlan_PHY_genus <- tax_glom(metaphlan_PHY_ww, "Genus")
