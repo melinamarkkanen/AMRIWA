@@ -299,33 +299,33 @@ resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH
 resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
 # Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
-resfinder_PHY = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Check if there are taxa that are not present in any of the remaining samples
-any(taxa_sums(resfinder_PHY_ww) == 0)
-resfinder_PHY_ww <- prune_taxa(taxa_sums(resfinder_PHY_ww) > 0, resfinder_PHY_ww)
-any(taxa_sums(resfinder_PHY_ww) == 0)
+any(taxa_sums(resfinder_PHY_clean) == 0)
+resfinder_PHY_clean <- prune_taxa(taxa_sums(resfinder_PHY_clean) > 0, resfinder_PHY_clean)
+any(taxa_sums(resfinder_PHY_clean) == 0)
 ```
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-resfinder_PHY_ord <- ordinate(resfinder_PHY_ww, method = "PCoA", distance = "horn")
-p3 <- plot_ordination(resfinder_PHY_ww, resfinder_PHY_ord, color = "country", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_clean, method = "PCoA", distance = "horn")
+p3 <- plot_ordination(resfinder_PHY_clean, resfinder_PHY_ord, color = "country", label = "name")
 resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Finland" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Burkina Faso" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_ww, (country == "Finland" | country == "Burkina Faso"))
+resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Finland" | country == "Burkina Faso"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
@@ -480,11 +480,11 @@ print(p9)
 ```{r}
 # Shannon
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_shannon")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
 ## Create data table
-resfinder.meta <- meta(resfinder_PHY_ww)
+resfinder.meta <- meta(resfinder_PHY_clean)
 kable(head(resfinder.meta))
 
 ## Add indexes to data table
@@ -508,7 +508,7 @@ print(p10)
 
 # Gini Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_gini_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_gini_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -527,7 +527,7 @@ print(p11)
 
 # Inverse Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ww, index = "diversity_inverse_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_inverse_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -552,7 +552,7 @@ print(p12)
 nb.cols <- 14
 mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
 
-loc <- plot_richness(resfinder_PHY_ww, measures = c("Shannon", "Simpson"), 
+loc <- plot_richness(resfinder_PHY_clean, measures = c("Shannon", "Simpson"), 
                      color="location", shape = "country")
 
 resfinder.in <- loc + scale_fill_manual(values=mycolors) + 
@@ -714,7 +714,7 @@ heat.metaphlan
 # Sum of the relative abundances of ResFinder results by location
 ```{r}
 # Average 16S counts by location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 # There are outliers
@@ -800,7 +800,7 @@ ARG.sum.lo
 ```{r}
 # Extract outliers
 
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
 
 boxplot(lo_data$SUM)
 boxplot(lo_data$SUM, plot=FALSE)$out
@@ -836,7 +836,7 @@ ARG.sum.lo_outl
 # Sum of the relative abundances of ResFinder results by country
 ```{r, results='hide'}
 # Average 16S counts bu location
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -902,7 +902,7 @@ deviance(model.nb)
 
 ```{r}
 # Plot using neg. binom. model
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -919,10 +919,9 @@ ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 ARG.sum.co
 ```
-
-```{r}
 # Extract outliers
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
+```{r}
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
 
 boxplot(co_data$SUM)
 boxplot(co_data$SUM, plot=FALSE)$out
@@ -955,7 +954,7 @@ ARG.sum.co_outl
 # Check signifigances
 ```{r}
 # By location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
 
 lo_data[which(lo_data$SUM %in% outliers),]
 lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
@@ -967,7 +966,7 @@ glht.mod <- glht(fit, mcp(location = "Tukey"))
 print(summary(glht(glht.mod)))
 
 # By country
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
 
 # Exclude outliers
 co_data[which(co_data$SUM %in% outliers),]
@@ -979,12 +978,12 @@ fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
 ```
-# Top 12 ARG genes, relative abundance
+# ARG Classes, sum relative abundance
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_ww, taxrank = "Class")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
 
 # All classes
-resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)[1:12]), 
+resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
     resfinder_PHY_Class)
 
 # Normalize by number of samples in each country
@@ -997,13 +996,14 @@ resfinder.p17 <- p17 + facet_grid(~ country, scales = "free") +
   theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
         axis.title.x = element_blank()) +
   guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+# longer object length is not a multiple of shorter object length
 
 # Remove OTU separators
 resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack", size = 0.5)
 ```
 # Top 12 ARG gene classes, abundance
 ```{r}
-resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ww, taxrank = "Gene")
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY_clean, taxrank = "Gene")
 
 resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
     resfinder_PHY_Gene)
@@ -1024,9 +1024,9 @@ resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="
 ```
 # Betalactams
 ```{r}
-resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_ww, Class=="Betalactam")
+resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_clean, Class=="Betalactam")
 any(taxa_sums(resfinder_PHY_betalactams) == 0)
-metaxa_PHY_ww <- prune_taxa(taxa_sums(resfinder_PHY_betalactams) > 0, resfinder_PHY_betalactams)
+resfinder_PHY_betalactams <- prune_taxa(taxa_sums(resfinder_PHY_betalactams) > 0, resfinder_PHY_betalactams)
 any(taxa_sums(resfinder_PHY_betalactams) == 0)
 
 resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
@@ -1052,7 +1052,7 @@ resfinder.p19 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="
 ```
 # Metronidazole
 ```{r}
-resfinder_PHY_metronidazole = subset_taxa(resfinder_PHY_ww, Class=="Metronidazole")
+resfinder_PHY_metronidazole = subset_taxa(resfinder_PHY_clean, Class=="Metronidazole")
 any(taxa_sums(resfinder_PHY_metronidazole) == 0)
 resfinder_PHY_metronidazole <- prune_taxa(taxa_sums(resfinder_PHY_metronidazole) > 0, resfinder_PHY_metronidazole)
 any(taxa_sums(resfinder_PHY_metronidazole) == 0)
@@ -1109,6 +1109,8 @@ identical(physeq1, physeq2)
 ```
 
 
+```{bash}
 
+```
 
 
