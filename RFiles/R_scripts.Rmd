@@ -981,54 +981,106 @@ summary(glht(glht.mod))
 ```
 # Top 12 ARG genes, relative abundance
 ```{r}
-resfinder_PHY_Gene <- tax_glom(resfinder_PHY, "Gene")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_ww, taxrank = "Class")
+
+# All classes
+resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)[1:12]), 
+    resfinder_PHY_Class)
+
+# Normalize by number of samples in each country
+otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$location))[, 1])
+
+p17<-plot_bar(resfinder_PHY_Class_abund, x="location", fill="Class")
+resfinder.p17 <- p17 + facet_grid(~ country, scales = "free") + 
+  ggtitle("Sum of relative abundances of ARGs by classes/16S") +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+
+# Remove OTU separators
+resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack", size = 0.5)
+```
+# Top 12 ARG gene classes, abundance
+```{r}
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ww, taxrank = "Gene")
 
 resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
     resfinder_PHY_Gene)
 
-p <- plot_bar(resfinder_PHY_Gene_abund, fill = "Gene")
-a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = "stack") + 
-    scale_color_brewer(palette = "Set3", "Resistance gene") + scale_fill_brewer(palette = "Set3", 
-    "Resistance gene") + ylab("Sum abundance/16S") + xlab("")
-p
-```
-# Top 12 ARG gene classes, abundance
-```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY, "Class")
+# Normalize by number of samples in each country
+otu_table(resfinder_PHY_Gene_abund) <-   (otu_table(resfinder_PHY_Gene_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Gene_abund)$location))[, 1])
 
-resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)[1:12]), 
-    resfinder_PHY_Class)
+p18<-plot_bar(resfinder_PHY_Gene_abund, x="location", fill="Gene")
+resfinder.p18 <- p18 + facet_grid(~ country, scales = "free") + 
+  ggtitle("Sum of relative abundances of ARGs by genes/16S") +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
 
-pl <- plot_bar(resfinder_PHY_Class_abund, fill = "Class")
-b <- pl + geom_bar(aes(color = Class, fill = Class), stat = "identity", position = "stack") + 
-    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
-    "Resistance class") + ylab("Sum abundance/16S") + xlab("")
-b
+# Remove OTU separators
+resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
 ```
 # Betalactams
 ```{r}
-resfinder_PHY_betalactams = subset_taxa(resfinder_PHY, Class=="Betalactam")
+resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_ww, Class=="Betalactam")
+any(taxa_sums(resfinder_PHY_betalactams) == 0)
+metaxa_PHY_ww <- prune_taxa(taxa_sums(resfinder_PHY_betalactams) > 0, resfinder_PHY_betalactams)
+any(taxa_sums(resfinder_PHY_betalactams) == 0)
+
 resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
 
 # Top12
 resfinder_PHY_betalactams_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_betalactams_Gene), TRUE)[1:12]), 
     resfinder_PHY_betalactams_Gene)
 
-# Clean
-resfinder_PHY_betalactams_Gene_abund <- subset_samples(resfinder_PHY_betalactams_Gene_abund, sample_sums(resfinder_PHY_betalactams_Gene_abund) != 
-    0)
-
 # Normalize by sample number
 otu_table(resfinder_PHY_betalactams_Gene_abund) <- (otu_table(resfinder_PHY_betalactams_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_betalactams_Gene_abund)$location))[, 
     1])
 
-p <- plot_bar(resfinder_PHY_betalactams_Gene_abund, fill = "Gene", "location")
-a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = "stack") + 
-    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
-    "Betalactam gene") + ylab("Sum abundance/16S") + xlab("")
-p
+p19<-plot_bar(resfinder_PHY_betalactams_Gene_abund, x="location", fill="Gene")
+resfinder.p19 <- p19 + facet_grid(~ country, scales = "free") + 
+  ggtitle("Sum of relative abundances of top 12 betalactams/16S") +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+
+# Remove OTU separators
+resfinder.p19 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
 ```
-# DESEQ
+# Metronidazole
+```{r}
+resfinder_PHY_metronidazole = subset_taxa(resfinder_PHY_ww, Class=="Metronidazole")
+any(taxa_sums(resfinder_PHY_metronidazole) == 0)
+resfinder_PHY_metronidazole <- prune_taxa(taxa_sums(resfinder_PHY_metronidazole) > 0, resfinder_PHY_metronidazole)
+any(taxa_sums(resfinder_PHY_metronidazole) == 0)
+
+resfinder_PHY_metronidazole_Gene <- tax_glom(resfinder_PHY_metronidazole, "Gene")
+
+# Top12
+resfinder_PHY_metronidazole_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_metronidazole_Gene), TRUE)[1:12]), 
+    resfinder_PHY_metronidazole_Gene)
+
+# Normalize by sample number
+otu_table(resfinder_PHY_metronidazole_Gene_abund) <- (otu_table(resfinder_PHY_metronidazole_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_metronidazole_Gene_abund)$location))[, 
+    1])
+
+p20<-plot_bar(resfinder_PHY_metronidazole_Gene_abund, x="location", fill="Gene")
+resfinder.p20 <- p20 + facet_grid(~ country, scales = "free") + 
+  ggtitle("Sum of relative abundances of top metronidazole ARGs/16S") +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+
+# Remove OTU separators
+resfinder.p20 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
+```
+
+
+# DESEQ?
 ```{r}
 ARGd <- ARG_genemat_norm[, ] * 10^5 + 1
 as.integer(as.matrix(ARGd))
@@ -1042,10 +1094,7 @@ dds_arg_lu$location <- relevel(dds_arg_lu$location, "Savalou area")
 dds_arg_lu = DESeq(dds_arg_lu, fitType = "mean", test = "Wald", betaPrior = FALSE)
 # Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc, : every gene contains at least one zero, cannot compute log geometric means
 ```
-
-
-
-# Beta diversity
+# Beta diversity?
 ```{r}
 # Add tree to the phyloseq object
 random_tree = rtree(ntaxa(metaxa_PHY), rooted=TRUE, tip.label=taxa_names(metaxa_PHY))
@@ -1055,7 +1104,6 @@ physeq2 <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE),
                        tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata), random_tree)
 identical(physeq1, physeq2)
 ```
-
 # Rarefication?
 ```{r}
 ```
