@@ -994,12 +994,12 @@ resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene),
 
 p <- plot_bar(resfinder_PHY_Gene_abund, fill = "Gene")
 a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = "stack") + 
-    scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
+    scale_color_brewer(palette = "Set3", "Resistance gene") + scale_fill_brewer(palette = "Set3", 
     "Resistance gene") + ylab("Sum abundance/16S") + xlab("")
 p
 
 ```
-# Top 12 ARG gene classes, sum abundance
+# Top 12 ARG gene classes, abundance
 ```{r}
 resfinder_PHY_Class <- tax_glom(resfinder_PHY, "Class")
 
@@ -1014,7 +1014,7 @@ b
 ```
 # Betalactams
 ```{r}
-resfinder_PHY_betalactams = subset_taxa(resfinder_PHY, Class=="Aminoglycoside")
+resfinder_PHY_betalactams = subset_taxa(resfinder_PHY, Class=="Betalactam")
 resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
 
 # Top12
@@ -1034,8 +1034,24 @@ a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = 
     scale_color_brewer(palette = "Set3", "Resistance class") + scale_fill_brewer(palette = "Set3", 
     "Betalactam gene") + ylab("Sum abundance/16S") + xlab("")
 p
-
 ```
+# DESEQ
+```{r}
+ARGd <- ARG_genemat_norm[, ] * 10^5 + 1
+as.integer(as.matrix(ARGd))
+
+ARG_DESEQ <- phyloseq(otu_table(resfinder_PHY, taxa_are_rows = T), sample_data(metadata), 
+    tax_table(as.matrix(tax_table_resfinder)))
+ARG_DESEQ_LU <- subset_samples(ARG_DESEQ, (country == "Benin"))
+dds_arg_lu = phyloseq_to_deseq2(ARG_DESEQ_LU, ~location)
+
+dds_arg_lu$location <- relevel(dds_arg_lu$location, "Savalou area")
+dds_arg_lu = DESeq(dds_arg_lu, fitType = "mean", test = "Wald", betaPrior = FALSE)
+# Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc, : every gene contains at least one zero, cannot compute log geometric means
+```
+
+
+
 # Beta diversity
 ```{r}
 # Add tree to the phyloseq object
