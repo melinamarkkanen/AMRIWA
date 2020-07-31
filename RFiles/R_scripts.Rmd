@@ -558,7 +558,7 @@ metaxa_top5class.rel <- microbiome::transform(metaxa_top6class, "compositional")
 metaxa_top5class.p13 <- plot_composition(metaxa_top5class.rel, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
-    ggtitle("Relative abundance of top 6 classes, Metaxa2")
+    ggtitle("Relative abundance of top 5 classes, Metaxa2")
 
 metaxa_top5class.p13 + 
     scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E", "#FFFFFF"))
