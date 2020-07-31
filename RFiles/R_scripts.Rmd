@@ -713,10 +713,11 @@ heat.metaphlan
 ```
 # Sum of the relative abundances of ResFinder results by location
 ```{r}
-# Average 16S counts bu location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+# Average 16S counts by location
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
+# There are outliers
 
 # Testing models to support the data
 ## Linear
@@ -733,24 +734,28 @@ summary(model.logln)
 shapiro.test(log(lo_data$SUM))
 plot(model.logln)
 
-# P value 0.005464 but data not normally distributed. Also S shaped QQ plot reffering to overdispersion.
+# The p value is > 0.05 and differs significantly from normal distribution
 
 ## Poisson
 model.pois = glm(SUM ~ location , data = lo_data, family = poisson)
 summary(model.pois)
 plot(model.pois)
 
-# P value <2e-16, Residual deviance: 65342438  on 75  degrees of freedom, AIC: 65343564.
+# P value <2e-16, Residual deviance: 1495738  on 68  degrees of freedom, AIC: 1496754
 
 ## Quasipoisson
 model.qpois<-glm(SUM~location, data=lo_data, family="quasipoisson")
 summary(model.qpois)
 plot(model.qpois)
 
+# Residual deviance: 1495738  on 68  degrees of freedom, AIC: NA
+
 ## Negative binomial
 model.nb <- glm.nb(SUM~location, data=lo_data)
 summary(model.nb)
 plot(model.nb)
+
+# Residual deviance:  90.286  on 68  degrees of freedom, AIC: 1915.4, theta, 1.594, Std. Err.:  0.228
 
 # Summarize and compare models
 data.frame(linear=coef(model.ln),
@@ -767,14 +772,11 @@ deviance(model.pois)
 deviance(model.qpois)
 deviance(model.nb)
 
-# None of the models fits the data.
+# None of the models fits the data. But the negative binomial is the vbest of the bad ones.
 ```
 
 ```{r}
 # Plot using neg. binom. model
-
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
-
 fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
 
 lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata = lo_data, type = "response", se.fit = T)$se.fit)
@@ -790,10 +792,15 @@ ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
     geom_point(size = 0.9) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") +
+  scale_y_continuous(trans = "log10")
+ARG.sum.lo
+```
 
+```{r}
 # Extract outliers
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
 
 boxplot(lo_data$SUM)
 boxplot(lo_data$SUM, plot=FALSE)$out
@@ -824,13 +831,12 @@ ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
-
-plot_grid(ARG.sum.lo, ARG.sum.lo_outl)
+ARG.sum.lo_outl
 ```
 # Sum of the relative abundances of ResFinder results by country
 ```{r, results='hide'}
 # Average 16S counts bu location
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -896,7 +902,7 @@ deviance(model.nb)
 
 ```{r}
 # Plot using neg. binom. model
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -911,9 +917,12 @@ ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
+ARG.sum.co
+```
 
+```{r}
 # Extract outliers
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
 
 boxplot(co_data$SUM)
 boxplot(co_data$SUM, plot=FALSE)$out
@@ -941,22 +950,28 @@ ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
-
-plot_grid(ARG.sum.co, ARG.sum.co_outl)
+ARG.sum.co_outl
 ```
 # Check signifigances
 ```{r}
 # By location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), location=as.factor(sample_data(resfinder_PHY)$location))
+lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), location=as.factor(sample_data(resfinder_PHY_ww)$location))
+
+lo_data[which(lo_data$SUM %in% outliers),]
+lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
 
 fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
 
 # Tukey's post hoc test
 glht.mod <- glht(fit, mcp(location = "Tukey"))
-summary(glht(glht.mod))
+print(summary(glht(glht.mod)))
 
 # By country
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY)$SSU_counts)*(sample_sums(resfinder_PHY))), country=as.factor(sample_data(resfinder_PHY)$country))
+co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_ww)$SSU_counts)*(sample_sums(resfinder_PHY_ww))), country=as.factor(sample_data(resfinder_PHY_ww)$country))
+
+# Exclude outliers
+co_data[which(co_data$SUM %in% outliers),]
+co_data <- co_data[-which(co_data$SUM %in% outliers),]
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -976,7 +991,6 @@ a <- p + geom_bar(aes(color = Gene, fill = Gene), stat = "identity", position = 
     scale_color_brewer(palette = "Set3", "Resistance gene") + scale_fill_brewer(palette = "Set3", 
     "Resistance gene") + ylab("Sum abundance/16S") + xlab("")
 p
-
 ```
 # Top 12 ARG gene classes, abundance
 ```{r}
