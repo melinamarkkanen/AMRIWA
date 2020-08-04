@@ -785,8 +785,9 @@ ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
 ARG.sum.lo
 ```
 
-## Extract outliers
+
 ```{r}
+## Extract outliers
 #lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY)))), location = sample_data(resfinder_PHY)$location)
 
 #boxplot(lo_data$SUM)
@@ -818,8 +819,9 @@ ARG.sum.lo
     #labs(y = "Sum abundance/16S", x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 #ARG.sum.lo_outl
 ```
-## Check if significant
+
 ```{r, results='hide'}
+## Check if significant
 lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
     location = sample_data(resfinder_PHY_clean)$location)
 
@@ -935,8 +937,8 @@ ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
 ARG.sum.co
 ```
 
-## Extract outliers
 ```{r}
+## Extract outliers
 #co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY)))), country = sample_data(resfinder_PHY)$country)
 
 #boxplot(co_data$SUM)
@@ -965,8 +967,9 @@ ARG.sum.co
     #labs(y = "Sum abundance/16S", x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 #ARG.sum.co_outl
 ```
-## Check if significant
+
 ```{r, results='hide'}
+## Check if significant
 co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
     country = sample_data(resfinder_PHY_clean)$country)
 
@@ -1000,7 +1003,7 @@ resfinder.p17 <- p17 + facet_grid(~ location, scales = "free", space = "free", l
   theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
 resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
@@ -1026,7 +1029,7 @@ resfinder.p18 <- p18 + facet_grid(~ location, scales = "free", space = "free", l
   theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
 resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
@@ -1055,7 +1058,7 @@ resfinder.p19 <- p19 + facet_grid(~ location, scales = "free", space = "free", l
   theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
 resfinder.p19 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
@@ -1088,12 +1091,52 @@ resfinder.p20 <- p20 +
   theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
 resfinder.p20 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
 ```
+## DESEQ2
+```{r}
+# Phyloseq object with counts, not normalized data
+resfinder_PHY_nonnorm <- phyloseq(otu_table(ARG_genemat_counts, taxa_are_rows = TRUE), sample_data(metadata), 
+    tax_table(as.matrix(tax_table_resfinder)))
 
+# Filter samples
+## Low quality
+resfinder_PHY_nonnorm = subset_samples(resfinder_PHY_nonnorm, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+
+# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
+resfinder_PHY_nonnorm_ww = subset_samples(resfinder_PHY_nonnorm, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Or alternatively include fecal but exclude suspicious samples
+# resfinder_PHY_ast = subset_samples(resfinder_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+
+# Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
+resfinder_PHY_nonnorm_clean = subset_samples(resfinder_PHY_nonnorm_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+
+# Check if there are taxa that are not present in any of the remaining samples
+any(taxa_sums(resfinder_PHY_nonnorm_clean) == 0)
+resfinder_PHY_nonnorm_clean <- prune_taxa(taxa_sums(resfinder_PHY_nonnorm_clean) > 0, resfinder_PHY_nonnorm_clean)
+any(taxa_sums(resfinder_PHY_nonnorm_clean) == 0)
+
+# Deseq
+#dds.data = phyloseq_to_deseq2(resfinder_PHY_nonnorm_clean, ~country)
+#dds = DESeq(dds.data)
+#res = results(dds)
+#res = res[order(res$padj, na.last=NA), ]
+#alpha = 0.01
+#sigtab = res[(res$padj < alpha), ]
+#sigtab = cbind(as(sigtab, "data.frame"),                as(tax_table(resfinder_PHY_nonnorm_clean)[rownames(sigtab), ], "matrix"))
+#head(sigtab)
+
+#dds <- estimateSizeFactors(dds)
+#dds <- estimateDispersions(dds)
+#plotDispEsts(dds)
+```
+## Pheatmap of ResFnder results
+```{r}
+```
 
 
 
