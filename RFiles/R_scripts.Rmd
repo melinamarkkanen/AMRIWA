@@ -11,9 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
 ```
 ## Load libraries
-```{r, warning=FALSE, error=FALSE, message=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 library(phyloseq)
-#source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
 library(dplyr)
 library(viridis)
 library(stringr)
@@ -57,69 +56,72 @@ metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unknown"))
 ```{r}
 metadata$SSU_counts <- sample_sums(metaxa_PHY)
 
-# Create extra column for Eucaryota
+# Create extra column for Eucaryota, might be interesting to check out later
 metaxa_PHY_temp <- subset_taxa(metaxa_PHY, !Domain %in% c("Unknown", "Bacteria", "Archaea", "Mitochondria", "Chloroplast"))
 metadata$SSU_eucaryota <- sample_sums(metaxa_PHY_temp)
 ```
 ## Filter samples
 ```{r}
-# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+# With low quality (BFH24_S142, BH63_S118, FH10_S171), do at least this.
 metaxa_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 metaxa_PHY_ww = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
-# Suspicious samples (very high ARG level)
-metaxa_PHY_clean = subset_samples(metaxa_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+# Or alternatively include fecal but exclude suspicious samples
+# metaxa_PHY_ast = subset_samples(metaxa_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
-# Clear taxa that is not present in any of the remaining samples
-any(taxa_sums(metaxa_PHY_ww) == 0)
-metaxa_PHY_ww <- prune_taxa(taxa_sums(metaxa_PHY_ww) > 0, metaxa_PHY_ww)
-any(taxa_sums(metaxa_PHY_ww) == 0)
+# Suspicious samples (very high ARG level)
+metaxa_PHY_clean = subset_samples(metaxa_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+
+# Clear taxa that are not present in any of the remaining samples
+any(taxa_sums(metaxa_PHY_clean) == 0)
+metaxa_PHY_clean <- prune_taxa(taxa_sums(metaxa_PHY_clean) > 0, metaxa_PHY_clean)
+any(taxa_sums(metaxa_PHY_clean) == 0)
 ```
-## Ordinate Metaxa2 result to study whether the taxonomy can be explained by the variable "country"
+## Ordination to study whether the taxonomy can be explained by the variable "country", Metxa2
 ```{r}
 # Change into relative data
-metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY_ww, function(x) x/sum(x))
+metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY_clean, function(x) x/sum(x))
 
 # Ordinate and plot data
 metaxa_rel_PHY_ord <- ordinate(metaxa_rel_PHY, method = "PCoA", distance = "horn")
 p1 <- plot_ordination(metaxa_rel_PHY, metaxa_rel_PHY_ord, color = "country", label = "name")
 metaxa.p1 <- p1 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + geom_point(colour = "black", 
-    pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
+    pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "Metaxa2")
 metaxa.p1
 
 # Test significance using pair-wise adonis
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Benin" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Burkina Faso" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ww, (country == "Benin" | country == "Burkina Faso"))
+metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Benin" | country == "Burkina Faso"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some (~16.7 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland.
+# Finnish samples seems to harbour more distinct taxonomic dibversity than those of Benin (R2=16.7%, p=0.001) and Burkina Faso (R2=9.6 %, p=0.001). Instead There is little grouping by country between Benin and Burkina Faso.
 ```
-# Testing whether the taxonomic composition is grouped significantly by location in each country, Metaxa2
+# Is taxonomic composition is grouped significantly by location inside each country, Metaxa2
 ```{r}
-Benin <- subset_samples(metaxa_PHY_ww, (country == "Benin"))
+Benin <- subset_samples(metaxa_PHY_clean, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(metaxa_PHY_ww, (country == "Burkina Faso"))
+BF <- subset_samples(metaxa_PHY_clean, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(metaxa_PHY_ww, (country == "Finland"))
+Finland <- subset_samples(metaxa_PHY_clean, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
-# In Benin the taxonomic profile is explained by  26.3 % by the location. Whereas in Burkina Faso the same percentage is  24.2 %. In Finland the grouping by location is not significant.
+# In Benin the location defines the taxonomic composition at some level (R2=25.5 %, p=1e-05), as well as in Burkina Faso (R2=24.3 %, p=1e-05). In Finland grouping by location is not significant (due to small sample size).
 ```
 
 # Metaphlan3
@@ -165,67 +167,68 @@ metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BFH24_S142" & name != "BH
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
+# Or alternatively include fecal but exclude suspicious samples
+# metaphlan_PHY_ast = subset_samples(metaphlan_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+
 # Suspicious samples (very high ARG level)
-metaphlan_PHY_clean = subset_samples(metaphlan_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+metaphlan_PHY_clean = subset_samples(metaphlan_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Clear taxa that is not present in any of the remaining samples
-any(taxa_sums(metaphlan_PHY_ww) == 0)
-metaphlan_PHY_ww <- prune_taxa(taxa_sums(metaphlan_PHY_ww) > 0, metaphlan_PHY_ww)
-any(taxa_sums(metaphlan_PHY_ww) == 0)
+any(taxa_sums(metaphlan_PHY_clean) == 0)
+metaphlan_PHY_clean <- prune_taxa(taxa_sums(metaphlan_PHY_clean) > 0, metaphlan_PHY_clean)
+any(taxa_sums(metaphlan_PHY_clean) == 0)
 ```
-## Ordinate Metaphlan3 results to study wheather the taxonomy can be explained by the variable "country"
+## Ordination to study wheather the taxonomy can be explained by the variable "country", Metaphlan3
 ```{r}
 # Ordinate and plot data
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_ww, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY_ww, metaphlan_PHY_ord, color = "country", label = "sample_type")
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY_clean, method = "PCoA", distance = "horn")
+p2 <- plot_ordination(metaphlan_PHY_clean, metaphlan_PHY_ord, color = "country", label = "sample_type")
 metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
-    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
+    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
 metaphlan.p2
 
 # Test significance using pair-wise adonis
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Benin" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Benin" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Burkina Faso" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso" | country == "Benin"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Burkina Faso" | country == "Benin"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# The explanatory variable "country" explains less than 10 % of the grouping in every pair wise comparison.
+# The explanatory variable "country" explains less than 10 % of the grouping in every pair-wise comparison.
 # There seems to be a small group of samples differing from other ones. They represent mostly other than ww samples. Let's see if this grouping is significant.
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (sample_type == "waste water" | sample_type == "soil"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (sample_type == "waste water" | sample_type == "soil"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_ww, (sample_type == "waste water" | sample_type == "river water"))
+metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (sample_type == "waste water" | sample_type == "river water"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-# Not really. Whether the sample is river water or waste water seems to explain 4.6 % of the grouping.
+# Pair-wise comparison between ww samples and river water gives a significant (p=0.002) R2 value of 4.6 %.
 ```
-# Testing wheter the taxonomic composition is grouped significantly by location in each country
+# Is taxonomic composition is grouped significantly by location inside each country, Metaphlan3
 ```{r}
-Benin <- subset_samples(metaphlan_PHY_ww, (country == "Benin"))
+Benin <- subset_samples(metaphlan_PHY_clean, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(metaphlan_PHY_ww, (country == "Burkina Faso"))
+BF <- subset_samples(metaphlan_PHY_clean, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(metaphlan_PHY_ww, (country == "Finland"))
+Finland <- subset_samples(metaphlan_PHY_clean, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
-
-# In Benin the taxonomy profile is explained by  29.7 % by the location. Whereas in Burkina Faso the same percentage is  22.2 %. In Finland the grouping by location is not significant.
+# The results seem similar to those from Metaxa2. Benin R2=29.7 %, p=1e-05; BF R2=22.2 %, p=5e-05; Finland not significant.
 ```
-
 # ResFinder
 ## Load data
 ```{r}
@@ -236,8 +239,15 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 ## sed -i 's/BH34-B_S99/BH34.B_S99/g' mod_ARG_genemat.txt
 
 ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+
+# Save counts without gene names
+#write.table(ARG_genemat, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_counts", row.names=T, sep = "\t", col.names = T)
+
+#ARG_genemat_counts <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_counts", row.names=NULL)
+
+#ARG_genemat_counts$row.names<-NULL
 ```
-## Load ResFinder gene lengths
+## Load ResFinder gene lengths if normalized with them
 ```{r}
 # Modify "resfinder.fasta" file so that only hits remain
 ## seqkit grep -f ARG_genes.txt resfinder.fasta > filtered_resfinder.fasta
@@ -246,39 +256,38 @@ ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names
 # Print out the gene lengths of these genes into file "lengths_resfinder.txt"
 ## cat filtered_resfinder.fasta | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) "\t"; } $0 !~ ">" {c+=length($0);} END { print c; }' > lengths_resfinder.txt
 # Reorder in excel to match with file "ARG_genemat_norm"
-lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
-colnames(lengths_resfinder) <- c("Length")
+#lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
+#colnames(lengths_resfinder) <- c("Length")
 ```
 ## Normalization with gene lengths
 ```{r}
 # Divide by ResFinder hit gene lengths
-ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
+#ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
 
 # Divide by SSU counts and normalize to bacterial 16S rRNA length (1550)
-ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
+#ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
 
 # Check if correct:
-identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
-
-# Save and load again to exclude row.names
-write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
-
-ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
-ARG_genemat_norm$row.names<-NULL
-```
-## Normalize ARG counts to SSU
-### Do not run if the above is run
-```{r}
-#ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
-
-# Check if correct:
-#identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+#identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
 #write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
 
 #ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
 #ARG_genemat_norm$row.names<-NULL
+```
+## Normalize ARG counts to SSU
+```{r}
+ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
+
+# Check if correct:
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+
+# Save and load again to exclude row.names
+write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+
+ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+ARG_genemat_norm$row.names<-NULL
 ```
 ## Create phyloseq object
 ```{r}
@@ -289,6 +298,10 @@ colnames(tax_table_resfinder) <- c("Gene", "Class")
 # Combine to phyloseq object
 resfinder_PHY <- phyloseq(otu_table(ARG_genemat_norm, taxa_are_rows = TRUE), sample_data(metadata), 
     tax_table(as.matrix(tax_table_resfinder)))
+
+# Have a quick look
+plot_bar(otu_table(resfinder_PHY))
+# There are the suspicious samples (BH02, BH27, BH30).
 ```
 ## Filter samples
 ```{r}
@@ -297,6 +310,9 @@ resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
 resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+
+# Or alternatively include fecal but exclude suspicious samples
+# resfinder_PHY_ast = subset_samples(resfinder_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
 resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
@@ -312,7 +328,7 @@ any(taxa_sums(resfinder_PHY_clean) == 0)
 resfinder_PHY_ord <- ordinate(resfinder_PHY_clean, method = "PCoA", distance = "horn")
 p3 <- plot_ordination(resfinder_PHY_clean, resfinder_PHY_ord, color = "country", label = "name")
 resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
-    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.9, linetype = 1) +
+    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3
 
@@ -329,32 +345,32 @@ resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Finland" | co
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-# The explanatory variable "country" explains some (~11.6 %) of the difference in the grouping of taxonomy in the comparison between of Benin and Finland and some (~12.9%) between Burkina Faso and Finland.
+# Between Benin and Finland, country explains 11.5 % (p=0.001) of the divergence in the resistome. Between BF and Finland the same is 12.6 % (p=0.001).
 ```
-# Testing whether the (alpha diversities in?) resistomes are grouped significantly by location in each country
+# Is taxonomic composition is grouped significantly by location inside each country, ResFinder
 ```{r}
-Benin <- subset_samples(resfinder_PHY_ww, (country == "Benin"))
+Benin <- subset_samples(resfinder_PHY_clean, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(resfinder_PHY_ww, (country == "Burkina Faso"))
+BF <- subset_samples(resfinder_PHY_clean, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(resfinder_PHY_ww, (country == "Finland"))
+Finland <- subset_samples(resfinder_PHY_clean, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
-# In Benin the ARG profile is explained by 21.2 % by the location. Whereas in Burkina Faso the same percentage is 20.5 %. In Finland the grouping by location is not significant.
+# In Benin and BF the grouping by location has R2 values like 26.5 % (p=4e-05) and 20.4 % (p=0.00175). In Finland no significant correlation can be proven.
 ```
 # Diversity indexes by Metaxa2
-```{r, results='hide'}
-# Take a look at the indexes (Can't work with the metaxa_rel_PHY, since it has "double" = non-integer data.)
-metaxa_tab <-microbiome::alpha(metaxa_PHY_ww, index = "all")
+```{r, results='hide', fig.keep = 'none'}
+# Take a look at the indexes
+metaxa_tab <-microbiome::alpha(metaxa_PHY_clean, index = "all")
 kable(head(metaxa_tab))
 
 # Create data table
-metaxa.meta <- meta(metaxa_PHY_ww)
+metaxa.meta <- meta(metaxa_PHY_clean)
 kable(head(metaxa.meta))
 
 # Add indexes to data table
@@ -383,38 +399,39 @@ div.country <- levels(metaxa.meta$country)
 country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
 print(country.pairs)
 
-# Plot
-## Shannon
+# For inverse simpson index, data fullfills the assumption for normal distribution. For that t-test will be apllied. For the other too wilcox test will be used to test the significance.
+```
+# Diversity plots, Metaxa2
+```{r}
+# Shannon
 p4 <- ggviolin(metaxa.meta, x = "country", y = "diversity_shannon",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p4 <- p4 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p4)
 
-## Gini Simpson
+# Gini Simpson
 p5 <- ggviolin(metaxa.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p5 <- p5 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
 print(p5)
 
-# The probability that two individuals randomly selected from a sample will belong to same species is higher in Finland than in Benin.
-
-## Inverse Simpson
+# Inverse Simpson
 p6 <- ggviolin(metaxa.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
 p6 <- p6 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
 print(p6)
 
-# Inverse simpson index shows significant results. The alpha diversity is the highest in Benin compared to Burkina Faso and Finland. Of Burkina Faso and Finland the diversity is higher in Burkina Faso. 
+# In Finnish samples seems to have significantly lower alpha diversity in taxonomy according to Metaxa2 compared to Benin and Burkina Faso.
 ```
 # Diversity indexes by Metaphlan3
-```{r}
+```{r, results='hide', fig.keep = 'none'}
 # Shannon
 ## Take a look at the indexes
-metaphlan_tab <-microbiome::alpha(metaphlan_PHY_ww, index = "diversity_shannon")
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY_clean, index = "diversity_shannon")
 kable(head(metaphlan_tab))
 
 ## Create data table
-metaphlan.meta <- meta(metaphlan_PHY_ww)
+metaphlan.meta <- meta(metaphlan_PHY_clean)
 kable(head(metaphlan.meta))
 
 ## Add indexes to data table
@@ -422,18 +439,12 @@ metaphlan.meta$diversity_shannon <- metaphlan_tab$diversity_shannon
 
 # Check whether the distribution of the diversity is normal
 hist(metaphlan.meta$diversity_shannon)
-shapiro.test(metaphlan.meta$diversity_shannon) # Does not fit the assumption of normal distribution > wilcox test.
+shapiro.test(metaphlan.meta$diversity_shannon)
 qqnorm(metaphlan.meta$diversity_shannon)
-
-# Plot
-p7 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
- add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p7 <- p7 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p7)
 
 # Gini Simpson
 ## Take a look at the indexes
-metaphlan_tab <-microbiome::alpha(metaphlan_PHY_ww, index = "diversity_gini_simpson")
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY_clean, index = "diversity_gini_simpson")
 kable(head(metaphlan_tab))
 
 ## Add indexes to data table
@@ -441,7 +452,7 @@ metaphlan.meta$diversity_gini_simpson <- metaphlan_tab$diversity_gini_simpson
 
 # Check whether the distribution of the diversity is normal
 hist(metaphlan.meta$diversity_gini_simpson)
-shapiro.test(metaphlan.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
+shapiro.test(metaphlan.meta$diversity_gini_simpson)
 qqnorm(metaphlan.meta$diversity_gini_simpson)
 
 # Create a list of pairwise comparisons
@@ -449,15 +460,9 @@ div.country <- levels(metaphlan.meta$country)
 country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
 print(country.pairs)
 
-# Plot
-p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
- add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p8)
-
 # Inverse Simpson
 ## Take a look at the indexes
-metaphlan_tab <-microbiome::alpha(metaphlan_PHY_ww, index = "diversity_inverse_simpson")
+metaphlan_tab <-microbiome::alpha(metaphlan_PHY_clean, index = "diversity_inverse_simpson")
 kable(head(metaphlan_tab))
 
 ## Add indexes to data table
@@ -467,17 +472,28 @@ metaphlan.meta$diversity_inverse_simpson <- metaphlan_tab$diversity_inverse_simp
 hist(metaphlan.meta$diversity_inverse_simpson)
 shapiro.test(metaphlan.meta$diversity_inverse_simpson) 
 qqnorm(metaphlan.meta$diversity_inverse_simpson)
+```
+# Diversity plots, Metaphlan3
+```{r}
+p7 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+metaphlan.p7 <- p7 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
+metaphlan.p7
 
-# Plot
+p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+metaphlan.p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+metaphlan.p8 
+
 p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
-print(p9)
+metaphlan.p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+metaphlan.p9
 
-# Inverse Simpson index shows weakly significant results. There are no significant differences in the alpha diversities of the countries taxonomical composition.
+# According to metaphlan there are no significant differences between the alpha diversities of samples from different countries.
 ```
 # Diversity indexes by ResFinder
-```{r}
+```{r, results='hide', fig.keep = 'none'}
 # Shannon
 ## Take a look at the indexes
 resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_shannon")
@@ -500,12 +516,6 @@ div.country <- levels(resfinder.meta$country)
 country.pairs <- combn(seq_along(div.country), 2, simplify = FALSE, FUN = function(i)div.country[i])
 print(country.pairs)
 
-# Plot
-p10 <- ggviolin(resfinder.meta, x = "country", y = "diversity_shannon",
- add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p10 <- p10 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p10)
-
 # Gini Simpson
 ## Take a look at the indexes
 resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_gini_simpson")
@@ -519,12 +529,6 @@ hist(resfinder.meta$diversity_gini_simpson)
 shapiro.test(resfinder.meta$diversity_gini_simpson) # Does not fit the assumption of normal distribution > wilcox test.
 qqnorm(resfinder.meta$diversity_gini_simpson)
 
-# Plot
-p11 <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
- add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p11 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p11)
-
 # Inverse Simpson
 ## Take a look at the indexes
 resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_inverse_simpson")
@@ -537,34 +541,47 @@ resfinder.meta$diversity_inverse_simpson <- resfinder_tab$diversity_inverse_simp
 hist(resfinder.meta$diversity_inverse_simpson)
 shapiro.test(resfinder.meta$diversity_inverse_simpson) 
 qqnorm(resfinder.meta$diversity_inverse_simpson)
+```
+# Diversity plots, ResFinder
+```{r}
+p10 <- ggviolin(resfinder.meta, x = "country", y = "diversity_shannon",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+resfinder.p10 <- p10 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
+resfinder.p10
 
-# Plot
+p11 <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
+ add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
+resfinder.p11 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+resfinder.p11
+
 p12 <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
-print(p12)
+resfinder.p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+resfinder.p12
 
-# The alpha diversity of resistance genes detected by ResFinder seems slightly higher in Burkina Faso than in Benin and in Finland.
+# The resistome seems less complex in Finnish samples than in Burkinabe and Beninise.
 ```
-
-```{r}
-# Plot by individual sample
+# Diversity of resistomes by individual samples
+```{r, message=FALSE, warning=FALSE, error=FALSE}
 nb.cols <- 14
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
 loc <- plot_richness(resfinder_PHY_clean, measures = c("Shannon", "Simpson"), 
                      color="location", shape = "country")
 
 resfinder.in <- loc + scale_fill_manual(values=mycolors) + 
   geom_boxplot() +
-  geom_point(size=3) + theme_bw() +
+  geom_point(size=3) + theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, size =5))
 resfinder.in
 ```
 # Taxonomic composition by Metaxa2 using microbiome package
 ```{r}
+# Use the unfiltered data this time to see the differences in fecal samples etc
+metaxa_rel_PHY_orig <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
+
 # Load data
-metaxa.com <- metaxa_rel_PHY
+metaxa.com <- metaxa_rel_PHY_orig
 taxic_metaxa <- as.data.frame(metaxa.com@tax_table) 
 
 # Add OTU ids
@@ -583,8 +600,6 @@ tax_table(metaxa.com) <- new.tax_metaxa
 # Class level
 metaxa_top5class <- aggregate_top_taxa(metaxa.com, top = 5, "Class")
 
-#metaxa_top5class.rel <- microbiome::transform(metaxa_top5class, "compositional")
-
 metaxa_top5class.p13 <- plot_composition(metaxa_top5class, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
@@ -592,6 +607,8 @@ metaxa_top5class.p13 <- plot_composition(metaxa_top5class, group_by = "country")
 
 metaxa_top5class.p13 + 
     scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E", "#FFFFFF"))
+
+# Technicval replicates seem highly similar to each other. Fecal samples have different diversity in the class taxonomy: more Closridia and Betaproteobacteria than Gammaproteobacteria and no Epsilonproteobacteria when comparing to ww samples. Of the suscpicious samples especially in BH02 the Gammaproteobacteria are dominating. This would make sense if the sample was from CLED plate which is selective for Enterobacteriaceae species. 
 ```
 # Top 15 genera merged by location, Metaxa2
 ```{r}
@@ -615,7 +632,7 @@ otu_table(metaxa_mrg_loc_trans) <- otu_table(metaxa_mrg_loc_trans)[, ]/as.matrix
 
 # Set colors
 nb.cols <- 15
-mycolors <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
@@ -629,11 +646,10 @@ metaxa.p14 <- plot_bar(metaxa_mrg_loc_trans, fill = "Genus", title = "15 most ab
         ylab("Merged relative abundance (%)") + xlab("") +
   scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
   guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
-metaxa.p14
 ```
 # Top 15 genera merged by location, Metaphlan3
 ```{r}
-metaphlan_PHY_genus <- tax_glom(metaphlan_PHY_ww, "Genus")
+metaphlan_PHY_genus <- tax_glom(metaphlan_PHY_clean, "Genus")
 
 metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus), TRUE)[1:15]), 
     metaphlan_PHY_genus)
@@ -648,12 +664,12 @@ metaphlan_mrg_loc <- merge_samples(metaphlan_PHY_genus_abun_trans, "location")
 metaphlan_mrg_loc_trans <- transform_sample_counts(metaphlan_mrg_loc, function(x) x / sum(x))
 
 # Normalize by sample number / location
-otu_table(metaphlan_mrg_loc_trans) <- otu_table(metaphlan_mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaphlan_PHY_ww)$location))[, 
+otu_table(metaphlan_mrg_loc_trans) <- otu_table(metaphlan_mrg_loc_trans)[, ]/as.matrix(table(sample_data(metaphlan_PHY)$location))[, 
     1]
 
 # Set colors
 nb.cols <- 15
-mycolors <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
@@ -666,10 +682,17 @@ metaphlan.p16 <- plot_bar(metaphlan_mrg_loc_trans, fill = "Genus", title = "15 m
         ylab("Relative abundance (%)") + xlab("") +
   scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
   guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+
+# Plot both
+metaxa.p14
 metaphlan.p16
+
+# The results seem coherent between the two methods. Aeromonas sp are relatively common in Finnish samples.
 ```
-# DRAFT Heatmap of Metaxa2 results
-```{r}
+# Heatmap of Metaxa2 results
+```{r, warning=FALSE, message=FALSE}
+# Let's use again the unfiltered data
+metaphlan_PHY_genus <- tax_glom(metaphlan_PHY, "Genus")
 heat.metaphlan <- plot_taxa_heatmap(metaphlan_PHY_genus,
                                  subset.top = 50,
                                  VariableA = "country",
@@ -677,14 +700,18 @@ heat.metaphlan <- plot_taxa_heatmap(metaphlan_PHY_genus,
                                  transformation = "log10",
                                  cluster_cols = T)
 heat.metaphlan
+
+# The plot could be edited to have bigger font size and have more annotations (location, sample type).
 ```
 # Sum of the relative abundances of ResFinder results by location
-```{r}
+```{r, results='hide', fig.keep = 'none'}
 # Average 16S counts by location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
+mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
+
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
+    location = sample_data(resfinder_PHY_clean)$location)
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
-# There are outliers
 
 # Testing models to support the data
 ## Linear
@@ -708,21 +735,15 @@ model.pois = glm(SUM ~ location , data = lo_data, family = poisson)
 summary(model.pois)
 plot(model.pois)
 
-# P value <2e-16, Residual deviance: 1495738  on 68  degrees of freedom, AIC: 1496754
-
 ## Quasipoisson
 model.qpois<-glm(SUM~location, data=lo_data, family="quasipoisson")
 summary(model.qpois)
 plot(model.qpois)
 
-# Residual deviance: 1495738  on 68  degrees of freedom, AIC: NA
-
 ## Negative binomial
 model.nb <- glm.nb(SUM~location, data=lo_data)
 summary(model.nb)
 plot(model.nb)
-
-# Residual deviance:  90.286  on 68  degrees of freedom, AIC: 1915.4, theta, 1.594, Std. Err.:  0.228
 
 # Summarize and compare models
 data.frame(linear=coef(model.ln),
@@ -739,7 +760,7 @@ deviance(model.pois)
 deviance(model.qpois)
 deviance(model.nb)
 
-# None of the models fits the data. But the negative binomial is the vbest of the bad ones.
+# None of the models fits the data. However, negative binominal model gets the closest.
 ```
 
 ```{r}
@@ -749,14 +770,14 @@ fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
 lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata = lo_data, type = "response", se.fit = T)$se.fit)
 
 nb.cols <- 14
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
 ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
-        scale_fill_manual(values = mycolors) +
     geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
     size = 2.3, alpha = 0.5, width = 0.3) + 
     geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
     geom_point(size = 0.9) +
+    scale_fill_manual(values = mycolors) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") +
@@ -764,46 +785,79 @@ ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
 ARG.sum.lo
 ```
 
-```{r}
 # Extract outliers
+```{r}
+#lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY)))), location = sample_data(resfinder_PHY)$location)
 
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
+#boxplot(lo_data$SUM)
+#boxplot(lo_data$SUM, plot=FALSE)$out
+#outliers <- boxplot(lo_data$SUM, plot=FALSE)$out
+#print(outliers)
 
-boxplot(lo_data$SUM)
-boxplot(lo_data$SUM, plot=FALSE)$out
-outliers <- boxplot(lo_data$SUM, plot=FALSE)$out
-print(outliers)
-
-# Exclude outliers
-## where they at
-lo_data[which(lo_data$SUM %in% outliers),]
-## remove
-lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
-boxplot(lo_data$SUM)
+# Where they at
+#lo_data[which(lo_data$SUM %in% outliers),]
+# Remove
+#lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
+#boxplot(lo_data$SUM)
 
 # New  plot
+#fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
+
+#lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata =lo_data, type = "response", se.fit = T)$se.fit)
+
+#nb.cols <- 14
+#mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+
+#ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
+    #scale_fill_manual(values = mycolors) +
+    #geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
+    #size = 2.3, alpha = 0.5, width = 0.3) + 
+    #geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    #geom_point(size = 0.9) +
+    #theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    #labs(y = "Sum abundance/16S", x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
+#ARG.sum.lo_outl
+```
+# Check if significant
+```{r, results='hide'}
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
+    location = sample_data(resfinder_PHY_clean)$location)
+
+# When outliers removed use:
+#lo_data[which(lo_data$SUM %in% outliers),]
+#lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
+
 fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
 
-lo_data <- cbind(lo_data, Mean = predict(fit, newdata = lo_data, type = "response"), SE = predict(fit, newdata = lo_data, type = "response", se.fit = T)$se.fit)
+# Tukey's post hoc test
+glht.mod <- glht(fit, mcp(location = "Tukey"))
+print(summary(glht(glht.mod)))
 
-nb.cols <- 14
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
-
-ARG.sum.lo_outl <- ggplot(lo_data, aes(x = location, y = Mean)) +
-    scale_fill_manual(values = mycolors) +
-    geom_line() + geom_jitter(data = lo_data, aes(x = location, y = SUM, color = location), 
-    size = 2.3, alpha = 0.5, width = 0.3) + 
-    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
-    geom_point(size = 0.9) +
-    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-    labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
-ARG.sum.lo_outl
+# Significant comparisons:
+#Clinique SOUKA - Central clinic of Calavi == 0                                        -3.955    <0.01 ** 
+#Helsinki University Hospital - Central clinic of Calavi == 0                          -3.378   0.0399 *  
+#Hopital de Zone Calavi - Central clinic of Calavi == 0                                -4.927    <0.01 ***
+#Savalou area - Central clinic of Calavi == 0                                          -8.032    <0.01 ***
+#Source de Vie, Ouagadougou - Central clinic of Calavi == 0                            -3.920    <0.01 ** 
+#Savalou area - Central Finland Health Care District == 0                              -3.939    <0.01 ** 
+#Savalou area - Clinique SOUKA == 0                                                    -4.638    <0.01 ***
+#Savalou area - Helsinki University Hospital == 0                                      -3.826    <0.01 ** 
+#Savalou area - Hopital de Zone Calavi == 0                                            -4.394    <0.01 ***
+#Yalgado teaching hospital of Ouagadougou - Hopital de Zone Calavi == 0                 3.623   0.0171 *  
+#Savalou area - Hospital Saint Jean == 0                                               -6.079    <0.01 ***
+#Savalou area - Koudougou Hospital == 0                                                -6.427    <0.01 ***
+#Savalou area - Menontin hospital == 0                                                 -6.546    <0.01 ***
+#Savalou area - Nanoro Hospital == 0                                                   -3.868    <0.01 ** 
+#Source de Vie, Ouagadougou - Savalou area == 0                                         3.308   0.0492 *  
+#Yalgado teaching hospital of Ouagadougou - Savalou area == 0                           7.406    <0.01 ***
 ```
 # Sum of the relative abundances of ResFinder results by country
-```{r, results='hide'}
+```{r, results='hide', fig.keep = 'none'}
 # Average 16S counts bu location
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
+mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
+
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
+    country = sample_data(resfinder_PHY_clean)$country)
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -822,34 +876,27 @@ summary(model.logln)
 shapiro.test(log(co_data$SUM))
 plot(model.logln)
 
-# P value 0.7534 and data not normally distributed.
+# Data is not normally distributed.
 
 ## Poisson
-model.pois = glm(SUM ~ country , data = co_data, family = poisson)
+model.pois = glm(SUM~country , data = co_data, family = poisson)
 summary(model.pois)
 plot(model.pois)
-
-# P value <2e-16, Residual deviance: 77293085  on 86  degrees of freedom, AIC: 77294188.
 
 ## Quasipoisson
 model.qpois<-glm(SUM~country, data=co_data, family="quasipoisson")
 summary(model.qpois)
 plot(model.qpois)
 
-# P value <2e-16, Residual deviance: 77293085  on 86  degrees of freedom AIC: NA
-
 ## Negative binomial
 model.nb <- glm.nb(SUM~country, data=co_data)
 summary(model.nb)
 plot(model.nb)
 
-# P value < 2e-16, Residual deviance: 113.98  on 86  degrees of freedom, AIC: 2248, Theta:  0.4747 Std. Err.:  0.0585 
-
 1/model.nb$theta
 -2*(logLik(model.pois)-logLik(model.nb))
 
-
-# Summarize and compare models
+# Summarize models
 data.frame(linear=coef(model.ln),
                  loglinear=exp(coef(model.logln)),
                  poisson=exp(coef(model.pois)),
@@ -864,12 +911,13 @@ deviance(model.pois)
 deviance(model.qpois)
 deviance(model.nb)
 
-# None of the models fits the data.
+# None of the models fits the data. However, negative binominal gets the closest.
 ```
 
 ```{r}
 # Plot using neg. binom. model
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
+    country = sample_data(resfinder_PHY_clean)$country)
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -886,66 +934,55 @@ ARG.sum.co <- ggplot(co_data, aes(x = country, y = Mean)) +
     x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
 ARG.sum.co
 ```
+
 # Extract outliers
 ```{r}
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
+#co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY)))), country = sample_data(resfinder_PHY)$country)
 
-boxplot(co_data$SUM)
-boxplot(co_data$SUM, plot=FALSE)$out
-outliers <- boxplot(co_data$SUM, plot=FALSE)$out
-print(outliers)
+#boxplot(co_data$SUM)
+#boxplot(co_data$SUM, plot=FALSE)$out
+#outliers <- boxplot(co_data$SUM, plot=FALSE)$out
+#print(outliers)
 
-# Exclude outliers
-## where they at
-co_data[which(co_data$SUM %in% outliers),]
-## remove
-co_data <- co_data[-which(co_data$SUM %in% outliers),]
-boxplot(co_data$SUM)
+# Where they at
+#co_data[which(co_data$SUM %in% outliers),]
+# Remove
+#co_data <- co_data[-which(co_data$SUM %in% outliers),]
+#boxplot(co_data$SUM)
 
 # New  plot
-fit <- glm.nb(SUM ~ country, data = co_data, link = log)
+#fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
-co_data <- cbind(co_data, Mean = predict(fit, newdata = co_data, type = "response"), SE = predict(fit, newdata = co_data, type = "response", se.fit = T)$se.fit)
+#co_data <- cbind(co_data, Mean = predict(fit, newdata = co_data, type = "response"), SE = predict(fit, newdata = co_data, type = "response", se.fit = T)$se.fit)
 
-ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
-    scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) +
-    geom_line() + geom_jitter(data = co_data, aes(x = country, y = SUM, color = country), 
-    size = 2.3, alpha = 0.5, width = 0.3) + 
-    geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
-    geom_point(size = 0.9) +
-    theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-    labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
-ARG.sum.co_outl
+#ARG.sum.co_outl <- ggplot(co_data, aes(x = country, y = Mean)) +
+    #scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) +
+    #geom_line() + geom_jitter(data = co_data, aes(x = country, y = SUM, color = country), 
+    #size = 2.3, alpha = 0.5, width = 0.3) + 
+    #geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.6, lwd = 0.6) + 
+    #geom_point(size = 0.9) +
+    #theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    #labs(y = "Sum abundance/16S", x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + scale_y_log10()
+#ARG.sum.co_outl
 ```
-# Check signifigances
-```{r}
-# By location
-lo_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), location=as.factor(sample_data(resfinder_PHY_clean)$location))
-
-lo_data[which(lo_data$SUM %in% outliers),]
-lo_data <- lo_data[-which(lo_data$SUM %in% outliers),]
-
-fit <- glm.nb(SUM ~ location, data = lo_data, link = log)
-
-# Tukey's post hoc test
-glht.mod <- glht(fit, mcp(location = "Tukey"))
-print(summary(glht(glht.mod)))
-
-# By country
-co_data<-data.frame(SUM=round(mean(sample_data(resfinder_PHY_clean)$SSU_counts)*(sample_sums(resfinder_PHY_clean))), country=as.factor(sample_data(resfinder_PHY_clean)$country))
+# Check if significant
+```{r, results='hide'}
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
+    country = sample_data(resfinder_PHY_clean)$country)
 
 # Exclude outliers
-co_data[which(co_data$SUM %in% outliers),]
-co_data <- co_data[-which(co_data$SUM %in% outliers),]
+#co_data[which(co_data$SUM %in% outliers),]
+#co_data <- co_data[-which(co_data$SUM %in% outliers),]
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
 # Tukey's post hoc test
 glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
+
+# No significant results. Maybe there would be if only actual hospital ww samples were included? Then Savalou environment would be excluded with its low sum abundance.
 ```
-# ARG Classes, sum relative abundance
+# ARG Classes, sum relative abundance by location
 ```{r}
 resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
 
@@ -954,21 +991,20 @@ resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class
     resfinder_PHY_Class)
 
 # Normalize by number of samples in each country
-otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$location))[, 1])
+otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$country))[, 1])
 
-p17<-plot_bar(resfinder_PHY_Class_abund, x="location", fill="Class")
-resfinder.p17 <- p17 + facet_grid(~ country, scales = "free") + 
-  ggtitle("Sum of relative abundances of ARGs by classes/16S") +
+p17<-plot_bar(resfinder_PHY_Class_abund, x="name", fill="Class")
+resfinder.p17 <- p17 + facet_grid(~ location, scales = "free", space = "free") + 
+  ggtitle("Sum relative abundance of ARGs by classes/16S") +
   theme_linedraw() +
-  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank()) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
-# longer object length is not a multiple of shorter object length
+  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
-resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack", size = 0.5)
+resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
 ```
-# Top 12 ARG gene classes, abundance
+# Top 12 ARG genes, sum abundance
 ```{r}
 resfinder_PHY_Gene <- tax_glom(resfinder_PHY_clean, taxrank = "Gene")
 
@@ -976,25 +1012,22 @@ resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene),
     resfinder_PHY_Gene)
 
 # Normalize by number of samples in each country
-otu_table(resfinder_PHY_Gene_abund) <-   (otu_table(resfinder_PHY_Gene_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Gene_abund)$location))[, 1])
+otu_table(resfinder_PHY_Gene_abund) <-   (otu_table(resfinder_PHY_Gene_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Gene_abund)$country))[, 1])
 
-p18<-plot_bar(resfinder_PHY_Gene_abund, x="location", fill="Gene")
-resfinder.p18 <- p18 + facet_grid(~ country, scales = "free") + 
-  ggtitle("Sum of relative abundances of ARGs by genes/16S") +
+p18<-plot_bar(resfinder_PHY_Gene_abund, x="name", fill="Gene")
+resfinder.p18 <- p18 + facet_grid(~ location, scales = "free", space = "free") + 
+  ggtitle("Sum relative abundances of ARGs/16S") +
   theme_linedraw() +
-  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank()) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
-resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
+resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
 ```
 # Betalactams
 ```{r}
 resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_clean, Class=="Betalactam")
-any(taxa_sums(resfinder_PHY_betalactams) == 0)
-resfinder_PHY_betalactams <- prune_taxa(taxa_sums(resfinder_PHY_betalactams) > 0, resfinder_PHY_betalactams)
-any(taxa_sums(resfinder_PHY_betalactams) == 0)
 
 resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
 
@@ -1002,82 +1035,24 @@ resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
 resfinder_PHY_betalactams_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_betalactams_Gene), TRUE)[1:12]), 
     resfinder_PHY_betalactams_Gene)
 
-# Normalize by sample number
-otu_table(resfinder_PHY_betalactams_Gene_abund) <- (otu_table(resfinder_PHY_betalactams_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_betalactams_Gene_abund)$location))[, 
+# Normalize by sample number in each country
+otu_table(resfinder_PHY_betalactams_Gene_abund) <- (otu_table(resfinder_PHY_betalactams_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_betalactams_Gene_abund)$country))[, 
     1])
 
-p19<-plot_bar(resfinder_PHY_betalactams_Gene_abund, x="location", fill="Gene")
-resfinder.p19 <- p19 + facet_grid(~ country, scales = "free") + 
+p19<-plot_bar(resfinder_PHY_betalactams_Gene_abund, x="name", fill="Gene")
+resfinder.p19 <- p19 + facet_grid(~ location, scales = "free", space = "free") + 
   ggtitle("Sum of relative abundances of top 12 betalactams/16S") +
   theme_linedraw() +
-  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank()) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
+  guides(fill = guide_legend(label.theme = element_text(size = 8), keywidth = 1.2, keyheight = 1.2))
 
 # Remove OTU separators
-resfinder.p19 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
-```
-# Metronidazole
-```{r}
-resfinder_PHY_metronidazole = subset_taxa(resfinder_PHY_clean, Class=="Metronidazole")
-any(taxa_sums(resfinder_PHY_metronidazole) == 0)
-resfinder_PHY_metronidazole <- prune_taxa(taxa_sums(resfinder_PHY_metronidazole) > 0, resfinder_PHY_metronidazole)
-any(taxa_sums(resfinder_PHY_metronidazole) == 0)
-
-resfinder_PHY_metronidazole_Gene <- tax_glom(resfinder_PHY_metronidazole, "Gene")
-
-# Top12
-resfinder_PHY_metronidazole_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_metronidazole_Gene), TRUE)[1:12]), 
-    resfinder_PHY_metronidazole_Gene)
-
-# Normalize by sample number
-otu_table(resfinder_PHY_metronidazole_Gene_abund) <- (otu_table(resfinder_PHY_metronidazole_Gene_abund)[, ]/as.matrix(table(sample_data(resfinder_PHY_metronidazole_Gene_abund)$location))[, 
-    1])
-
-p20<-plot_bar(resfinder_PHY_metronidazole_Gene_abund, x="location", fill="Gene")
-resfinder.p20 <- p20 + facet_grid(~ country, scales = "free") + 
-  ggtitle("Sum of relative abundances of top metronidazole ARGs/16S") +
-  theme_linedraw() +
-  theme(axis.text.x = element_text(angle=55, hjust=1, size = 10),
-        axis.title.x = element_blank()) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7.5), keywidth = 1.5, keyheight = 1.5))
-
-# Remove OTU separators
-resfinder.p20 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack", size = 0.5)
+resfinder.p19 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
 ```
 
 
-# DESEQ?
-```{r}
-ARGd <- ARG_genemat_norm[, ] * 10^5 + 1
-as.integer(as.matrix(ARGd))
-
-ARG_DESEQ <- phyloseq(otu_table(resfinder_PHY, taxa_are_rows = T), sample_data(metadata), 
-    tax_table(as.matrix(tax_table_resfinder)))
-ARG_DESEQ_LU <- subset_samples(ARG_DESEQ, (country == "Benin"))
-dds_arg_lu = phyloseq_to_deseq2(ARG_DESEQ_LU, ~location)
-
-dds_arg_lu$location <- relevel(dds_arg_lu$location, "Savalou area")
-dds_arg_lu = DESeq(dds_arg_lu, fitType = "mean", test = "Wald", betaPrior = FALSE)
-# Error in estimateSizeFactorsForMatrix(counts(object), locfunc = locfunc, : every gene contains at least one zero, cannot compute log geometric means
-```
-# Beta diversity?
-```{r}
-# Add tree to the phyloseq object
-random_tree = rtree(ntaxa(metaxa_PHY), rooted=TRUE, tip.label=taxa_names(metaxa_PHY))
-physeq1 <- merge_phyloseq(metaxa_PHY, sample_data(metadata), random_tree)
-
-physeq2 <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE), 
-                       tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata), random_tree)
-identical(physeq1, physeq2)
-```
-# Rarefication?
-```{r}
-```
 
 
-```{bash}
-
-```
 
 
