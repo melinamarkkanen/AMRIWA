@@ -265,7 +265,7 @@ colnames(lengths_resfinder) <- c("Length")
 ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
 
 # Divide by SSU counts and normalize to bacterial 16S rRNA length (1550)
-ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
+ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1541
 
 # Check if correct:
 identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
@@ -317,31 +317,34 @@ resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_
 # Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
 resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
+# Savalou area samples
+resfinder_PHY_hosp = subset_samples(resfinder_PHY_clean, name != "BSE100_S122" & name != "BSE79_S120" & name != "BSE74_S119" & name != "BSE93_S121")
+
 # Check if there are taxa that are not present in any of the remaining samples
-any(taxa_sums(resfinder_PHY_clean) == 0)
-resfinder_PHY_clean <- prune_taxa(taxa_sums(resfinder_PHY_clean) > 0, resfinder_PHY_clean)
-any(taxa_sums(resfinder_PHY_clean) == 0)
+any(taxa_sums(resfinder_PHY_hosp) == 0)
+resfinder_PHY_hosp <- prune_taxa(taxa_sums(resfinder_PHY_hosp) > 0, resfinder_PHY_hosp)
+any(taxa_sums(resfinder_PHY_hosp) == 0)
 ```
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-resfinder_PHY_ord <- ordinate(resfinder_PHY_clean, method = "PCoA", distance = "horn")
-p3 <- plot_ordination(resfinder_PHY_clean, resfinder_PHY_ord, color = "country", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_hosp, method = "PCoA", distance = "horn")
+p3 <- plot_ordination(resfinder_PHY_hosp, resfinder_PHY_ord, color = "country", label = "name")
 resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Finland" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Finland" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Burkina Faso" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Burkina Faso" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_clean, (country == "Finland" | country == "Burkina Faso"))
+resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Finland" | country == "Burkina Faso"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
@@ -349,15 +352,15 @@ adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), 
 ```
 # Is taxonomic composition is grouped significantly by location inside each country, ResFinder
 ```{r}
-Benin <- subset_samples(resfinder_PHY_clean, (country == "Benin"))
+Benin <- subset_samples(resfinder_PHY_hosp, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(resfinder_PHY_clean, (country == "Burkina Faso"))
+BF <- subset_samples(resfinder_PHY_hosp, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(resfinder_PHY_clean, (country == "Finland"))
+Finland <- subset_samples(resfinder_PHY_hosp, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
@@ -368,17 +371,17 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 nb.cols <- 14
 mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
 
-resfinder_PHY_ord <- ordinate(resfinder_PHY_clean, method = "PCoA", distance = "horn")
-p3.1 <- plot_ordination(resfinder_PHY_clean, resfinder_PHY_ord, color = "location", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_hosp, method = "PCoA", distance = "horn")
+p3.1 <- plot_ordination(resfinder_PHY_hosp, resfinder_PHY_ord, color = "location", label = "name")
 resfinder.p3.1 <- p3.1 + scale_fill_manual(values = mycolors) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3.1
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_clean, (location == "Savalou area" | location == "Central clinic of Calavi"))
+resfinder_temp <- subset_samples(resfinder_PHY_hosp, (location == "Savalou area" | location == "Central clinic of Calavi"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
-adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+adonis(resfinder_dist ~ location, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
 # etc...
 
@@ -516,11 +519,11 @@ metaphlan.p9
 ```{r, results='hide', fig.keep = 'none'}
 # Shannon
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_shannon")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
 ## Create data table
-resfinder.meta <- meta(resfinder_PHY_clean)
+resfinder.meta <- meta(resfinder_PHY_hosp)
 kable(head(resfinder.meta))
 
 ## Add indexes to data table
@@ -538,7 +541,7 @@ print(country.pairs)
 
 # Gini Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_gini_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_gini_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -551,7 +554,7 @@ qqnorm(resfinder.meta$diversity_gini_simpson)
 
 # Inverse Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_clean, index = "diversity_inverse_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_inverse_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -586,7 +589,7 @@ resfinder.p12
 nb.cols <- 14
 mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
-loc <- plot_richness(resfinder_PHY_clean, measures = c("Shannon", "Simpson"), 
+loc <- plot_richness(resfinder_PHY_hosp, measures = c("Shannon", "Simpson"), 
                      color="location", shape = "country")
 
 resfinder.in <- loc + scale_fill_manual(values=mycolors) + 
@@ -728,8 +731,8 @@ heat.metaphlan
 # Average 16S counts by location
 mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
 
-lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
-    location = sample_data(resfinder_PHY_clean)$location)
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
+    location = sample_data(resfinder_PHY_hosp)$location)
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -781,6 +784,7 @@ deviance(model.qpois)
 deviance(model.nb)
 
 # None of the models fits the data. However, negative binominal model gets the closest.
+# When Savalou are samples are excluded negative binominal get very close.
 ```
 
 ```{r}
@@ -878,8 +882,8 @@ print(summary(glht(glht.mod)))
 # Average 16S counts bu location
 mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
 
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
-    country = sample_data(resfinder_PHY_clean)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
+    country = sample_data(resfinder_PHY_hosp)$country)
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -934,12 +938,13 @@ deviance(model.qpois)
 deviance(model.nb)
 
 # None of the models fits the data. However, negative binominal gets the closest.
+# When Savalou are is excluded negative model fits the data.
 ```
 
 ```{r}
 # Plot using neg. binom. model
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
-    country = sample_data(resfinder_PHY_clean)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
+    country = sample_data(resfinder_PHY_hosp)$country)
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -990,8 +995,8 @@ ARG.sum.co
 
 ```{r, results='hide'}
 ## Check if significant
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
-    country = sample_data(resfinder_PHY_clean)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
+    country = sample_data(resfinder_PHY_hosp)$country)
 
 # Exclude outliers
 #co_data[which(co_data$SUM %in% outliers),]
@@ -1006,10 +1011,12 @@ summary(glht(glht.mod))
 # No significant results. Maybe there would be if only actual hospital ww samples were included? Then Savalou environment would be excluded with its low sum abundance.
 
 # With gene length normalized data comparison Finland-Benin is significant.
+
+# When excluding Savalou are comparison Finland-Benin is significant (p=0.0222). Finland-BF is almost significant (p=0.09)
 ```
-## ARG Classes, sum relative abundance
+## ARG Classes, sum relative abundance by individual sample
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_hosp, taxrank = "Class")
 
 # All classes
 resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
@@ -1120,6 +1127,61 @@ resfinder.p20 <- p20 +
 # Remove OTU separators
 resfinder.p20 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
 ```
+## ARG Classes, sum relative abundance summed up by location / country
+```{r}
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
+
+# All classes
+resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
+    resfinder_PHY_Class)
+
+# Normalize by number of samples in each country
+otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$country))[, 1])
+
+p21<-plot_bar(resfinder_PHY_Class_abund, x="country", fill="Class")
+resfinder.p21 <- p21 + facet_grid(~ country, scales = "free", space = "free", labeller = label_wrap_gen()) + 
+  ggtitle("Sum relative abundance of ARGs by classes/16S") +
+   theme_linedraw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
+        axis.title.x = element_blank(),
+        strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
+
+# Remove OTU separators
+resfinder.p21 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+```
+## DRAFT ARG Classes, relative abundance by location
+```{r}
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
+
+# All classes
+resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
+    resfinder_PHY_Class)
+
+# Normalize by number of samples in each country
+otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$location))[, 1])
+
+ps0 <- transform_sample_counts(resfinder_PHY_Class_abund, function(x) x / sum(x))
+ps1 <- merge_samples(ps0, "location")
+ps2 <- transform_sample_counts(ps1, function(x) x / sum(x))
+plot_bar(ps2, fill="Class") + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+
+# 
+#p22<-plot_bar(resfinder_PHY_Class_abund, x="location", fill="Class")
+#resfinder.p22 <- p22 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) + 
+#  ggtitle("Relative abundance of ARGs by classes/16S") +
+#   theme_linedraw() +
+#  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
+#        axis.title.x = element_blank(),
+#        strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
+#  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
+
+# Remove OTU separators
+#resfinder.p22 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+```
+
+
+
 ## DESEQ2
 ```{r}
 # Phyloseq object with counts, not normalized data
