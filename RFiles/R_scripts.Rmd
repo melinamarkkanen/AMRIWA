@@ -256,25 +256,25 @@ ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names
 # Print out the gene lengths of these genes into file "lengths_resfinder.txt"
 ## cat filtered_resfinder.fasta | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) "\t"; } $0 !~ ">" {c+=length($0);} END { print c; }' > lengths_resfinder.txt
 # Reorder in excel to match with file "ARG_genemat_norm"
-#lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
-#colnames(lengths_resfinder) <- c("Length")
+lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
+colnames(lengths_resfinder) <- c("Length")
 ```
 ## Normalization with gene lengths
 ```{r}
 # Divide by ResFinder hit gene lengths
-#ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
+ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
 
 # Divide by SSU counts and normalize to bacterial 16S rRNA length (1550)
-#ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
+ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1550
 
 # Check if correct:
-#identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
-#write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
 
-#ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
-#ARG_genemat_norm$row.names<-NULL
+ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+ARG_genemat_norm$row.names<-NULL
 ```
 ## Normalize ARG counts to SSU
 ```{r}
@@ -362,6 +362,26 @@ Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
 # In Benin and BF the grouping by location has R2 values like 26.5 % (p=4e-05) and 20.4 % (p=0.00175). In Finland no significant correlation can be proven.
+```
+# Ordinate by location, ResFinder
+```{r}
+nb.cols <- 14
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+
+resfinder_PHY_ord <- ordinate(resfinder_PHY_clean, method = "PCoA", distance = "horn")
+p3.1 <- plot_ordination(resfinder_PHY_clean, resfinder_PHY_ord, color = "location", label = "name")
+resfinder.p3.1 <- p3.1 + scale_fill_manual(values = mycolors) + 
+    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + labs(title = "ResFinder")
+resfinder.p3.1
+
+# Test significance between all pairs
+resfinder_temp <- subset_samples(resfinder_PHY_clean, (location == "Savalou area" | location == "Central clinic of Calavi"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+# etc...
+
 ```
 # Diversity indexes by Metaxa2
 ```{r, results='hide', fig.keep = 'none'}
@@ -984,6 +1004,8 @@ glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
 
 # No significant results. Maybe there would be if only actual hospital ww samples were included? Then Savalou environment would be excluded with its low sum abundance.
+
+# With gene length normalized data comparison Finland-Benin is significant.
 ```
 ## ARG Classes, sum relative abundance
 ```{r}
@@ -1007,6 +1029,8 @@ resfinder.p17 <- p17 + facet_grid(~ location, scales = "free", space = "free", l
 
 # Remove OTU separators
 resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+
+# When using length normalized data, the highest sum (BH58) is 0.4 while with classically normalized data it is 0.2.
 ```
 ## Top 12 ARG genes, sum abundance
 ```{r}
