@@ -204,14 +204,51 @@ hclust2.py \
   --minv 0.01 \
   --dpi 300 \
   --slinkage complete
-
+`
 conda deactivate
+```
+Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
+https://github.com/karkman/crAssphage_project#figure-1---crassphage-and-arg-dynamics-in-human-feacal-metagenomes
+```
+#!/bin/bash -l
+#SBATCH -J crassphage
+#SBATCH --account=project_2002265
+#SBATCH -o crassphage_out_%A_%a.txt
+#SBATCH -e crassphage_err_%A_%a.txt
+#SBATCH -t 10:00:00
+#SBATCH --mem-per-cpu=2G
+#SBATCH -n 1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=2
+#SBATCH -p small
+#SBATCH --array=1-96
+
+module load biokit
+cd /scratch/project_2002265/markkan5/crAssphage
+
+name=$(sed -n "$SLURM_ARRAY_TASK_ID"p /scratch/project_2002265/markkan5/AMRIWA/sample_names.txt)
+
+bowtie2 -x crassphage.genome \
+        -1 /scratch/project_2002265/markkan5/AMRIWA/workflow/trimmed_data/$name"_R1_trimmed.fastq.gz" \
+        -2 /scratch/project_2002265/markkan5/AMRIWA/workflow/trimmed_data/$name"_R2_trimmed.fastq.gz" | \
+        samtools view -Sb -f 2 > $name"_crass.bam"
+
+samtools sort $name"_crass.bam" -o $name"_crass_sort.bam"
+samtools index $name"_crass_sort.bam"
+
+export GEN_COV=$(samtools depth -a $name"_crass_sort.bam" | \
+                  awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+echo '$name\t'$GEN_COV
+
+# index the bam file
+samtools index $name"_crass_sort.bam"
+
+# Name of the sample
+echo -e $name > $name"_crass_counts"
+
+# take the counts from column 3
+samtools idxstats $name"_crass_sort.bam" | grep -v "*" | cut -f3 >> $name"_crass_counts"
 ```
 
 
-
-### TO DO:
-
-- metaxa2 pipeline -> or outside snakemake
--  
 `
