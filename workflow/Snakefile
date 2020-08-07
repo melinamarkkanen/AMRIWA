@@ -17,7 +17,7 @@ rule all:
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
-		"CARD/CARD_results"
+		expand("CARD/{sample}_{read}_CARD.txt", sample=SAMPLES, read=["R1", "R2"])
 
 rule fastqc_raw:
 	input:
@@ -290,15 +290,20 @@ rule fastq_to_fasta:
 
 rule rename_headers:
 	input:
-		"fasta/{sample}_{read}.fasta.gz"
+		R1="fasta/{sample}_R1.fasta.gz",
+		R2="fasta/{sample}_R2.fasta.gz"
 	output:
-		temp("fasta/renamed_{sample}_{read}.fasta.gz")
+		R1="fasta/renamed_{sample}_R1.fasta.gz",
+		R2="fasta/renamed_{sample}_R2.fasta.gz"
 	message:
 		"-- Adding sample names to multifasta file headers --"
 	threads:
 		1
 	shell:
-		"zcat {input} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output}"
+		"""
+		zcat {input.R1} | sed 's/\(>\)/>{wildcards.sample}_R1-/' | gzip > {output.R1}
+		zcat {input.R2} | sed 's/\(>\)/>{wildcards.sample}_R2-/' | gzip > {output.R2}
+		"""
 
 rule diamond_db:
 	input:
@@ -316,18 +321,18 @@ rule diamond_db:
 
 rule run_diamond:
 	input:
-		fasta= expand("fasta/{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
+		fasta= "fasta/renamed_{sample}_{read}.fasta.gz",
 		db= "CARD/protein_fasta_protein_homolog_model.dmnd"
 	output:
-		"CARD/CARD_results"
+		"CARD/{sample}_{read}_CARD.txt"
 	message:
 		"-- Running DIAMOND --"
 	conda:
 		"envs/diamond.yml"
 	threads:
-		2
+		10
 	shell:
 		"""
                 gunzip -c {input.fasta} | \
-                diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - --max-target-seqs 1 -o {output} --threads {threads} --outfmt 6 --evalue 1e-5
+                diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
                 """
