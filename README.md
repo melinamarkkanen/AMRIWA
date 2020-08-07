@@ -249,6 +249,7 @@ echo -e $name > $name"_crass_counts"
 # take the counts from column 3
 samtools idxstats $name"_crass_sort.bam" | grep -v "*" | cut -f3 >> $name"_crass_counts"
 ```
-
+Create the final table ogf the results
+paste *_crass_counts > crassphage_table.txt
 
 `
