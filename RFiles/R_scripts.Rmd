@@ -28,6 +28,8 @@ library(ggpubr)
 library(pheatmap)
 library(ape)
 library(multcomp)
+library(gplots)
+library(readr)
 ```
 ## Load metadata
 ```{r}
@@ -256,25 +258,25 @@ ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names
 # Print out the gene lengths of these genes into file "lengths_resfinder.txt"
 ## cat filtered_resfinder.fasta | awk '$0 ~ ">" {if (NR > 1) {print c;} c=0;printf substr($0,2,100) "\t"; } $0 !~ ">" {c+=length($0);} END { print c; }' > lengths_resfinder.txt
 # Reorder in excel to match with file "ARG_genemat_norm"
-lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
-colnames(lengths_resfinder) <- c("Length")
+#lengths_resfinder <-as.matrix(read.table("lengths_resfinder.txt", header= F, check.names = T, row.names = 1))
+#colnames(lengths_resfinder) <- c("Length")
 ```
 ## Normalization with gene lengths
 ```{r}
 # Divide by ResFinder hit gene lengths
-ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
+#ARG_length_norm <- ARG_genemat/lengths_resfinder[, 1]
 
 # Divide by SSU counts and normalize to bacterial 16S rRNA length (1550)
-ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1541
+#ARG_genemat_norm <- t(t(ARG_length_norm)/metadata$SSU_counts) * 1541
 
 # Check if correct:
-identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
+#identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
-write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+#write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
 
-ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
-ARG_genemat_norm$row.names<-NULL
+#ARG_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=NULL)
+#ARG_genemat_norm$row.names<-NULL
 ```
 ## Normalize ARG counts to SSU
 ```{r}
@@ -312,18 +314,18 @@ resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH
 resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
 # Or alternatively include fecal but exclude suspicious samples
-# resfinder_PHY_ast = subset_samples(resfinder_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+resfinder_PHY_ast = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
 resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Savalou area samples
-resfinder_PHY_hosp = subset_samples(resfinder_PHY_clean, name != "BSE100_S122" & name != "BSE79_S120" & name != "BSE74_S119" & name != "BSE93_S121")
+#resfinder_PHY_hosp = subset_samples(resfinder_PHY_clean, name != "BSE100_S122" & name != "BSE79_S120" & name != "BSE74_S119" & name != "BSE93_S121")
 
 # Check if there are taxa that are not present in any of the remaining samples
-any(taxa_sums(resfinder_PHY_hosp) == 0)
-resfinder_PHY_hosp <- prune_taxa(taxa_sums(resfinder_PHY_hosp) > 0, resfinder_PHY_hosp)
-any(taxa_sums(resfinder_PHY_hosp) == 0)
+any(taxa_sums(resfinder_PHY_ast) == 0)
+resfinder_PHY_ast <- prune_taxa(taxa_sums(resfinder_PHY_ast) > 0, resfinder_PHY_ast)
+any(taxa_sums(resfinder_PHY_ast) == 0)
 ```
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
@@ -1179,7 +1181,84 @@ plot_bar(ps2, fill="Class") + geom_bar(aes(color=Class, fill=Class), stat="ident
 # Remove OTU separators
 #resfinder.p22 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
 ```
+## Pheatmap of ResFnder results
+```{r}
+# Prepare data
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
 
+# Retain genes whose sum relative abundance above 0.0025
+minTotRelAbun = 0.0025
+x = taxa_sums(resfinder_PHY_Gene)
+keepTaxa = taxa_names(resfinder_PHY_Gene)[which((x / sum(x)) > minTotRelAbun)]
+resfinder_PHY_Gene_heat = prune_taxa(keepTaxa, resfinder_PHY_Gene)
+
+# Extract abundance matrix from the phyloseq object
+heat_OTU = as(otu_table(resfinder_PHY_Gene_heat), "matrix")
+# transpose if necessary
+if(taxa_are_rows(resfinder_PHY_Gene_heat)){heat_OTU <- t(heat_OTU)}
+# Coerce to data.frame
+heat.df = as.data.frame(heat_OTU)
+
+# Change otu names from sp* into gene names
+colnames(heat.df)
+
+# So same to the tax_table
+# Extract abundance matrix from the phyloseq object
+heat_tax = as(tax_table(resfinder_PHY_Gene_heat), "matrix")
+# Transpose if necessary
+if(taxa_are_rows(resfinder_PHY_Gene_heat)){heat_tax <- t(heat_tax)}
+# Save to get it back without the current first header row
+write.table(heat_tax, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=T, sep = "\t", col.names = F)
+heat_tax <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=1)
+# Swap colnames
+colnames(heat.df)=colnames(heat_tax)
+# Add row for annotation data
+annot <- read.delim("annot.txt", header = T)
+heat.df$country <- annot$country
+heat.df$sample_type <- annot$sample_type
+heat.df$location <- annot$location
+
+# Transpose
+heat.t <- t(heat.df)
+```
+
+```{r}
+# Now to the actual heatmap
+#pheatmap(heat.t, cluster_rows = T, cluster_cols = T, cellwidth = 5, cellheight = 5, border_color = "black", fontsize=5, color= inferno(50))
+
+# Exclude annotation
+heat_num = as.matrix(heat.t[1:105,])
+# Back from charachter into numeric
+class(heat_num) <- "numeric"
+
+## Set breaks
+quantile_breaks <- function(xs, n = 100) {
+  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
+  breaks[!duplicated(breaks)]
+}
+mat_breaks <- quantile_breaks(heat_num, n = 100)
+
+## Set annotation
+annot_col = data.frame(heat.df$country, heat.df$sample_type, heat.df$location)
+## Check that the names match
+rownames(annot_col) = colnames(heat_num)
+## Rename col names
+colnames(annot_col) <- c("country", "sample_type", "location")
+
+# Set colors for annotations
+ann_colors = list(
+    country = c(Burkina_Faso = "#FCAFA6", Benin="#67F3D7", Finland="#CE8BFA"),
+    sample_type = c(waste_water = "black", human_feces = "#B10D82", well_water = "grey", river_water= "#A7E4F3", clean_water= "#D5EDF3", tap_water= "#A7F2D2", sludge = "white", sandy_sediment_sludge = "white", soil = "white", sediment_sludge = "white"))
+
+## Plot
+pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 4.5, cellheight = 4.5, border_color = "black", fontsize=5, color= inferno(length(mat_breaks) - 1), breaks = mat_breaks, annotation_colors = ann_colors, annotation_col = annot_col, main = "ARGs present in abundance of > 2.5e-3/16S rRNA")
+
+# Samples BH58, BH59 and BH60 have very high abundance of many genes, thus the scale for the colors is limited.
+```
+# crAssphage
+```{r}
+
+```
 
 
 ## DESEQ2
@@ -1220,9 +1299,7 @@ any(taxa_sums(resfinder_PHY_nonnorm_clean) == 0)
 #dds <- estimateDispersions(dds)
 #plotDispEsts(dds)
 ```
-## Pheatmap of ResFnder results
-```{r}
-```
+
 
 
 
