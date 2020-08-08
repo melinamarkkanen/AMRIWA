@@ -68,23 +68,23 @@ metadata$SSU_eucaryota <- sample_sums(metaxa_PHY_temp)
 metaxa_PHY = subset_samples(metaxa_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-metaxa_PHY_ww = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+#metaxa_PHY_ww = subset_samples(metaxa_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
 # Or alternatively include fecal but exclude suspicious samples
-# metaxa_PHY_ast = subset_samples(metaxa_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+#metaxa_PHY_ast = subset_samples(metaxa_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Suspicious samples (very high ARG level)
-metaxa_PHY_clean = subset_samples(metaxa_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+#metaxa_PHY_clean = subset_samples(metaxa_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Clear taxa that are not present in any of the remaining samples
-any(taxa_sums(metaxa_PHY_clean) == 0)
-metaxa_PHY_clean <- prune_taxa(taxa_sums(metaxa_PHY_clean) > 0, metaxa_PHY_clean)
-any(taxa_sums(metaxa_PHY_clean) == 0)
+any(taxa_sums(metaxa_PHY) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY) > 0, metaxa_PHY)
+any(taxa_sums(metaxa_PHY) == 0)
 ```
 ## Ordination to study whether the taxonomy can be explained by the variable "country", Metxa2
 ```{r}
 # Change into relative data
-metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY_clean, function(x) x/sum(x))
+metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
 
 # Ordinate and plot data
 metaxa_rel_PHY_ord <- ordinate(metaxa_rel_PHY, method = "PCoA", distance = "horn")
@@ -95,15 +95,15 @@ metaxa.p1 <- p1 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) 
 metaxa.p1
 
 # Test significance using pair-wise adonis
-metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Benin" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Burkina Faso" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_clean, (country == "Benin" | country == "Burkina Faso"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Burkina Faso"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
@@ -111,15 +111,15 @@ adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permut
 ```
 # Is taxonomic composition is grouped significantly by location inside each country, Metaxa2
 ```{r}
-Benin <- subset_samples(metaxa_PHY_clean, (country == "Benin"))
+Benin <- subset_samples(metaxa_PHY, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(metaxa_PHY_clean, (country == "Burkina Faso"))
+BF <- subset_samples(metaxa_PHY, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(metaxa_PHY_clean, (country == "Finland"))
+Finland <- subset_samples(metaxa_PHY, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
@@ -164,53 +164,53 @@ metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows = TRUE), tax_ta
 metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Virus")
 
 # With low quality (BFH24_S142, BH63_S118, FH10_S171)
-metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+#metaphlan_PHY = subset_samples(metaphlan_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+#metaphlan_PHY_ww = subset_samples(metaphlan_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
 # Or alternatively include fecal but exclude suspicious samples
 # metaphlan_PHY_ast = subset_samples(metaphlan_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Suspicious samples (very high ARG level)
-metaphlan_PHY_clean = subset_samples(metaphlan_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+#metaphlan_PHY_clean = subset_samples(metaphlan_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Clear taxa that is not present in any of the remaining samples
-any(taxa_sums(metaphlan_PHY_clean) == 0)
-metaphlan_PHY_clean <- prune_taxa(taxa_sums(metaphlan_PHY_clean) > 0, metaphlan_PHY_clean)
-any(taxa_sums(metaphlan_PHY_clean) == 0)
+any(taxa_sums(metaxa_PHY) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY) > 0, metaxa_PHY)
+any(taxa_sums(metaxa_PHY) == 0)
 ```
 ## Ordination to study wheather the taxonomy can be explained by the variable "country", Metaphlan3
 ```{r}
 # Ordinate and plot data
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_clean, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY_clean, metaphlan_PHY_ord, color = "country", label = "sample_type")
+metaphlan_PHY_ord <- ordinate(metaxa_PHY, method = "PCoA", distance = "horn")
+p2 <- plot_ordination(metaxa_PHY, metaphlan_PHY_ord, color = "country", label = "sample_type")
 metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
 metaphlan.p2
 
 # Test significance using pair-wise adonis
-metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Benin" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Burkina Faso" | country == "Finland"))
+metaphlan_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (country == "Burkina Faso" | country == "Benin"))
+metaphlan_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Benin"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
 # The explanatory variable "country" explains less than 10 % of the grouping in every pair-wise comparison.
 # There seems to be a small group of samples differing from other ones. They represent mostly other than ww samples. Let's see if this grouping is significant.
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (sample_type == "waste water" | sample_type == "soil"))
+metaphlan_temp <- subset_samples(metaxa_PHY, (sample_type == "waste water" | sample_type == "soil"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-metaphlan_temp <- subset_samples(metaphlan_PHY_clean, (sample_type == "waste water" | sample_type == "river water"))
+metaphlan_temp <- subset_samples(metaxa_PHY, (sample_type == "waste water" | sample_type == "river water"))
 metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 adonis(metaphlan_dist ~ sample_type, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
@@ -283,7 +283,7 @@ ARG_genemat <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names
 ARG_genemat_norm <- t(t(ARG_genemat)/metadata$SSU_counts)
 
 # Check if correct:
-identical(ARG_genemat[2020, 4]/metadata$SSU_counts[10], ARG_genemat_norm[2020, 4])
+identical(ARG_genemat[2020, 4]/metadata$SSU_counts[4], ARG_genemat_norm[2020, 4])
 
 # Save and load again to exclude row.names
 write.table(ARG_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/ARG_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
@@ -311,13 +311,13 @@ plot_bar(otu_table(resfinder_PHY))
 resfinder_PHY = subset_samples(resfinder_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
 # Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+#resfinder_PHY_ww = subset_samples(resfinder_PHY, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
 
 # Or alternatively include fecal but exclude suspicious samples
 resfinder_PHY_ast = subset_samples(resfinder_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
-resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+#resfinder_PHY_clean = subset_samples(resfinder_PHY_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Savalou area samples
 #resfinder_PHY_hosp = subset_samples(resfinder_PHY_clean, name != "BSE100_S122" & name != "BSE79_S120" & name != "BSE74_S119" & name != "BSE93_S121")
@@ -330,23 +330,23 @@ any(taxa_sums(resfinder_PHY_ast) == 0)
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-resfinder_PHY_ord <- ordinate(resfinder_PHY_hosp, method = "PCoA", distance = "horn")
-p3 <- plot_ordination(resfinder_PHY_hosp, resfinder_PHY_ord, color = "country", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_ast, method = "PCoA", distance = "horn")
+p3 <- plot_ordination(resfinder_PHY_ast, resfinder_PHY_ord, color = "country", label = "name")
 resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#35E0F5", "#531592")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Finland" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_ast, (country == "Finland" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Burkina Faso" | country == "Benin"))
+resfinder_temp <- subset_samples(resfinder_PHY_ast, (country == "Burkina Faso" | country == "Benin"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-resfinder_temp <- subset_samples(resfinder_PHY_hosp, (country == "Finland" | country == "Burkina Faso"))
+resfinder_temp <- subset_samples(resfinder_PHY_ast, (country == "Finland" | country == "Burkina Faso"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
@@ -354,15 +354,15 @@ adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), 
 ```
 # Is taxonomic composition is grouped significantly by location inside each country, ResFinder
 ```{r}
-Benin <- subset_samples(resfinder_PHY_hosp, (country == "Benin"))
+Benin <- subset_samples(resfinder_PHY_ast, (country == "Benin"))
 Benin_dist <- vegdist(t(otu_table(Benin)), dist = "horn")
 adonis(Benin_dist ~ location, data = data.frame(sample_data(Benin)), permutations = 99999)
 
-BF <- subset_samples(resfinder_PHY_hosp, (country == "Burkina Faso"))
+BF <- subset_samples(resfinder_PHY_ast, (country == "Burkina Faso"))
 BF_dist <- vegdist(t(otu_table(BF)), dist = "horn")
 adonis(BF_dist ~ location, data = data.frame(sample_data(BF)), permutations = 99999)
 
-Finland <- subset_samples(resfinder_PHY_hosp, (country == "Finland"))
+Finland <- subset_samples(resfinder_PHY_ast, (country == "Finland"))
 Finland_dist <- vegdist(t(otu_table(Finland)), dist = "horn")
 adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permutations = 99999)
 
@@ -373,15 +373,15 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 nb.cols <- 14
 mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
 
-resfinder_PHY_ord <- ordinate(resfinder_PHY_hosp, method = "PCoA", distance = "horn")
-p3.1 <- plot_ordination(resfinder_PHY_hosp, resfinder_PHY_ord, color = "location", label = "name")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_ast, method = "PCoA", distance = "horn")
+p3.1 <- plot_ordination(resfinder_PHY_ast, resfinder_PHY_ord, color = "location", label = "name")
 resfinder.p3.1 <- p3.1 + scale_fill_manual(values = mycolors) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
 resfinder.p3.1
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_hosp, (location == "Savalou area" | location == "Central clinic of Calavi"))
+resfinder_temp <- subset_samples(resfinder_PHY_ast, (location == "Savalou area" | location == "Central clinic of Calavi"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ location, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
@@ -521,11 +521,11 @@ metaphlan.p9
 ```{r, results='hide', fig.keep = 'none'}
 # Shannon
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_shannon")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
 ## Create data table
-resfinder.meta <- meta(resfinder_PHY_hosp)
+resfinder.meta <- meta(resfinder_PHY_ast)
 kable(head(resfinder.meta))
 
 ## Add indexes to data table
@@ -543,7 +543,7 @@ print(country.pairs)
 
 # Gini Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_gini_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_gini_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -556,7 +556,7 @@ qqnorm(resfinder.meta$diversity_gini_simpson)
 
 # Inverse Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_hosp, index = "diversity_inverse_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_inverse_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -591,7 +591,7 @@ resfinder.p12
 nb.cols <- 14
 mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
-loc <- plot_richness(resfinder_PHY_hosp, measures = c("Shannon", "Simpson"), 
+loc <- plot_richness(resfinder_PHY_ast, measures = c("Shannon", "Simpson"), 
                      color="location", shape = "country")
 
 resfinder.in <- loc + scale_fill_manual(values=mycolors) + 
@@ -733,8 +733,8 @@ heat.metaphlan
 # Average 16S counts by location
 mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
 
-lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
-    location = sample_data(resfinder_PHY_hosp)$location)
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), 
+    location = sample_data(resfinder_PHY_ast)$location)
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -848,8 +848,8 @@ ARG.sum.lo
 
 ```{r, results='hide'}
 ## Check if significant
-lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_clean)))), 
-    location = sample_data(resfinder_PHY_clean)$location)
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), 
+    location = sample_data(resfinder_PHY_ast)$location)
 
 # When outliers removed use:
 #lo_data[which(lo_data$SUM %in% outliers),]
@@ -884,8 +884,8 @@ print(summary(glht(glht.mod)))
 # Average 16S counts bu location
 mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
 
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
-    country = sample_data(resfinder_PHY_hosp)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), 
+    country = sample_data(resfinder_PHY_ast)$country)
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -939,14 +939,13 @@ deviance(model.pois)
 deviance(model.qpois)
 deviance(model.nb)
 
-# None of the models fits the data. However, negative binominal gets the closest.
-# When Savalou are is excluded negative model fits the data.
+# With resfinder_PHY_ast negative model fits the data.
 ```
 
 ```{r}
 # Plot using neg. binom. model
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
-    country = sample_data(resfinder_PHY_hosp)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), 
+    country = sample_data(resfinder_PHY_ast)$country)
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -997,8 +996,8 @@ ARG.sum.co
 
 ```{r, results='hide'}
 ## Check if significant
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_hosp)))), 
-    country = sample_data(resfinder_PHY_hosp)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), 
+    country = sample_data(resfinder_PHY_ast)$country)
 
 # Exclude outliers
 #co_data[which(co_data$SUM %in% outliers),]
@@ -1018,7 +1017,7 @@ summary(glht(glht.mod))
 ```
 ## ARG Classes, sum relative abundance by individual sample
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_hosp, taxrank = "Class")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
 
 # All classes
 resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
@@ -1043,7 +1042,7 @@ resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position
 ```
 ## Top 12 ARG genes, sum abundance
 ```{r}
-resfinder_PHY_Gene <- tax_glom(resfinder_PHY_clean, taxrank = "Gene")
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
 
 resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
     resfinder_PHY_Gene)
@@ -1069,7 +1068,7 @@ resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="
 ```
 # Betalactams
 ```{r}
-resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_clean, Class=="Betalactam")
+resfinder_PHY_betalactams = subset_taxa(resfinder_PHY_ast, Class=="Betalactam")
 
 resfinder_PHY_betalactams_Gene <- tax_glom(resfinder_PHY_betalactams, "Gene")
 
@@ -1131,7 +1130,7 @@ resfinder.p20 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="
 ```
 ## ARG Classes, sum relative abundance summed up by location / country
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
 
 # All classes
 resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
@@ -1154,19 +1153,20 @@ resfinder.p21 + geom_bar(aes(color=Class, fill=Class), stat="identity", position
 ```
 ## DRAFT ARG Classes, relative abundance by location
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_clean, taxrank = "Class")
+resfinder_PHY_Class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
 
 # All classes
 resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
     resfinder_PHY_Class)
 
-# Normalize by number of samples in each country
+# Normalize by number of samples in each location
 otu_table(resfinder_PHY_Class_abund) <-   (otu_table(resfinder_PHY_Class_abund)[,]/as.matrix(table(sample_data(resfinder_PHY_Class_abund)$location))[, 1])
 
 ps0 <- transform_sample_counts(resfinder_PHY_Class_abund, function(x) x / sum(x))
 ps1 <- merge_samples(ps0, "location")
 ps2 <- transform_sample_counts(ps1, function(x) x / sum(x))
 plot_bar(ps2, fill="Class") + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+# longer object length is not a multiple of shorter object length
 
 # 
 #p22<-plot_bar(resfinder_PHY_Class_abund, x="location", fill="Class")
@@ -1257,47 +1257,44 @@ pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 4.5, cellheig
 ```
 # crAssphage
 ```{r}
+# Load data (modified in excel to match metadata order)
+crassphage_table <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_crassphage_table.txt", row.names=NULL)
 
+# Transform
+crassphage_table_trans <- t(crassphage_table)
+
+# Normalize to total sequences
+crassphage_norm <- crassphage_table_trans/metadata$total_seqs
+
+# Add colnames
+colnames(crassphage_norm) <- c("count")
+
+# log transform
+crassphage_norm_log <- log10(crassphage_norm)
+
+# Create phyloseq
+crass_PHY<-phyloseq(otu_table(crassphage_norm, taxa_are_rows = FALSE), sample_data(metadata))
 ```
 
-
-## DESEQ2
 ```{r}
-# Phyloseq object with counts, not normalized data
-resfinder_PHY_nonnorm <- phyloseq(otu_table(ARG_genemat_counts, taxa_are_rows = TRUE), sample_data(metadata), 
-    tax_table(as.matrix(tax_table_resfinder)))
-
 # Filter samples
-## Low quality
-resfinder_PHY_nonnorm = subset_samples(resfinder_PHY_nonnorm, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+crass_PHY = subset_samples(crass_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
 
-# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
-resfinder_PHY_nonnorm_ww = subset_samples(resfinder_PHY_nonnorm, name!="BH20_S88" & name!="BH22_S89" & name!="BH24_S90" & name!="BH25_S91")
+# Exclude suspicious samples
+crass_PHY_ast = subset_samples(crass_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
-# Or alternatively include fecal but exclude suspicious samples
-# resfinder_PHY_ast = subset_samples(resfinder_PHY, "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+# Plot
+p23<-plot_bar(crass_PHY_ast, fill="sample_type")
+crass.p23 <- p23 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) + 
+   theme_linedraw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
+        axis.title.x = element_blank(),
+        strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
 
-# Suspicious samples (very high ARG level) (BH02_S77, BH27_S92, BH30_S94)
-resfinder_PHY_nonnorm_clean = subset_samples(resfinder_PHY_nonnorm_ww, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
-
-# Check if there are taxa that are not present in any of the remaining samples
-any(taxa_sums(resfinder_PHY_nonnorm_clean) == 0)
-resfinder_PHY_nonnorm_clean <- prune_taxa(taxa_sums(resfinder_PHY_nonnorm_clean) > 0, resfinder_PHY_nonnorm_clean)
-any(taxa_sums(resfinder_PHY_nonnorm_clean) == 0)
-
-# Deseq
-#dds.data = phyloseq_to_deseq2(resfinder_PHY_nonnorm_clean, ~country)
-#dds = DESeq(dds.data)
-#res = results(dds)
-#res = res[order(res$padj, na.last=NA), ]
-#alpha = 0.01
-#sigtab = res[(res$padj < alpha), ]
-#sigtab = cbind(as(sigtab, "data.frame"),                as(tax_table(resfinder_PHY_nonnorm_clean)[rownames(sigtab), ], "matrix"))
-#head(sigtab)
-
-#dds <- estimateSizeFactors(dds)
-#dds <- estimateDispersions(dds)
-#plotDispEsts(dds)
+# Remove OTU separators
+crass.p23 + geom_bar(aes(fill=sample_type), stat="identity", position="stack")
 ```
 
 
