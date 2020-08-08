@@ -297,8 +297,8 @@ rule rename_headers:
 		1
 	shell:
 		"""
-		zcat {input.R1} | sed 's/\(>\)/>{wildcards.sample}_R1-/' | gzip > {output.R1}
-		zcat {input.R2} | sed 's/\(>\)/>{wildcards.sample}_R2-/' | gzip > {output.R2}
+		zcat {input.R1} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R1}
+		zcat {input.R2} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R2}
 		"""
 
 rule diamond_db:
