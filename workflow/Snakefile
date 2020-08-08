@@ -177,17 +177,13 @@ rule resfinder_filtering:
 		"""
 		samtools view -h {input} | awk 'BEGIN {{FS="\t"; OFS="\t"}} \
 		{{if (/^@/ && substr($2, 3, 1)==":") {{print}} \
-		else if (and($2, 0x1) && and($2, 0x40)) {{print}}}}' \
+		else if (and($2, 0x1) && and($2, 0x2)) {{print}}}}' \
 		| samtools view -Shu - > {output} 
 		"""
-# Resulting samtools flags:
-## read paired (0x1)
-## read unmapped (0x4)
-## mate reverse strand (0x20)
-## first in pair (0x40)
-## read mapped in proper pair (0x2)
-## mate unmapped (0x8)
-## read reverse strand (0x10)
+# The resulting reads correspond to the following samtools flags:
+#samtools view BFH19_S137.bam | awk '{print $2}' | sort | uniq
+#147, 163, 83, 99 (-f 2)
+#"Mapped within the insert size and in correct orientation"
 
 rule resfinder_sorting:
 	input:
