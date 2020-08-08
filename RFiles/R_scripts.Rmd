@@ -1186,6 +1186,11 @@ plot_bar(ps2, fill="Class") + geom_bar(aes(color=Class, fill=Class), stat="ident
 # Prepare data
 resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
 
+
+# Let's try to create custom gene set
+resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
+resfinder_PHY_custom = subset_taxa(resfinder_PHY_Gene, Gene =="aadA2_1_NC_010870" | Gene == "blaCMY-2_1_X91840")
+
 # Retain genes whose sum relative abundance above 0.0025
 minTotRelAbun = 0.0025
 x = taxa_sums(resfinder_PHY_Gene)
@@ -1193,9 +1198,9 @@ keepTaxa = taxa_names(resfinder_PHY_Gene)[which((x / sum(x)) > minTotRelAbun)]
 resfinder_PHY_Gene_heat = prune_taxa(keepTaxa, resfinder_PHY_Gene)
 
 # Extract abundance matrix from the phyloseq object
-heat_OTU = as(otu_table(resfinder_PHY_Gene_heat), "matrix")
+heat_OTU = as(otu_table(resfinder_PHY_Gene), "matrix")
 # transpose if necessary
-if(taxa_are_rows(resfinder_PHY_Gene_heat)){heat_OTU <- t(heat_OTU)}
+if(taxa_are_rows(resfinder_PHY_Gene)){heat_OTU <- t(heat_OTU)}
 # Coerce to data.frame
 heat.df = as.data.frame(heat_OTU)
 
@@ -1204,9 +1209,9 @@ colnames(heat.df)
 
 # So same to the tax_table
 # Extract abundance matrix from the phyloseq object
-heat_tax = as(tax_table(resfinder_PHY_Gene_heat), "matrix")
+heat_tax = as(tax_table(resfinder_PHY_Gene), "matrix")
 # Transpose if necessary
-if(taxa_are_rows(resfinder_PHY_Gene_heat)){heat_tax <- t(heat_tax)}
+if(taxa_are_rows(resfinder_PHY_Gene)){heat_tax <- t(heat_tax)}
 # Save to get it back without the current first header row
 write.table(heat_tax, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=T, sep = "\t", col.names = F)
 heat_tax <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=1)
