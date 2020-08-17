@@ -26,7 +26,6 @@ library(ggplot2)
 library(knitr)
 library(ggpubr)
 library(pheatmap)
-library(ape)
 library(multcomp)
 library(gplots)
 library(readr)
@@ -92,26 +91,26 @@ any(taxa_sums(metaxa_PHY_ast) == 0)
 ## Ordination to study whether the taxonomy can be explained by the variable "country", Metxa2
 ```{r}
 # Change into relative data
-metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY_ast, function(x) x/sum(x))
+metaxa_rel_PHY <- transform_sample_counts(metaxa_PHY, function(x) x/sum(x))
 
 # Ordinate and plot data
 metaxa_rel_PHY_ord <- ordinate(metaxa_rel_PHY, method = "PCoA", distance = "horn")
-p1 <- plot_ordination(metaxa_rel_PHY, metaxa_rel_PHY_ord, color = "country", label = "name")
-metaxa.p1 <- p1 + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) + geom_point(colour = "black", 
+p_ord <- plot_ordination(metaxa_rel_PHY, metaxa_rel_PHY_ord, color = "country", label = "name")
+metaxa.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) + geom_point(colour = "black", 
     pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "Metaxa2")
-metaxa.p1
+metaxa.p_ord
 
 # Test significance using pair-wise adonis
-metaxa_temp <- subset_samples(metaxa_PHY_ast, (country == "Benin" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ast, (country == "Burkina Faso" | country == "Finland"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
-metaxa_temp <- subset_samples(metaxa_PHY_ast, (country == "Benin" | country == "Burkina Faso"))
+metaxa_temp <- subset_samples(metaxa_PHY, (country == "Benin" | country == "Burkina Faso"))
 metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
 adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
 
@@ -189,12 +188,12 @@ any(taxa_sums(metaphlan_PHY_ast) == 0)
 ## Ordination to study wheather the taxonomy can be explained by the variable "country", Metaphlan3
 ```{r}
 # Ordinate and plot data
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_ast, method = "PCoA", distance = "horn")
-p2 <- plot_ordination(metaphlan_PHY_ast, metaphlan_PHY_ord, color = "country", label = "name")
-metaphlan.p2 <- p2 + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) + 
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(metaphlan_PHY, metaphlan_PHY_ord, color = "country", label = "name")
+metaphlan.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "Metaphlan3")
-metaphlan.p2
+metaphlan.p_ord
 
 # Test significance using pair-wise adonis
 metaphlan_temp <- subset_samples(metaphlan_PHY_ast, (country == "Benin" | country == "Finland"))
@@ -329,12 +328,12 @@ any(taxa_sums(resfinder_PHY_ast) == 0)
 ## Ordinate ResFinder mapping results to study wheather the taxonomy can be explained by the variable "country"
 ```{r}
 # Ordinate and plot data
-resfinder_PHY_ord <- ordinate(resfinder_PHY_ast, method = "PCoA", distance = "horn")
-p3 <- plot_ordination(resfinder_PHY_ast, resfinder_PHY_ord, color = "country", label = "name")
-resfinder.p3 <- p3 + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) +
+resfinder_PHY_ord <- ordinate(resfinder_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(resfinder_PHY, resfinder_PHY_ord, color = "country", label = "name")
+resfinder.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) +
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
-resfinder.p3
+resfinder.p_ord
 
 # Test significance between all pairs
 resfinder_temp <- subset_samples(resfinder_PHY_ast, (country == "Finland" | country == "Benin"))
@@ -370,19 +369,21 @@ adonis(Finland_dist ~ location, data = data.frame(sample_data(Finland)), permuta
 # Ordinate by location, ResFinder
 ```{r}
 nb.cols <- 14
-mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(nb.cols)
+mycolors <- colorRampPalette(brewer.pal(12, "Paired"))(nb.cols)
 
-resfinder_PHY_ord <- ordinate(resfinder_PHY_ast, method = "PCoA", distance = "horn")
-p3.1 <- plot_ordination(resfinder_PHY_ast, resfinder_PHY_ord, color = "location", label = "name")
-resfinder.p3.1 <- p3.1 + scale_fill_manual(values = mycolors) + 
+resfinder_PHY_ord <- ordinate(resfinder_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(resfinder_PHY_ast, resfinder_PHY_ord, color = "location", label = "name")
+resfinder.p_ord <- p_ord + scale_fill_manual(values = mycolors) + 
     geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
     theme_minimal() + labs(title = "ResFinder")
-resfinder.p3.1
+resfinder.p_ord
 
 # Test significance between all pairs
-resfinder_temp <- subset_samples(resfinder_PHY_ast, (location == "Savalou area" | location == "Central clinic of Calavi"))
+resfinder_temp <- subset_samples(resfinder_PHY, (location == "Savalou area" | location == "Central clinic of Calavi"))
 resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 adonis(resfinder_dist ~ location, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+# R2=37.4 % (p=0.01)
 
 # etc...
 ```
@@ -427,22 +428,22 @@ print(country.pairs)
 # Diversity plots, Metaxa2
 ```{r}
 # Shannon
-p4 <- ggviolin(metaxa.meta, x = "country", y = "diversity_shannon",
+p_shannon_metaxa <- ggviolin(metaxa.meta, x = "country", y = "diversity_shannon",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5"))
-p4 <- p4 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p4)
+p_shannon_metaxa <- p_shannon_metaxa + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p_shannon_metaxa)
 
 # Gini Simpson
-p5 <- ggviolin(metaxa.meta, x = "country", y = "diversity_gini_simpson",
+p_gsimp_metaxa <- ggviolin(metaxa.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p5 <- p5 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-print(p5)
+p_gsimp_metaxa <- p_gsimp_metaxa + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+print(p_gsimp_metaxa)
 
 # Inverse Simpson
-p6 <- ggviolin(metaxa.meta, x = "country", y = "diversity_inverse_simpson",
+p_isimp_metaxa <- ggviolin(metaxa.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#35E0F5", "#531592")) 
-p6 <- p6 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
-print(p6)
+p_isimp_metaxa <- p_isimp_metaxa + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+print(p_isimp_metaxa)
 
 # In Finnish samples seems to have significantly lower alpha diversity in taxonomy according to Metaxa2 compared to Benin and Burkina Faso.
 ```
@@ -498,20 +499,20 @@ qqnorm(metaphlan.meta$diversity_inverse_simpson)
 ```
 ## Diversity plots, Metaphlan3
 ```{r}
-p7 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
+p_shannon_metaphlan <- ggviolin(metaphlan.meta, x = "country", y = "diversity_shannon",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5"))
-metaphlan.p7 <- p7 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
-metaphlan.p7
+p_shannon_metaphlan <- p_shannon_metaphlan + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
+p_shannon_metaphlan
 
-p8 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
+p_gsimp_metaphlan <- ggviolin(metaphlan.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5")) 
-metaphlan.p8 <- p8 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-metaphlan.p8 
+p_gsimp_metaphlan <- p_gsimp_metaphlan + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+p_gsimp_metaphlan 
 
-p9 <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
+p_isimp_metaphlan <- ggviolin(metaphlan.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5"))
-metaphlan.p9 <- p9 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
-metaphlan.p9
+p_isimp_metaphlan <- p_isimp_metaphlan + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+p_isimp_metaphlan
 
 # According to metaphlan there are no significant differences between the alpha diversities of samples from different countries.
 ```
@@ -519,11 +520,11 @@ metaphlan.p9
 ```{r, results='hide'}
 # Shannon
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_shannon")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_shannon")
 kable(head(resfinder_tab))
 
 ## Create data table
-resfinder.meta <- meta(resfinder_PHY_ast)
+resfinder.meta <- meta(resfinder_PHY)
 kable(head(resfinder.meta))
 
 ## Add indexes to data table
@@ -541,7 +542,7 @@ print(country.pairs)
 
 # Gini Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_gini_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_gini_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -554,7 +555,7 @@ qqnorm(resfinder.meta$diversity_gini_simpson)
 
 # Inverse Simpson
 ## Take a look at the indexes
-resfinder_tab <-microbiome::alpha(resfinder_PHY_ast, index = "diversity_inverse_simpson")
+resfinder_tab <-microbiome::alpha(resfinder_PHY, index = "diversity_inverse_simpson")
 kable(head(resfinder_tab))
 
 ## Add indexes to data table
@@ -567,20 +568,20 @@ qqnorm(resfinder.meta$diversity_inverse_simpson)
 ```
 ## Diversity plots, ResFinder
 ```{r}
-p10 <- ggviolin(resfinder.meta, x = "country", y = "diversity_shannon",
+p_shannon_resfinder <- ggviolin(resfinder.meta, x = "country", y = "diversity_shannon",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5")) 
-resfinder.p10 <- p10 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
-resfinder.p10
+p_shannon_resfinder <- p_shannon_resfinder + stat_compare_means(comparisons = country.pairs, method = "wilcox.test")
+p_shannon_resfinder
 
-p11 <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
+p_gsimp_resfinder <- ggviolin(resfinder.meta, x = "country", y = "diversity_gini_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5")) 
-resfinder.p11 <- p11 + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
-resfinder.p11
+p_gsimp_resfinder <- p_gsimp_resfinder + stat_compare_means(comparisons = country.pairs, method = "wilcox.test") 
+p_gsimp_resfinder
 
-p12 <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
+p_isimp_resfinder <- ggviolin(resfinder.meta, x = "country", y = "diversity_inverse_simpson",
  add = "boxplot", fill = "country", palette = c("#FF333F", "#531592", "#35E0F5")) 
-resfinder.p12 <- p12 + stat_compare_means(comparisons = country.pairs, method = "t.test") 
-resfinder.p12
+p_isimp_resfinder <- p_isimp_resfinder + stat_compare_means(comparisons = country.pairs, method = "t.test") 
+p_isimp_resfinder
 
 # The resistome seems less complex in Finnish samples than in Burkinabe and Beninise.
 ```
@@ -592,11 +593,11 @@ mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 loc <- plot_richness(resfinder_PHY_ast, measures = c("Shannon", "Simpson"), 
                      color="location", shape = "country")
 
-resfinder.in <- loc + scale_fill_manual(values=mycolors) + 
+resfinder.div <- loc + scale_fill_manual(values=mycolors) + 
   geom_boxplot() +
   geom_point(size=3) + theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, size =5))
-resfinder.in
+resfinder.div
 ```
 ## Taxonomic composition by Metaxa2 using microbiome package
 ```{r}
@@ -621,27 +622,27 @@ new.tax_metaxa <- tax_table(taxmat_metaxa)
 tax_table(metaxa.com) <- new.tax_metaxa
 
 # Class level
-metaxa_top5class <- aggregate_top_taxa(metaxa.com, top = 5, "Class")
+top5class <- aggregate_top_taxa(metaxa.com, top = 5, "Class")
 
-metaxa_top5class.p13 <- plot_composition(metaxa_top5class, group_by = "country") + 
+metaxa_top5class<- plot_composition(metaxa_top5class, group_by = "country") + 
   theme(legend.position = "bottom") + theme_classic() +
   theme(axis.text.x = element_text(angle = 90, size = 8), axis.title = element_blank()) +
     ggtitle("Relative abundance of top 5 classes, Metaxa2")
 
-metaxa_top5class.p13 + 
+metaxa_top5class + 
     scale_fill_manual(values = c("#1B9E77","#E6AB02","#7570B3","#E7298A","#66A61E", "#FFFFFF"))
 
-# Tecnichal replicates seem highly similar to each other. Fecal samples have different diversity in the class taxonomy: more Closridia and Betaproteobacteria than Gammaproteobacteria and no Epsilonproteobacteria when comparing to ww samples. Of the suscpicious samples especially in BH02 the Gammaproteobacteria are dominating. This would make sense if the sample was from CLED plate which is selective for Enterobacteriaceae species. 
+# Technical replicates seem highly similar to each other. Fecal samples have different diversity in the class taxonomy: more Closridia and Betaproteobacteria than Gammaproteobacteria and no Epsilonproteobacteria when comparing to ww samples. Of the suscpicious samples especially in BH02 the Gammaproteobacteria are dominating. This would make sense if the sample was from CLED plate which is selective for Enterobacteriaceae species. 
 ```
 ## Top 15 genera merged by location, Metaphlan3
 ```{r}
-metaphlan_PHY_genus <- tax_glom(metaphlan_PHY_ast, taxrank = "Genus")
+metaphlan_PHY_genus <- tax_glom(metaphlan_PHY, taxrank = "Genus")
 metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus), TRUE)[1:15]), 
     metaphlan_PHY_genus)
 merged <- merge_samples(metaphlan_PHY_genus_abun, "location")
 
 # Normalize by number of samples in each sample type
-otu_table(merged) <- otu_table(merged)[, ]/as.matrix(table(sample_data(metaphlan_PHY_ast)$location))[, 
+otu_table(merged) <- otu_table(merged)[, ]/as.matrix(table(sample_data(metaphlan_PHY)$location))[, 
     1]
 
 # Set colors
@@ -650,7 +651,7 @@ mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 # Facet labs
 country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
 
-metaphlan.p16 <- plot_bar(merged, fill = "Genus", title = "15 most abundant genera, Metaphlan3") +
+metaphlan_top15genus <- plot_bar(merged, fill = "Genus", title = "15 most abundant genera, Metaphlan3") +
   facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle=40, hjust=1, size = 10),
@@ -658,7 +659,295 @@ metaphlan.p16 <- plot_bar(merged, fill = "Genus", title = "15 most abundant gene
         ylab("Relative abundance (%)") + xlab("") +
   scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
   guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
-metaphlan.p16
+metaphlan_top15genus
+```
+# Same by individual sample
+```{r}
+metaphlan_PHY_genus <- tax_glom(metaphlan_PHY, taxrank = "Genus")
+metaphlan_PHY_genus_abun <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_genus), TRUE)[1:15]), 
+    metaphlan_PHY_genus)
+
+# Set colors
+nb.cols <- 15
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+metaphlan_top15genus <- plot_bar(metaphlan_PHY_genus_abun, fill = "Genus", title = "15 most abundant genera, Metaphlan3") +
+  facet_grid(~country, scales = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+metaphlan_top15genus
+```
+# Suspicious samples: taxa
+```{r}
+# Use phyloseq without any filtering
+metaphlan_PHY_taxa = subset_taxa(metaphlan_PHY, Genus == "Klebsiella")
+plot_bar(metaphlan_PHY_taxa)
+
+# Subset to have only the 3 suspicious samples left
+susp = subset_samples(metaphlan_PHY, name!="BFH12_S130" & 	name!="BH09_S83" &	name!="BFH35_S153" &	name!="BSE93_S121" &	name!="BH47_S108" &	name!="BH52_S112" &	name!="BH36_S101" &	name!="BFH33_S151" &	name!="BFH9_S127" &	name!="FH6_S167" &	name!="BH10_S84" &	name!="BFH15_S133" &	name!="BFH22_S140" &	name!="BFH31_S149" &	name!="BH50_S111" &	name!="BFH32_S150" &	name!="BFH6_S125" &	name!="BFH8_S126" &	name!="BSE100_S122" &	name!="BFH20_S138" &	name!="BFH21_S139" &	name!="BFH14_S132" &	name!="BFH24_S142" &	name!="FH1_S162" &	name!="BH34.B_S99" &	name!="BH34.A_S98" &	name!="BH06_S81" &	name!="BSE79_S120" &	name!="BH20_S88" &	name!="BFH17_S135" &	name!="BH31_S95" &	name!="BH11_S85" &	name!="BFH36_S154" &	name!="BH22_S89" &	name!="BFH38.B_S157" &	name!="BH45_S106" &	name!="BH61_S116" &	name!="FH5_S166" &	name!="BFH25_S143" &	name!="BFH41_S160" &	name!="BFH18_S136" &	name!="BH59_S114" &	name!="BH13_S86" &	name!="BH03_S78" &	name!="BH38_S103" &	name!="BFH40_S159" &	name!="BH33_S97" &	name!="BH32_S96" &	name!="BFH13_S131" &	name!="BFH4_S124" &	name!="BFH10_S128" &	name!="BFH39_S158" &	name!="BFH19_S137" &	name!="BH37_S102" &	name!="FH8_S169" &	name!="BH04_S79" &	name!="BH25_S91" &	name!="BH01_S76" &	name!="BFH23_S141" &	name!="BH58_S113" &	name!="BFH38.A_S156" &	name!="BH14_S87" &	name!="BSE74_S119" &	name!="BH05_S80" &	name!="BFH1_S123" &	name!="FH3_S164" &	name!="BH63_S118" &	name!="BH48_S109" &	name!="BFH34_S152" &	name!="BFH28_S146" &	name!="BH07_S82" &	name!="BFH11_S129" &	name!="BH44_S105" &	name!="FH10_S171" &	name!="FH9_S170" &	name!="BFH27_S145" &	name!="BFH29_S147" &	name!="FH7_S168" &	name!="BFH16_S134" &	name!="FH4_S165" &	name!="BH29_S93" &	name!="BH39_S104" &	name!="BH60_S115" &	name!="BH62_S117" &	name!="BFH26_S144" &	name!="BH35_S100" &	name!="BFH37_S155" &	name!="FH2_S163" &	name!="BFH42_S161" &	name!="BH46_S107" &	name!="BH24_S90" &	name!="BH49_S110" &	name!="BFH30_S148")
+
+susp_genus <- tax_glom(susp, taxrank = "Genus")
+susp_genus_abun <- prune_taxa(names(sort(taxa_sums(susp_genus), TRUE)[1:20]), 
+    susp_genus)
+
+# Plot
+nb.cols <- 20
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+susp_top20genus <- plot_bar(susp_genus_abun, fill = "Genus", title = "Top 20 genera, suspicious samples, metaphlan") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+susp_top20genus
+```
+# Suspicious samples: ARGs
+```{r}
+# ARGs (use either CARD_PHY or resfinder_PHY)
+susp_ARG = subset_samples(resfinder_PHY, name!="BFH12_S130" & 	name!="BH09_S83" &	name!="BFH35_S153" &	name!="BSE93_S121" &	name!="BH47_S108" &	name!="BH52_S112" &	name!="BH36_S101" &	name!="BFH33_S151" &	name!="BFH9_S127" &	name!="FH6_S167" &	name!="BH10_S84" &	name!="BFH15_S133" &	name!="BFH22_S140" &	name!="BFH31_S149" &	name!="BH50_S111" &	name!="BFH32_S150" &	name!="BFH6_S125" &	name!="BFH8_S126" &	name!="BSE100_S122" &	name!="BFH20_S138" &	name!="BFH21_S139" &	name!="BFH14_S132" &	name!="BFH24_S142" &	name!="FH1_S162" &	name!="BH34.B_S99" &	name!="BH34.A_S98" &	name!="BH06_S81" &	name!="BSE79_S120" &	name!="BH20_S88" &	name!="BFH17_S135" &	name!="BH31_S95" &	name!="BH11_S85" &	name!="BFH36_S154" &	name!="BH22_S89" &	name!="BFH38.B_S157" &	name!="BH45_S106" &	name!="BH61_S116" &	name!="FH5_S166" &	name!="BFH25_S143" &	name!="BFH41_S160" &	name!="BFH18_S136" &	name!="BH59_S114" &	name!="BH13_S86" &	name!="BH03_S78" &	name!="BH38_S103" &	name!="BFH40_S159" &	name!="BH33_S97" &	name!="BH32_S96" &	name!="BFH13_S131" &	name!="BFH4_S124" &	name!="BFH10_S128" &	name!="BFH39_S158" &	name!="BFH19_S137" &	name!="BH37_S102" &	name!="FH8_S169" &	name!="BH04_S79" &	name!="BH25_S91" &	name!="BH01_S76" &	name!="BFH23_S141" &	name!="BH58_S113" &	name!="BFH38.A_S156" &	name!="BH14_S87" &	name!="BSE74_S119" &	name!="BH05_S80" &	name!="BFH1_S123" &	name!="FH3_S164" &	name!="BH63_S118" &	name!="BH48_S109" &	name!="BFH34_S152" &	name!="BFH28_S146" &	name!="BH07_S82" &	name!="BFH11_S129" &	name!="BH44_S105" &	name!="FH10_S171" &	name!="FH9_S170" &	name!="BFH27_S145" &	name!="BFH29_S147" &	name!="FH7_S168" &	name!="BFH16_S134" &	name!="FH4_S165" &	name!="BH29_S93" &	name!="BH39_S104" &	name!="BH60_S115" &	name!="BH62_S117" &	name!="BFH26_S144" &	name!="BH35_S100" &	name!="BFH37_S155" &	name!="FH2_S163" &	name!="BFH42_S161" &	name!="BH46_S107" &	name!="BH24_S90" &	name!="BH49_S110" &	name!="BFH30_S148")
+
+# Gene
+susp_ARG_gene <- tax_glom(susp_ARG, taxrank = "Gene")
+susp_ARG_gene_abun <- prune_taxa(names(sort(taxa_sums(susp_ARG_gene), TRUE)[1:20]), susp_ARG_gene)
+
+nb.cols <- 20
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+susp_top20genes <- plot_bar(susp_ARG_gene_abun, fill = "Gene", title = "Top 20 ARGs, suspicious samples") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARG/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+susp_top20genes
+
+# Class
+susp_ARG_class <- tax_glom(susp_ARG, taxrank = "Class")
+susp_ARG_class_abun <- prune_taxa(names(sort(taxa_sums(susp_ARG_class), TRUE)[1:20]), susp_ARG_class)
+
+nb.cols <- 20
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+susp_top20class <- plot_bar(susp_ARG_class_abun, 
+  fill = "Class", title = "Top 20 ARGs by class, suspicious samples") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARG/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Class"))
+susp_top20class
+
+# And by single sample (use BH27_S92, BH30_S94 and BH02_S77 in comparisons)
+susp_ARG = subset_samples(susp_ARG, name!="BH30_S94" & name!="BH27_S92")
+susp_ARG_gene <- tax_glom(susp_ARG, taxrank = "Gene")
+
+susp_ARG_gene_abun <- prune_taxa(names(sort(taxa_sums(susp_ARG_gene), TRUE)[1:20]), susp_ARG_gene)
+
+nb.cols <- 20
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+susp_top20genes <- plot_bar(susp_ARG_gene_abun, fill = "Gene", title = "Top 20 ARGs, suspicious samples") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARG/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+susp_top20genes
+```
+## CARD results
+```{r}
+# Simplify headers and change sep from ; into tab in excel
+# Load data
+CARD_genemat <-as.matrix(read.table("mod_COUNT_TABLE.txt", header= T, check.names = F, row.names = 1))
+```
+
+```{r}
+# Normalize to 16s rRNA
+CARD_genemat_norm <- t(t(CARD_genemat)/metadata$SSU_counts)
+
+# Check if correct:
+identical(CARD_genemat[1020, 4]/metadata$SSU_counts[4], CARD_genemat_norm[1020, 4])
+
+# Save and load again to exclude row.names
+write.table(CARD_genemat_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/CARD_genemat_norm.txt", row.names=T, sep = "\t", col.names = T)
+
+CARD_genemat_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/CARD_genemat_norm.txt", row.names=NULL)
+CARD_genemat_norm$row.names<-NULL
+```
+
+```{r}
+# Create phyloseq object
+# Load tax table
+tax_table_CARD <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_CARD.txt", header=FALSE, sep="\t")
+colnames(tax_table_CARD) <- c("Gene", "Class")
+
+# Combine to phyloseq object
+CARD_PHY <- phyloseq(otu_table(CARD_genemat_norm, taxa_are_rows = TRUE), sample_data(metadata), 
+    tax_table(as.matrix(tax_table_CARD)))
+
+# Have a quick look
+plot_bar(otu_table(CARD_PHY))
+
+# There are the suspicious samples (BH02, BH27, BH30).
+```
+
+```{r}
+# Filter samples
+# With low quality (BFH24_S142, BH63_S118, FH10_S171)
+CARD_PHY = subset_samples(CARD_PHY, name != "BFH24_S142" & name != "BH63_S118" & name != "FH10_S171")
+
+# Suspicious samples
+CARD_PHY_ast = subset_samples(CARD_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
+
+# Feces samples (BH20_S88, BH22_S89, BH24_S90, BH25_S91)
+
+# Check if there are taxa that are not present in any of the remaining samples
+any(taxa_sums(CARD_PHY_ast) == 0)
+CARD_PHY_ast <- prune_taxa(taxa_sums(CARD_PHY_ast) > 0, CARD_PHY_ast)
+any(taxa_sums(CARD_PHY_ast) == 0)
+```
+## Ordinate CARD result
+```{r}
+# Ordinate and plot data
+CARD_PHY_ord <- ordinate(CARD_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(CARD_PHY, CARD_PHY_ord, color = "country", label = "name")
+CARD.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#531592", "#35E0F5")) + 
+    geom_point(colour = "black", pch = 21, size = 2, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + labs(title = "CARD")
+CARD.p_ord
+
+
+# Test significance using pair-wise adonis
+CARD_temp <- subset_samples(CARD_PHY, (country == "Finland" | country == "Benin"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+
+CARD_temp <- subset_samples(CARD_PHY, (country == "Burkina Faso" | country == "Benin"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+
+CARD_temp <- subset_samples(CARD_PHY, (country == "Finland" | country == "Burkina Faso"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+```
+## Plot ARGs by CARD
+```{r}
+CARD_PHY_gene <- tax_glom(CARD_PHY_ast, taxrank = "Gene")
+CARD_PHY_gene_abun <- prune_taxa(names(sort(taxa_sums(CARD_PHY_gene), TRUE)[1:15]), CARD_PHY_gene)
+
+nb.cols <- 15
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
+
+CARD_top15genes <- plot_bar(CARD_PHY_gene_abun, fill = "Gene", title = "Top 15 ARGs, CARD") +
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARGs/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+CARD_top15genes
+
+# By class
+CARD_PHY_class <- tax_glom(CARD_PHY_ast, taxrank = "Class")
+CARD_PHY_class_abun <- prune_taxa(names(sort(taxa_sums(CARD_PHY_class), TRUE)[1:15]), CARD_PHY_class)
+
+nb.cols <- 7
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
+
+CARD_top15class <- plot_bar(CARD_PHY_class_abun, fill = "Class", title = "Top 15 ARGs, CARD") +
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARGs/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Class"))
+CARD_top15class
+```
+
+```{r}
+# Carbapenemases
+CARD_PHY_class <- tax_glom(CARD_PHY_ast, taxrank = "Class")
+CARD_PHY_class_carba <- subset_taxa(CARD_PHY_class, Class == "cephamycin")
+CARD_PHY_class_carba_abun <- prune_taxa(names(sort(taxa_sums(CARD_PHY_class_carba), TRUE)[1:24]), CARD_PHY_class_carba)
+
+nb.cols <- 24
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+CARD_topcarba <- plot_bar(CARD_PHY_class_carba_abun, fill = "Gene", title = "Top 24 carbapenemases, CARD") +
+  facet_grid(~country, scales = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARGs/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Gene"))
+CARD_topcarba
+
+# In feces samples high abundance of of cfxA and CMY genes!
+```
+
+```{r}
+# Merged by location (class)
+CARD_PHY_class <- tax_glom(CARD_PHY_ast, taxrank = "Class")
+CARD_PHY_gene_abun <- prune_taxa(names(sort(taxa_sums(CARD_PHY_gene), TRUE)[1:15]), CARD_PHY_gene)
+CARD_topclassrel0 <- transform_sample_counts(CARD_PHY_class_abun, function(x) x / sum(x))
+CARD_topclassrel1 <- merge_samples(CARD_topclassrel0, "location")
+otu_table(CARD_topclassrel1) <- otu_table(CARD_topclassrel1)[, ]/as.matrix(table(sample_data(CARD_PHY_ast)$location))[, 
+    1]
+CARD_topclassrel2 <- transform_sample_counts(CARD_topclassrel1, function(x) x / sum(x))
+
+plot_rel_class <- plot_bar(CARD_topclassrel2, fill = "Class", title = "Relative abundance of ARGs (class), CARD") +
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance of ARGs/16s rRNA (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Class"))
+plot_rel_class
+
+# Merged by location (genes)
+CARD_PHY_gene <- tax_glom(CARD_PHY_ast, taxrank = "Gene")
+CARD_PHY_gene_abun <- prune_taxa(names(sort(taxa_sums(CARD_PHY_gene), TRUE)[1:15]), CARD_PHY_gene)
+CARD_topgenerel0 <- transform_sample_counts(CARD_PHY_gene_abun, function(x) x / sum(x))
+CARD_topgenerel1 <- merge_samples(CARD_topgenerel0, "location")
+otu_table(CARD_topgenerel1) <- otu_table(CARD_topgenerel1)[, ]/as.matrix(table(sample_data(CARD_PHY_ast)$location))[, 
+    1]
+CARD_topgenerel2 <- transform_sample_counts(CARD_topgenerel1, function(x) x / sum(x))
+
+nb.cols <- 15
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+country.labs <- c("1" = "Benin", "2" = "Burkina Faso", "3" = "Finland")
+
+plot_rel_gene <- plot_bar(CARD_topgenerel2, fill = "Gene", title = "Relative abundance of ARGs (gene), CARD") +
+  facet_grid(~country, scales = "free_x", space = "free_x", labeller = labeller(country = country.labs)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("Relative abundance of ARGs/16s rRNA (%)") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Gene"))
+plot_rel_gene
 ```
 ## Heatmap of Metaphlan3 results
 ```{r, warning=FALSE, message=FALSE}
@@ -676,11 +965,12 @@ heat.metaphlan
 ```{r, results='hide', fig.keep = 'none'}
 # Mean 16S counts by location
 ## Exclude the samples excluded in analysis
-#rownames(metadata)
-#SSU<-metadata[!(metadata$name=="BH02_S77" | metadata$name=="BH27_S92" | metadata$name=="BH30_S94"),]
+row.names.remove <- c("BH02_S77", "BH27_S92", "BH30_S94", "BFH24_S142", "BH63_S118", "FH10_S171")
+SSU <- metadata[!(row.names(metadata) %in% row.names.remove), ]
 
-mean16S_counts <- mean(metadata$SSU_counts)
-lo_data <- data.frame(SUM = mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast))), location= sample_data(resfinder_PHY_ast)$location)
+mean16S_counts <- mean(SSU$SSU_counts)
+
+lo_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), location= sample_data(resfinder_PHY_ast)$location)
 
 plot(lo_data$SUM~lo_data$location, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -745,8 +1035,8 @@ ARG.sum.lo <- ggplot(lo_data, aes(x = location, y = Mean)) +
     scale_fill_manual(values = mycolors) +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
     labs(y = "Sum abundance/16S", 
-    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs")
-#  + scale_y_continuous(trans = "log10")
+    x = "") + guides(color = FALSE, alpha = FALSE) + labs(title = "ARGs") + 
+    scale_y_continuous(trans = "log10")
 ARG.sum.lo
 ```
 
@@ -763,11 +1053,8 @@ print(summary(glht(glht.mod)))
 ```
 ## Sum of the relative abundances of ResFinder results by country
 ```{r, results='hide', fig.keep = 'none'}
-# Average 16S counts bu location
-mean16S_counts <- mean(metadata$SSU_counts, invert = TRUE)
-
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ww)))), 
-    country = sample_data(resfinder_PHY_ww)$country)
+# Average 16S counts by country
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), country= sample_data(resfinder_PHY_ast)$country)
 
 plot(co_data$SUM~co_data$country, cex.axis=0.5, srt=45, las=2, xlab=NULL)
 
@@ -820,9 +1107,6 @@ deviance(model.nb)
 
 ```{r}
 # Plot using neg. binom. model
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ww)))), 
-    country = sample_data(resfinder_PHY_ww)$country)
-
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
 co_data <- cbind(co_data, Mean = predict(fit, newdata = co_data, type = "response"), SE = predict(fit, newdata = co_data, type = "response", se.fit = T)$se.fit)
@@ -841,8 +1125,7 @@ ARG.sum.co
 
 ```{r, results='hide'}
 ## Check if significant
-co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ww)))), 
-    country = sample_data(resfinder_PHY_ww)$country)
+co_data <- data.frame(SUM = round(mean16S_counts * (sample_sums(otu_table(resfinder_PHY_ast)))), country= sample_data(resfinder_PHY_ast)$country)
 
 fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 
@@ -850,49 +1133,45 @@ fit <- glm.nb(SUM ~ country, data = co_data, link = log)
 glht.mod <- glht(fit, mcp(country = "Tukey"))
 summary(glht(glht.mod))
 ```
-## ARG Classes, sum relative abundance by individual sample
+## ARGs, ResFinder
 ```{r}
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
+# Genes
+resfinder_PHY_gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
+resfinder_PHY_gene_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_gene), TRUE)[1:15]), resfinder_PHY_gene)
 
-resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
-    resfinder_PHY_Class)
+nb.cols <- 15
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
-p17<-plot_bar(resfinder_PHY_Class_abund, x="name", fill="Class")
-resfinder.p17 <- p17 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) + 
-  ggtitle("Sum relative abundance of ARGs by classes/16S") +
-   theme_linedraw() +
-  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
-        axis.title.x = element_blank(),
-        strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
-
-# Remove OTU separators
-resfinder.p17 + geom_bar(aes(color=Class, fill=Class), stat="identity", position="stack")
+resfinder_top15genes <- plot_bar(CARD_PHY_gene_abun, fill = "Gene", title = "Top 15 ARGs, ResFinder") +
+  facet_grid(~country, scales = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARGs/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Genus"))
+resfinder_top15genes
 ```
-## Top 12 ARG genes, sum abundance (Not correct)
+
 ```{r}
-resfinder_PHY_Gene <- tax_glom(resfinder_PHY_ast, taxrank = "Gene")
+# Class
+resfinder_PHY_class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
+resfinder_PHY_class_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_class), TRUE)), resfinder_PHY_class)
 
-resfinder_PHY_Gene_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Gene), TRUE)[1:12]), 
-    resfinder_PHY_Gene)
+nb.cols <- 17
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
-# Remove samples with none of these
-resfinder_PHY_Gene_abund <- subset_samples(resfinder_PHY_Gene_abund, sample_sums(resfinder_PHY_Gene_abund) != 
-    0)
-
-p18<-plot_bar(resfinder_PHY_Gene_abund, x="name", fill="Gene")
-resfinder.p18 <- p18 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) + 
-  ggtitle("ARGs/16S") +
-  theme_linedraw() +
-  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
-        axis.title.x = element_blank(),
-        strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
-
-# Remove OTU separators
-resfinder.p18 + geom_bar(aes(color=Gene, fill=Gene), stat="identity", position="stack")
-
-# Not correct.
+resfinder_topclass <- plot_bar(resfinder_PHY_class_abun, fill = "Class", title = "Top ARG classes, ResFinder") +
+  facet_grid(~country, scales = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
+        axis.title.x = element_blank()) +
+        ylab("ARGs/16s rRNA") + xlab("") +
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Class"))
+resfinder_topclass
 ```
 
 ## Pheatmap of ResFnder results
@@ -934,7 +1213,10 @@ heat_tax <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax"
 # Swap colnames
 colnames(heat.df)=colnames(heat_tax)
 # Add row for annotation data
-annot <- read.delim("annot.txt", header = T)
+annot0 <- read.delim("annot.txt", header = T, row.names = 1)
+# Remove samples
+row.names.remove <- c("BH02_S77", "BH27_S92", "BH30_S94", "BFH24_S142", "BH63_S118", "FH10_S171")
+annot <- annot0[!(row.names(annot0) %in% row.names.remove), ]
 
 heat.df$country <- annot$country
 heat.df$sample_type <- annot$sample_type
@@ -945,9 +1227,7 @@ heat.t <- t(heat.df)
 ```
 
 ```{r}
-# Now to the actual heatmap
-#pheatmap(heat.t, cluster_rows = T, cluster_cols = T, cellwidth = 5, cellheight = 5, border_color = "black", fontsize=5, color= inferno(50))
-
+# Actual heatmap
 # Exclude annotation
 heat_num = as.matrix(heat.t[1:115,])
 # Back from charachter into numeric
@@ -972,11 +1252,12 @@ ann_colors = list(
     country = c(Burkina_Faso = "#9E42F9", Benin="#F94C31", Finland="#86F1FA"),
     sample_type = c(waste_water = "white", human_feces = "#38B13E", well_water = "grey", river_water= "#F99D34", clean_water= "#D5EDF3", tap_water= "#9797D7", sludge = "#27D5FC", sandy_sediment_sludge = "#AE192E", soil = "lightblue", sediment_sludge = "#74BC97"))
 
-## Plot
-pheatmap(sqrt(heat_num), cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(50), annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
+## Plot with square root transformation
+custom_heat_sqrt <- pheatmap(sqrt(heat_num), cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(50), annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
 
-## Plot
-pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(length(mat_breaks)-1), breaks= mat_breaks, annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
+## Plot with quantum breaks
+custom_heat_breaks <- pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(length(mat_breaks)-1), breaks= mat_breaks, annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
+custom_heat
 ```
 # For ARGs by antibiotic class
 ```{r}
@@ -1010,7 +1291,11 @@ heat_tax <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax"
 # Swap colnames
 colnames(heat.df)=colnames(heat_tax)
 # Add row for annotation data
-annot <- read.delim("annot.txt", header = T)
+annot0 <- read.delim("annot.txt", header = T, row.names = 1)
+# Remove samples
+row.names.remove <- c("BH02_S77", "BH27_S92", "BH30_S94", "BFH24_S142", "BH63_S118", "FH10_S171")
+annot <- annot0[!(row.names(annot0) %in% row.names.remove), ]
+
 heat.df$country <- annot$country
 heat.df$sample_type <- annot$sample_type
 heat.df$location <- annot$location
@@ -1020,19 +1305,11 @@ heat.t <- t(heat.df)
 ```
 
 ```{r}
-# Now to the actual heatmap
 # Exclude annotation
 heat_num = as.matrix(heat.t[1:85,])
 
 # Back from charachter into numeric
 class(heat_num) <- "numeric"
-
-## Set breaks
-quantile_breaks <- function(xs, n = 100) {
-  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
-  breaks[!duplicated(breaks)]
-}
-mat_breaks <- quantile_breaks(heat_num, n = 100)
 
 ## Set annotation
 annot_col = data.frame(heat.df$country, heat.df$sample_type, heat.df$location)
@@ -1041,13 +1318,23 @@ rownames(annot_col) = colnames(heat_num)
 ## Rename col names
 colnames(annot_col) <- c("country", "sample_type", "location")
 
+## Set breaks
+quantile_breaks <- function(xs, n = 100) {
+  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
+  breaks[!duplicated(breaks)]
+}
+mat_breaks <- quantile_breaks(heat_num, n = 100)
+
 # Set colors for annotations
 ann_colors = list(
     country = c(Burkina_Faso = "#9E42F9", Benin="#F94C31", Finland="#86F1FA"),
     sample_type = c(waste_water = "white", human_feces = "#38B13E", well_water = "grey", river_water= "#F99D34", clean_water= "#D5EDF3", tap_water= "#9797D7", sludge = "#27D5FC", sandy_sediment_sludge = "#AE192E", soil = "lightblue", sediment_sludge = "#74BC97"))
 
-## Plot
-pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 5.0, cellheight = 4.5, border_color = "black", fontsize=5, color= inferno(length(mat_breaks) -1), breaks= mat_breaks, annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
+## Plot with square root transformation
+betalactam_heat_sqrt <- pheatmap(sqrt(heat_num), cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(50), annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
+
+## Plot with quantum breaks
+betalactam_heat_breaks <- pheatmap(heat_num, cluster_rows = F, cluster_cols = T, cellwidth = 5.5, cellheight = 4.1, border_color = "black", fontsize=5, color= inferno(length(mat_breaks)-1), breaks= mat_breaks, annotation_colors = ann_colors, annotation_col = annot_col, main = "x")
 ```
 ## crAssphage
 ```{r}
@@ -1077,35 +1364,35 @@ crass_PHY = subset_samples(crass_PHY, name != "BFH24_S142" & name != "BH63_S118"
 #crass_PHY_ast = subset_samples(crass_PHY, name != "BH02_S77" & name != "BH27_S92" & name != "BH30_S94")
 
 # Plot
-p23<-plot_bar(crass_PHY, fill="sample_type")
-crass.p23 <- p23 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) +
-  theme_linedraw() +
+nb.cols <- 10
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
+
+crassphage_plot <-plot_bar(crass_PHY, fill="sample_type", title = "title") +
+  facet_grid(~ location, scales = "free", space = "free") +
+  theme_classic() + scale_fill_manual(values = mycolors) +
   theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
   guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
-
-# Remove OTU separators
-crassphage <- crass.p23 + geom_bar(aes(fill=sample_type), stat="identity", position="stack")
-crassphage
+crassphage_plot
 
 # Plot ARG in similar way
-resfinder_PHY_Class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
+resfinder_PHY_class <- tax_glom(resfinder_PHY_ast, taxrank = "Class")
+resfinder_PHY_class_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_class), TRUE)), resfinder_PHY_class)
 
-resfinder_PHY_Class_abund <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_Class), TRUE)), 
-    resfinder_PHY_Class)
+nb.cols <- 10
+mycolors <- colorRampPalette(brewer.pal(11, "Spectral"))(nb.cols)
 
-p24<-plot_bar(resfinder_PHY_Class_abund, x="name", fill="sample_type")
-resfinder.p24 <- p24 + facet_grid(~ location, scales = "free", space = "free", labeller = label_wrap_gen()) + 
-  ggtitle("ARGs/16S") +
-   theme_linedraw() +
-  theme(axis.text.x = element_text(angle=90, hjust=1, size = 8),
+resfinder_topclass <- plot_bar(resfinder_PHY_class_abun, fill = "sample_type", title = "title") +
+  facet_grid(~location, scales = "free_x", space = "free_x") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, size = 10),
         axis.title.x = element_blank(),
         strip.text.x = element_text(size = 9, angle = 90, hjust = 0)) +
-  guides(fill = guide_legend(label.theme = element_text(size = 7), keywidth = 1.2, keyheight = 1.2))
-
-# Remove OTU separators
-resfinder.p24 + geom_bar(aes(fill=sample_type), stat="identity", position="stack")
+  scale_fill_manual(values=mycolors) + geom_bar(stat="identity") +
+#  geom_text(aes(label=Gene), vjust=1.6, color="black", size=2.45, position = position_stack(vjust = .75)) +
+  guides(fill = guide_legend(label.theme = element_text(size = 10), keywidth = 1.5, keyheight = 1.5, title = "Class"))
+resfinder_topclass
 ```
 
 
