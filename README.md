@@ -249,7 +249,25 @@ echo -e $name > $name"_crass_counts"
 # take the counts from column 3
 samtools idxstats $name"_crass_sort.bam" | grep -v "*" | cut -f3 >> $name"_crass_counts"
 ```
-Create the final table ogf the results
+Create the final table of the results
+```
 paste *_crass_counts > crassphage_table.txt
+```
 
-`
+Filter and prepare CARD results for parse_diamondPE.py to create table of the results
+```
+# Concatenate results into read1 and read2 files
+cat *_R1_CARD.txt > read1_CARD.txt
+cat *_R2_CARD.txt > read2_CARD.txt
+# Filter hits according to percentage of identity (> 90 %)
+awk '{ if ($3 >= 90) { print } }' read1_CARD.txt > READ1_CARD.txt
+awk '{ if ($3 >= 90) { print } }' read2_CARD.txt > READ2_CARD.txt
+```
+
+Run parse_diamondPE.py (https://github.com/karkman/parse_diamond) in Puhti 
+with Python 3.8.3 (original script modified by adding brackets after "print" according to the python version used)
+```
+python parse_diamondPE.py -1 /scratch/project_2002265/markkan5/AMRIWA/workflow//READ1_CARD.txt \
+                          -2 /scratch/project_2002265/markkan5/AMRIWA/workflow//CARD/READ2_CARD.txt \
+                          -o /scratch/project_2002265/markkan5/AMRIWA/workflow/CARD/COUNT_TABLE
+```
