@@ -207,6 +207,7 @@ hclust2.py \
 `
 conda deactivate
 ```
+# crAssphage
 Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
 https://github.com/karkman/crAssphage_project#figure-1---crassphage-and-arg-dynamics-in-human-feacal-metagenomes
 ```
@@ -254,6 +255,7 @@ Create the final table of the results
 paste *_crass_counts > crassphage_table.txt
 ```
 
+# Post-process CARD results
 Filter and prepare CARD results for parse_diamondPE.py to create table of the results
 ```
 # Concatenate results into read1 and read2 files
