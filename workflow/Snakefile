@@ -1,6 +1,5 @@
 SAMPLES, = glob_wildcards("data/{sample}_R1_001.fastq.gz")
 
-
 rule all:
 	input:
 		expand("data/FASTQC/{sample}_{read}_001_fastqc.zip", sample=SAMPLES, read=["R1", "R2"]),
@@ -17,7 +16,13 @@ rule all:
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		"resfinder_out/ARG_genemat.txt",
 		"CARD/protein_fasta_protein_homolog_model.dmnd",
-		expand("CARD/{sample}_{read}_CARD.txt", sample=SAMPLES, read=["R1", "R2"])
+		expand("CARD/{sample}_{read}_CARD.txt", sample=SAMPLES, read=["R1", "R2"]),
+		"MGE_db/MGE.1.bt2",
+                expand("mapped_reads_MGE/{sample}_unfiltered.bam", sample=SAMPLES),
+                expand("logs/MGE/{sample}.log", sample=SAMPLES),
+                expand("mapped_reads_MGE/{sample}.bam", sample=SAMPLES),
+                expand("sorted_reads_MGE/{sample}.bam.bai", sample=SAMPLES),
+                "MGE_out/MGE_genemat.txt"
 
 rule fastqc_raw:
 	input:
@@ -332,3 +337,143 @@ rule run_diamond:
                 gunzip -c {input.fasta} | \
                 diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
                 """
+rule MGE_db:
+        input:
+                fasta= "MGE_db/MGE.fasta"
+        output:
+                indexed_db= "MGE_db/MGE.1.bt2"
+        message:
+                "-- MGE db --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                1
+        shell:
+                "bowtie2-build {input.fasta} MGE_db/MGE"
+
+rule MGE_mapping:
+        input:
+                fw= "trimmed_data/{sample}_R1_trimmed.fastq.gz",
+                rv= "trimmed_data/{sample}_R2_trimmed.fastq.gz",
+                indexed_db= "MGE_db/MGE.1.bt2"
+        output:
+                temp("mapped_reads_MGE/{sample}_unfiltered.bam")
+        log:
+                "logs/MGE/{sample}.log"
+        message:
+                "-- Mapping w/ MGEs --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                6
+        shell:
+                """
+                (bowtie2 -x MGE_db/MGE -1 {input.fw} -2 {input.rv} -p {threads} -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 | \
+                samtools view -Sb - > {output}) 2> {log}
+                """
+
+rule MGE_filtering:
+        input:
+                "mapped_reads_MGE/{sample}_unfiltered.bam"
+        output:
+                temp("mapped_reads_MGE/{sample}.bam")
+        message:
+                "-- Filtering reads for sorting --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                6
+        shell:
+                """
+                samtools view -h {input} | awk 'BEGIN {{FS="\t"; OFS="\t"}} \
+                {{if (/^@/ && substr($2, 3, 1)==":") {{print}} \
+                else if (($7!="=" || $7=="=") && and($2, 0x40)) {{print}}}}' \
+                | samtools view -Shu - > {output}
+                """
+
+rule MGE_sorting:
+        input:
+                "mapped_reads_MGE/{sample}.bam"
+        output:
+                "sorted_reads_MGE/{sample}.bam"
+        message:
+                "-- Sorting reads --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                6
+        shell:
+                "samtools sort -T sorted_reads_MGE/{wildcards.sample} "
+                "-O bam {input} > {output}"
+
+rule MGE_indexing:
+        input:
+                "sorted_reads_MGE/{sample}.bam"
+        output:
+                "sorted_reads_MGE/{sample}.bam.bai"
+        message:
+                "-- Indexing mapped reads --"   
+        conda:
+                "envs/bowtie2.yml"      
+        threads:
+                6
+        shell:
+                "samtools index {input}"
+
+rule combine_MGE_results_1:
+        input:
+                "sorted_reads_MGE/BFH1_S123.bam"
+        output:
+                temp("MGE_out/gene_names")
+        message:
+                "-- Creating gene_names file --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                1
+        shell:
+                """
+                samtools idxstats {input} | grep -v "\*" | cut -f1 > {output}
+                sed -i '1 i\GENE' {output}
+                """
+
+rule combine_MGE_results_2:
+        input:
+                "sorted_reads_MGE/{sample}.bam"
+        output:
+                "MGE_out/{sample}_counts"
+        message:
+                "-- Combine count data into genemat --"
+        conda:
+                "envs/bowtie2.yml"
+        threads:
+                1
+        shell:
+                """
+                samtools idxstats {input} | grep -v "\*" | cut -f3 > {output}
+                """
+
+rule combine_MGE_results_3:
+        input:
+                "MGE_out/{sample}_counts"
+        output:
+                temp("MGE_out/renamed_{sample}_counts")
+        message:
+                "-- Adding sample names --"
+        threads:
+                1
+        shell:
+                "sed '1 i\{wildcards.sample}' {input} > {output}"
+
+rule combine_MGE_results_4:
+        input:
+                gene_names= "MGE_out/gene_names",
+                counts= expand("MGE_out/renamed_{sample}_counts", sample=SAMPLES)
+        output:
+                "MGE_out/MGE_genemat.txt" 
+        message:
+                "-- Creating MGE_genemat --"
+        threads:
+                1
+        shell:
+                "paste {input.gene_names} {input.counts} > {output}"
