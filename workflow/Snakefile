@@ -187,7 +187,7 @@ rule resfinder_filtering:
                 """
 # The resulting reads correspond to the following samtools flags:
 #samtools view BFH19_S137.bam | awk '{print $2}' | sort | uniq
-# 101*, 113, 65, 69, 73, 77*, 81, 83, 89, 97, 99 
+# 101*, 113, 65, 69*, 73, 77*, 81, 83, 89, 97, 99 
 ##(* will be excluded in the next step, since these are unmapped reads) 
 
 rule resfinder_sorting:
