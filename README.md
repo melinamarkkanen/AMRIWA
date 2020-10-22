@@ -255,7 +255,7 @@ Create the final table of the results
 paste *_crass_counts > crassphage_table.txt
 ```
 
-# Post-process CARD results
+# Post-process CARD & VFDB results
 Filter and prepare CARD results for parse_diamondPE.py to create table of the results
 ```
 # Concatenate results into read1 and read2 files
@@ -264,6 +264,20 @@ cat *_R2_CARD.txt > read2_CARD.txt
 # Filter hits according to percentage of identity (> 90 %)
 awk '{ if ($3 >= 90) { print } }' read1_CARD.txt > READ1_CARD.txt
 awk '{ if ($3 >= 90) { print } }' read2_CARD.txt > READ2_CARD.txt
+
+# Change "." into "_" in sample names
+sed -i 's/BFH38-A_S156-/BFH38_A_S156-/g' READ1_CARD.txt
+sed -i 's/BFH38-A_S156-/BFH38_A_S156-/g' READ2_CARD.txt
+
+sed -i 's/BFH38-B_S157-/BFH38_B_S157-/g' READ1_CARD.txt
+sed -i 's/BFH38-B_S157-/BFH38_B_S157-/g' READ2_CARD.txt
+
+sed -i 's/BH34-A_S98-/BH34_A_S98-/g' READ1_CARD.txt
+sed -i 's/BH34-A_S98-/BH34_A_S98-/g' READ2_CARD.txt
+
+sed -i 's/BH34-B_S99-/BH34_B_S99-/g' READ1_CARD.txt
+sed -i 's/BH34-B_S99-/BH34_B_S99-/g' READ2_CARD.txt
+
 ```
 
 Run parse_diamondPE.py (https://github.com/karkman/parse_diamond) in Puhti 
