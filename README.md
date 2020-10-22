@@ -256,7 +256,7 @@ paste *_crass_counts > crassphage_table.txt
 ```
 
 # Post-process CARD & VFDB results
-Filter and prepare CARD results for parse_diamondPE.py to create table of the results
+Filter and prepare CARD & VFDB results for parse_diamondPE.py to create table of the results
 ```
 # Concatenate results into read1 and read2 files
 cat *_R1_CARD.txt > read1_CARD.txt
