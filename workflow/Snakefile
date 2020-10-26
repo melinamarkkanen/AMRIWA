@@ -24,7 +24,11 @@ rule all:
                 expand("sorted_reads_MGE/{sample}.bam.bai", sample=SAMPLES),
                 "MGE_out/MGE_genemat.txt",
 		"VFDB_db/VFDB_setB_pro.dmnd",
-		"VFDB_db/VFDB_out.txt"
+		"VFDB_db/VFDB_out.txt",
+                "rpoB/RNA_pol_Rpb2_1",
+                expand("fasta/AA_renamed_{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
+                expand("rpoB/{sample}_{read}_hmm_out.txt", sample=SAMPLES, read=["R1", "R2"]),
+                expand("rpoB/{sample}_{read}_HMM_count.txt", sample=SAMPLES, read=["R1", "R2"])
 
 rule fastqc_raw:
 	input:
@@ -512,3 +516,108 @@ rule run_diamond_VFDB:
                 diamond blastx -d VFDB_db/VFDB_setB_pro -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
                 """
 
+rule HMM_profile_1:
+        input:
+                "rpoB/Pfam-A.hmm.gz"
+        output:
+                "rpoB/Pfam-A.hmm"
+        message:
+                "-- Fetch profile for rpoB from Pfam-A --"
+        conda:
+                "envs/hmmer.yml"
+        threads:
+                1
+        shell:
+                "gunzip {input}"
+
+rule HMM_profile_2:
+        input:
+              "rpoB/Pfam-A.hmm"
+        output:
+               prof= "rpoB/RNA_pol_Rpb2_1"
+        message:
+               "-- Fetch profile for rpoB from Pfam-A --"
+        conda:
+              "envs/hmmer.yml"
+        threads:
+               1
+        shell:
+                """
+                hmmpress {input}
+                hmmfetch {input} PF04563.16 > {output.prof}
+                """
+
+rule translate_into_AA:
+        input:
+                fasta= "fasta/renamed_{sample}_{read}.fasta.gz"
+        output:
+                temp("fasta/tempAA_renamed_{sample}_{read}.fasta.gz")
+        message:
+                "-- Translating fasta reads into AA sequences --"
+        conda:
+                "envs/seqkit.yml"
+        threads:
+                10
+        shell:
+                """
+                gunzip -c {input.fasta} | \
+                seqkit translate - --frame 6 --trim | gzip > {output}
+                """
+
+rule modify_AA_files:
+        input:
+                "fasta/tempAA_renamed_{sample}_{read}.fasta.gz"
+        output:
+                temp("fasta/AA_renamed_{sample}_{read}.fasta.gz")
+        message:
+                "-- Modify AA sequences --"
+        threads:
+                1
+        shell:
+                """
+                zcat {input} | sed '1d' | \
+                gzip > {output}
+                """
+
+rule run_hmmsearch:
+        input:
+                prof= "rpoB/RNA_pol_Rpb2_1",
+                fasta= "fasta/AA_renamed_{sample}_{read}.fasta.gz"
+        output:
+                "rpoB/{sample}_{read}_hmm_out.txt"
+        message:
+                "-- Running hmmsearch --"
+        conda:
+                "envs/hmmer.yml"
+        threads:
+                10
+        shell:
+                "hmmsearch --tblout {output} --cpu {threads} {input.prof} {input.fasta}"
+
+rule count_hmm_results:
+        input:
+                "rpoB/{sample}_{read}_hmm_out.txt"
+        output:
+                "rpoB/{sample}_{read}_HMM_count.txt"
+        message:
+                "-- Get counts from HMM results  --"
+        threads:
+                1
+        shell:
+                "grep -v -c '^#' {input} > {output}"
+
+# ls *_hmm_out.txt | sed 's/_hmm_out.txt//g' > HMM_names.txt
+# cat *_HMM_count.txt > HMM_counts.txt
+
+#echo -e "sample_name" > HMM_sample_names.txt
+#awk '0 == (NR + 1) % 2'  HMM_names.txt | sed 's/_R1//g' >> HMM_sample_names.txt
+
+# read1
+#echo -e "R1" > R1_HMM_counts
+#awk '0 == (NR + 1) % 2'  HMM_counts.txt >> R1_HMM_counts
+
+# read2
+#echo -e "R2" > R2_HMM_counts
+#awk '0 == NR % 2'  HMM_counts.txt >> R2_HMM_counts
+
+#paste -d"\t" HMM_sample_names.txt R1_HMM_counts R2_HMM_counts > HMM_RESULT_TABLE.txt
