@@ -515,6 +515,9 @@ rule run_diamond_VFDB:
                 gunzip -c {input.fasta} | \
                 diamond blastx -d VFDB_db/VFDB_setB_pro -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
                 """
+#mkdir rpoB
+#cd rpoB
+#wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 
 rule HMM_profile_1:
         input:
