@@ -162,51 +162,6 @@ Combine outputs to get genus level taxa
 ```{r}
 metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
-# hclust2 v.1.0.0
-First modify metaphlan output "merged_abundance_table.txt" by removing second column.
-```
-sed 1d merged_abundance_table.txt | cut -f1,3-98 > merged_abundance_table_reformatted.txt
-```
-Select genus level taxa
-```
-grep -E "(g__)|(^clade_name)" merged_abundance_table_reformatted.txt | grep -v "t__" | grep -v "s__"$
-```
-
-Add metadata "country", "location" and "sample_type" to rows 2, 3 and 4. 
-Sort by country and then location in Excel (> metaphlan_genus_reordered.txt).
-Simplify sample names
-```
-sed -i 's/_profile//g' metaphlan_genus_reordered.txt
-```
-Run hclust2 locally in conda environment with python 2.7, hclust2, graphlan and export2graphlan.
-./hclust2.sh
-```
-#!/bin/sh
-cd /Users/mamema/Desktop/hclust2
-source /Users/mamema/miniconda3/bin/activate
-conda activate hclust2_env
-
-hclust2.py \
-  -i metaphlan_genus.txt \
-  -o metaphlan.png \
-  --skip_rows 1 \
-  --ftop 50 \
-  --f_dist_f correlation \		
-  --s_dist_f euclidean \
-  --cell_aspect_ratio 0.5 \
-  -l --fperc 99 \
-  --flabel_size 4 \
-  --slabel_size 2 \
-  --metadata_rows 3 \
-  --legend_file metaphlan.legend.png \
-  --max_flabel_len 100 \
-  --metadata_height 0.075 \
-  --minv 0.01 \
-  --dpi 300 \
-  --slinkage complete
-`
-conda deactivate
-```
 # crAssphage
 Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
 https://github.com/karkman/crAssphage_project#figure-1---crassphage-and-arg-dynamics-in-human-feacal-metagenomes
