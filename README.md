@@ -183,6 +183,8 @@ sed -i -e 's/\]//g' cp_MGE_genemat.txt
 sed -i -e 's/\"//g' cp_MGE_genemat.txt
 
 # Tax table
+# Three accessions are incorrectly formatted due to the quotation marks, 
+# those have to bee modified manually.
 sed -i -e 's/\[//g' cp_MGE.fasta
 sed -i -e 's/\]//g' cp_MGE.fasta
 sed -i -e 's/\"//g' cp_MGE.fasta
