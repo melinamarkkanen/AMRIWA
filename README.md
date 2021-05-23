@@ -162,7 +162,7 @@ Combine outputs to get genus level taxa
 ```{r}
 metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
-Modify Metaphlan3 outputs prior loading to R.
+# Modify Metaphlan3 outputs prior loading to R.
 ```
 sed -i 's/_profile//g' mod_merged_abundance_table_species.txt
 sed -n '2p'  merged_abundance_table.txt > merged_abundance_table_species.txt
@@ -170,7 +170,7 @@ sed -i 's/_profile//g' merged_abundance_table_species.txt
 grep -E "s__" merged_abundance_table.txt >> merged_abundance_table_species.txt
 tr '|' ';' <merged_abundance_table_species.txt > mod_merged_abundance_table_species.txt
 
-#Tax table
+# Tax table
 awk '{print $1}' mod_merged_abundance_table_species.txt > tax_table_metaphlan
 sed '1d' -i tax_table_metaphlan
 ```
@@ -255,8 +255,8 @@ python parse_diamondPE.py -1 /scratch/project_2002265/markkan5/AMRIWA/workflow//
                           -o /scratch/project_2002265/markkan5/AMRIWA/workflow/CARD/COUNT_TABLE
 ```
 
-Modify output for rpoB counts into a table. Include counts for both reads here, 
-although only forward (R1) reads will be used in the analysis (See R scripts)
+# Modify output for rpoB counts into a table. Include counts for both reads here.
+However, only forward (R1) reads will be used in the analysis (See R scripts).
 ```
 ls *_hmm_out.txt | sed 's/_hmm_out.txt//g' > HMM_names.txt
 cat *_HMM_count.txt > HMM_counts.txt
