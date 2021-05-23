@@ -189,6 +189,11 @@ sed -i -e 's/\[//g' cp_MGE.fasta
 sed -i -e 's/\]//g' cp_MGE.fasta
 sed -i -e 's/\"//g' cp_MGE.fasta
 ```
+# Get gene lengths for ARGs and MGEs
+```
+seqkit fx2tab --length --name --header-line resfinder.fasta > resfinder_lengths.txt
+seqkit fx2tab --length --name --header-line MGE.fasta > MGE_lengths.txt
+```
 
 # crAssphage
 Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
