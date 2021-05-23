@@ -162,7 +162,7 @@ Combine outputs to get genus level taxa
 ```{r}
 metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
-# Modify Metaphlan3 outputs prior loading to R.
+# Modify Metaphlan3 outputs prior loading intto R.
 ```
 sed -i 's/_profile//g' mod_merged_abundance_table_species.txt
 sed -n '2p'  merged_abundance_table.txt > merged_abundance_table_species.txt
@@ -174,7 +174,7 @@ tr '|' ';' <merged_abundance_table_species.txt > mod_merged_abundance_table_spec
 awk '{print $1}' mod_merged_abundance_table_species.txt > tax_table_metaphlan
 sed '1d' -i tax_table_metaphlan
 ```
-# Modify MGE mapping output
+# Modify MGE mapping outputs prior loading into R
 ```
 # OTU table
 cp MGE_genemat.txt cp_MGE_genemat.txt
@@ -193,6 +193,22 @@ sed -i -e 's/\"//g' cp_MGE.fasta
 ```
 seqkit fx2tab --length --name --header-line resfinder.fasta > resfinder_lengths.txt
 seqkit fx2tab --length --name --header-line MGE.fasta > MGE_lengths.txt
+```
+
+# Modify VFDB accessions prior analysis in R.
+```
+# Get the database headers
+grep ">" VFDB_setB_pro.fas > db_headers.txt
+sed -i 's/>//g' db_headers.txt
+
+# In excel, separate columns with ";" and replace spaces in other than first column with "_" 
+and get it back to Puhti as "mod_db_headers.txt"
+
+# In terminal, get the whole line of headers for the matches in the output
+grep -Fw -f output_headers.txt mod_db_headers.txt > VF.txt
+
+# Change space into tab
+sed 's/ /\t/1g' VF.txt
 ```
 
 # crAssphage
