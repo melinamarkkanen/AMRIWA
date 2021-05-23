@@ -339,7 +339,7 @@ seqkit grep -p <contigID> final.contigs.fa > <sample>_CONTIG_<contigID>.fasta
 # Visualise assembled contigs with Bandage
 
 Prepare fastg files for visualisation.
-´´´
+```
 megahit_toolkit contig2fastg 141 k141.contigs.fa > BFH41_k141.fastg
 ```
 
