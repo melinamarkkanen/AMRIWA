@@ -162,6 +162,18 @@ Combine outputs to get genus level taxa
 ```{r}
 metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
+Modify Metaphlan3 outputs prior loading to R.
+```
+sed -i 's/_profile//g' mod_merged_abundance_table_species.txt
+sed -n '2p'  merged_abundance_table.txt > merged_abundance_table_species.txt
+sed -i 's/_profile//g' merged_abundance_table_species.txt
+grep -E "s__" merged_abundance_table.txt >> merged_abundance_table_species.txt
+tr '|' ';' <merged_abundance_table_species.txt > mod_merged_abundance_table_species.txt
+
+#Tax table
+awk '{print $1}' mod_merged_abundance_table_species.txt > tax_table_metaphlan
+sed '1d' -i tax_table_metaphlan
+```
 # crAssphage
 Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
 https://github.com/karkman/crAssphage_project#figure-1---crassphage-and-arg-dynamics-in-human-feacal-metagenomes
@@ -241,4 +253,24 @@ with Python 3.8.3 (original script modified by adding brackets after "print" acc
 python parse_diamondPE.py -1 /scratch/project_2002265/markkan5/AMRIWA/workflow//READ1_CARD.txt \
                           -2 /scratch/project_2002265/markkan5/AMRIWA/workflow//CARD/READ2_CARD.txt \
                           -o /scratch/project_2002265/markkan5/AMRIWA/workflow/CARD/COUNT_TABLE
+```
+
+Modify output for rpoB counts into a table. Include counts for both reads here, 
+although only forward (R1) reads will be used in the analysis (See R scripts)
+```
+ls *_hmm_out.txt | sed 's/_hmm_out.txt//g' > HMM_names.txt
+cat *_HMM_count.txt > HMM_counts.txt
+
+echo -e "sample_name" > HMM_sample_names.txt
+awk '0 == (NR + 1) % 2'  HMM_names.txt | sed 's/_R1//g' >> HMM_sample_names.txt
+
+# read1
+echo -e "R1" > R1_HMM_counts
+awk '0 == (NR + 1) % 2'  HMM_counts.txt >> R1_HMM_counts
+
+# read2
+echo -e "R2" > R2_HMM_counts
+awk '0 == NR % 2'  HMM_counts.txt >> R2_HMM_counts
+
+paste -d"\t" HMM_sample_names.txt R1_HMM_counts R2_HMM_counts > HMM_RESULT_TABLE.txt
 ```
