@@ -174,6 +174,20 @@ tr '|' ';' <merged_abundance_table_species.txt > mod_merged_abundance_table_spec
 awk '{print $1}' mod_merged_abundance_table_species.txt > tax_table_metaphlan
 sed '1d' -i tax_table_metaphlan
 ```
+# Modify MGE mapping output
+```
+# OTU table
+cp MGE_genemat.txt cp_MGE_genemat.txt
+sed -i -e 's/\[//g' cp_MGE_genemat.txt
+sed -i -e 's/\]//g' cp_MGE_genemat.txt
+sed -i -e 's/\"//g' cp_MGE_genemat.txt
+
+# Tax table
+sed -i -e 's/\[//g' cp_MGE.fasta
+sed -i -e 's/\]//g' cp_MGE.fasta
+sed -i -e 's/\"//g' cp_MGE.fasta
+```
+
 # crAssphage
 Map to crAssphage genome to study fecal contamination and possible correlation with ARG abundance as an array job in Puhti.
 https://github.com/karkman/crAssphage_project#figure-1---crassphage-and-arg-dynamics-in-human-feacal-metagenomes
