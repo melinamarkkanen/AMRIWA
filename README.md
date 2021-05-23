@@ -274,3 +274,96 @@ awk '0 == NR % 2'  HMM_counts.txt >> R2_HMM_counts
 
 paste -d"\t" HMM_sample_names.txt R1_HMM_counts R2_HMM_counts > HMM_RESULT_TABLE.txt
 ```
+
+# Assembly for a subset of metagenomic samples using MEGAHIT 
+and MetaQUAST for the quality control.
+Run separately for each sample.
+(BFH19, BFH26, BFH27, BFH29, BFH35, BFH41, BFH42, BH02, BH10, BH13, BH48, BH52, FH1, FH7, FH9)
+
+```
+#!/bin/bash
+#SBATCH -J megahit
+#SBATCH -o megahit_out_%j.txt
+#SBATCH -e megahit_err_%j.txt
+#SBATCH --account=project_2002265
+#SBATCH -t 36:00:00
+#SBATCH -n 1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --partition=small
+
+module load biokit
+
+cd /scratch/project_2002265/markkan5/AMRIWA/megahit_MCR
+
+megahit -1 BFH41_R1_trimmed.fastq.gz  -2 BFH41_S160_R2_trimmed.fastq.gz  \
+         -o BFH41_assembly -t $SLURM_CPUS_PER_TASK --min-contig-len 1000 -m 32000000000
+
+# MetaQUAST
+module load biokit
+cd BFH41_assembly
+metaquast.py -t $SLURM_CPUS_PER_TASK --no-plots -o BFH41_assembly_QC final.contigs.fa
+```
+Run BLAST search between the obtained contigs and ResFinder database
+in order to identify the contigs encoding plasmid mediated colistin ARGs (mcr genes).
+
+```
+#!/bin/bash
+#SBATCH -J blast
+#SBATCH -o blast_MCR_out_%j.txt
+#SBATCH -e blast_MCR_err_%j.txt
+#SBATCH --account=project_2002265
+#SBATCH -t 05:00:00
+#SBATCH -n 1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=3G
+#SBATCH -p small
+
+module load biokit
+cd /scratch/project_2002265/markkan5/AMRIWA/megahit_MCR/BFH41_assembly/
+
+blastn -query final.contigs.fa \
+        -subject /scratch/project_2002265/markkan5/AMRIWA/workflow/resfinder_db/resfinder.fasta \
+        -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovhsp slen qstart qend qlen" \
+        -out resfinder_blast_out.txt -max_target_seqs 50 -perc_identity 90
+``` 
+
+Extract contigs encoding the ARG of interest (mcr gene) using seqkit tools.
+
+```
+seqkit grep -p <contigID> final.contigs.fa > <sample>_CONTIG_<contigID>.fasta
+```
+
+# Visualise assembled contigs with Bandage
+
+Prepare fastg files for visualisation.
+´´´
+megahit_toolkit contig2fastg 141 k141.contigs.fa > BFH41_k141.fastg
+```
+
+Install
+```
+mkdir Bandage_cmd
+brew install qt5
+git clone https://github.com/rrwick/Bandage.git
+/usr/local/opt/qt5/bin/qmake -makefile
+make 
+```
+
+Create BLAST database
+```
+grep "in" MGE.fasta > int_qac_ID_list.txt
+grep "qacE" MGE.fasta >> int_qac_ID_list.txt
+
+sed -i 's/>//' int_qac_ID_list.txt
+seqkit grep -n -f int_qac_ID_list.txt MGE.fasta > int_qac.fasta
+
+cat resfinder.fasta int_qac.fasta > Bandage_BLAST_db
+```
+
+Run locally.
+```
+Bandage.app/Contents/MacOS/Bandage load BFH41_k141.fastg --draw --query Bandage_BLAST_db
+```
