@@ -1,0 +1,1755 @@
+---
+title: "R_scripts_subsamples"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Set working directory
+```{r}
+setwd("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles")
+```
+## Load required libraries
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+library(tidyverse)
+library(phyloseq)
+library(viridis)
+library(stringr)
+library(vegan)
+library(RColorBrewer)
+library(BiocManager)
+#BiocManager::install("microbiome")
+library(microbiome)
+library(microbiomeutilities)
+library(ggplot2)
+library(knitr)
+library(ggpubr)
+library(pheatmap)
+library(MASS)
+library(gplots)
+library(grid)
+library(cowplot)
+library(ggpubr)
+library(DESeq2)
+library(plyr)
+```
+## Load metadata (8 samples / country were selected so that that associated metadata corresponded with the metadata of the Finnish samples. These metadata described mostly "main drains" of hospitals in Finland. Also hospital from surgery section (n=1) was included. Keeping this in mind, African samples were selected based on metadata referring to "Central septic tank", "surgery" or metadata describing WW collected from multiple different sections of the hospital - thus corresponding to the "Central ST" or "main drain" definition. Also samples from all different hospitals within countries were selected.)
+```{r}
+sub_metadata <-read.table("sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+```
+## Load Metaxa2 results and create phyloseq object
+```{r}
+metaxa_genus <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_metaxa_genus.txt")
+# Create OTU table
+OTU_metaxa <- metaxa_genus[,-1]
+# Match sample ID order with sub_metadata file
+match <- match(rownames(sub_metadata), colnames(OTU_metaxa))
+OTU_metaxa <- OTU_metaxa[,match]
+
+# Create tax table
+tax_table_metaxa <- data.frame(str_split_fixed(data.frame(metaxa_genus) [,1], ";", 6))
+colnames(tax_table_metaxa) <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
+
+# Check if samples are in order
+identical(rownames(sub_metadata), colnames(OTU_metaxa))
+
+# Combine into phyloseq object
+metaxa_PHY <- phyloseq(otu_table(OTU_metaxa, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaxa)), sample_data(sub_metadata))
+
+# Exclude taxa "Unknown"
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unknown"))
+# Exclude taxa "Mitochondria"
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Mitochondria"))
+# Exclude taxa "Unclassified"
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unclassified"))
+# Exclude taxa "Eukaryota"
+#metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Eukaryota"))
+
+any(taxa_sums(metaxa_PHY) == 0)
+metaxa_PHY <- prune_taxa(taxa_sums(metaxa_PHY) > 0, metaxa_PHY)
+any(taxa_sums(metaxa_PHY) == 0)
+```
+# Merge samples
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(metaxa_PHY, merge){
+group_sums <- as.matrix(table(sample_data(metaxa_PHY)$merge))[,1]
+merged_metaxa_PHY <- merge_samples(metaxa_PHY, "merge")
+x <- as.matrix(otu_table(merged_metaxa_PHY))
+
+if(taxa_are_rows(merged_metaxa_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_metaxa_PHY) <- out
+return(merged_metaxa_PHY)
+}
+merged_metaxa_PHY <- merge_samples_mean(metaxa_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_metaxa_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_metaxa_PHY) <- merged_sub_metadata
+
+# Add updated OTU table
+write.table(otu_table(merged_metaxa_PHY), "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/merged_OTU_metaxa.txt", row.names=F, sep = "\t", col.names = T)
+merged_OTU_metaxa <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/merged_OTU_metaxa.txt")
+
+# Change values in merged samples from double to integer
+merged_OTU_metaxa$BH34AB <- as.integer(merged_OTU_metaxa$BH34AB)
+merged_OTU_metaxa$BH37_BH38 <- as.integer(merged_OTU_metaxa$BH37_BH38)
+merged_OTU_metaxa$BH44_BH45 <- as.integer(merged_OTU_metaxa$BH44_BH45)
+merged_OTU_metaxa$BH58_BH59_BH60 <- as.integer(merged_OTU_metaxa$BH58_BH59_BH60)
+merged_OTU_metaxa$BH61_BH62 <- as.integer(merged_OTU_metaxa$BH61_BH62)
+merged_OTU_metaxa$FH7_FH8 <- as.integer(merged_OTU_metaxa$FH7_FH8)
+
+# Combine into phyloseq object
+merged_metaxa_PHY <- phyloseq(otu_table(merged_OTU_metaxa, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaxa)), sample_data(merged_sub_metadata))
+
+# Create phyloseq object of relative data
+metaxa_rel_PHY <- transform_sample_counts(merged_metaxa_PHY, function(x) x/sum(x))
+```
+## Load rpoB data
+```{r}
+merged_rpo_TABLE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/merged_sub_HMM.txt", row.names=1)
+
+# Reorder samples to match metadata
+match <- match(rownames(merged_sub_metadata), rownames(merged_rpo_TABLE))
+merged_rpoB <- merged_rpo_TABLE[match,]
+
+# All
+all_rpo_TABLE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/HMM_RESULT_TABLE.txt", row.names=1)
+
+rownames(all_rpo_TABLE)[rownames(all_rpo_TABLE) == "BH34-A_S98"] <- "BH34.A_S98"
+rownames(all_rpo_TABLE)[rownames(all_rpo_TABLE) == "BH34-B_S99"] <- "BH34.B_S99"
+
+# Reorder samples to match metadata
+match <- match(rownames(sub_metadata), rownames(all_rpo_TABLE))
+all_rpoB <- all_rpo_TABLE[match,]
+```
+# Add SSU and rpoB counts to metadata and merged metadata
+```{r}
+sub_metadata$SSU_counts <- sample_sums(metaxa_PHY)
+merged_sub_metadata$SSU_counts <- sample_sums(merged_metaxa_PHY)
+sub_metadata$rpoB_counts <- all_rpoB$SUM
+merged_sub_metadata$rpoB_counts <- merged_rpoB$mean
+```
+## Load Metaphlan results and create phyloseq object
+```{r}
+# OTU table
+#sed -n '2p'  merged_abundance_table.txt > merged_abundance_table_species.txt
+#grep -E "s__" merged_abundance_table.txt >> merged_abundance_table_species.txt
+#tr '|' ';' <merged_abundance_table_species.txt > mod_merged_abundance_table_species.txt
+OTU_metaphlan <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
+
+# Tax table
+# Modify tax table
+#awk '{print $1}' mod_merged_abundance_table_species.txt > tax_table_metaphlan
+#sed '1d' -i tax_table_metaphlan
+
+tax_table_metaphlan <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", header=FALSE, sep=";")
+colnames(tax_table_metaphlan) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+# Remove "__"
+tax_table_metaphlan <- apply(tax_table_metaphlan, 2, function(y) (gsub(".__", "", y)))
+
+match <- match(rownames(sub_metadata), colnames(OTU_metaphlan))
+OTU_metaphlan  <- OTU_metaphlan[,match]
+
+all(rownames(sub_metadata) == colnames(OTU_metaphlan))
+
+# Combine into phyloseq object
+metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaphlan)), sample_data(sub_metadata))
+
+# Exclude viruses
+metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Viruses")
+```
+# Merge samples
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(metaphlan_PHY, merge){
+group_sums <- as.matrix(table(sample_data(metaphlan_PHY)$merge))[,1]
+merged_metaphlan_PHY <- merge_samples(metaphlan_PHY, "merge")
+x <- as.matrix(otu_table(merged_metaphlan_PHY))
+
+if(taxa_are_rows(merged_metaphlan_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_metaphlan_PHY) <- out
+return(merged_metaphlan_PHY)
+}
+merged_metaphlan_PHY <- merge_samples_mean(metaphlan_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_metaphlan_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_metaphlan_PHY) <- merged_sub_metadata
+```
+## Load ResFinder results, perform normalizations and create phyloseq object
+```{r}
+OTU_resfinder <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+match <- match(rownames(sub_metadata), colnames(OTU_resfinder))
+OTU_resfinder <- OTU_resfinder[,match]
+
+# Normalization with Metaxa2 SSU counts
+all(colnames(OTU_metaxa) == rownames(sub_metadata))
+OTU_resfinder_norm <- t(t(OTU_resfinder)/sub_metadata$SSU_counts)
+all(rownames(sub_metadata) == colnames(OTU_resfinder_norm))
+identical(OTU_resfinder[2020, 4]/sub_metadata$SSU_counts[4], OTU_resfinder_norm[2020, 4])
+
+# Tax_table (Cluster names added manually in excel)
+clusters_tax_table_resfinder <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table.txt", header=FALSE, sep=";")
+colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
+# Reorder columns
+col_order <- c("Class", "Cluster_name", "Gene")
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[, col_order]
+# Reorder to match OTU_resfinder
+match <- match(rownames(OTU_resfinder_norm), clusters_tax_table_resfinder$Gene)
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
+
+all(rownames(OTU_resfinder_norm) == clusters_tax_table_resfinder$Gene)
+
+# Reload to get new row numbers
+write.table(OTU_resfinder_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_norm.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_resfinder_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_norm.txt", row.names=NULL)
+OTU_resfinder_norm$row.names<-NULL
+
+# Reload to get new row numbers, without normalization
+write.table(OTU_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder.txt", row.names=NULL)
+OTU_resfinder$row.names<-NULL
+
+# Tax table
+# Reload to get new row numbers
+write.table(clusters_tax_table_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=F, sep = "\t", col.names = T)
+clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=NULL)
+
+# Combine to phyloseq object
+resfinder_PHY <- phyloseq(otu_table(OTU_resfinder_norm, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(clusters_tax_table_resfinder)))
+
+# Without normalization
+nonorm_resfinder_PHY <- phyloseq(otu_table(OTU_resfinder, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(clusters_tax_table_resfinder)))
+
+# rpoB normalized
+# Normalization with HMM rpoB counts
+OTU_resfinder_norm_rpoB <- t(t(OTU_resfinder)/sub_metadata$rpoB_counts)
+all(rownames(sub_metadata) == colnames(OTU_resfinder_norm_rpoB))
+identical(OTU_resfinder[2, 20]/sub_metadata$rpoB_counts[20], OTU_resfinder_norm_rpoB[2, 20])
+
+# Reload to get new row numbers
+write.table(OTU_resfinder_norm_rpoB, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_norm_rpoB.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_resfinder_norm_rpoB <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_norm_rpoB.txt", row.names=NULL)
+OTU_resfinder_norm_rpoB$row.names<-NULL
+
+# Combine to phyloseq object
+rpob_resfinder_PHY <- phyloseq(otu_table(OTU_resfinder_norm_rpoB, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(clusters_tax_table_resfinder)))
+```
+# Merge
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(resfinder_PHY, merge){
+group_sums <- as.matrix(table(sample_data(resfinder_PHY)$merge))[,1]
+merged_resfinder_PHY <- merge_samples(resfinder_PHY, "merge")
+x <- as.matrix(otu_table(merged_resfinder_PHY))
+
+if(taxa_are_rows(merged_resfinder_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_resfinder_PHY) <- out
+return(merged_resfinder_PHY)
+}
+merged_resfinder_PHY <- merge_samples_mean(resfinder_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_resfinder_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_resfinder_PHY) <- merged_sub_metadata
+
+## without normalization
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(nonorm_resfinder_PHY, merge){
+group_sums <- as.matrix(table(sample_data(nonorm_resfinder_PHY)$merge))[,1]
+nonorm_merged_resfinder_PHY <- merge_samples(nonorm_resfinder_PHY, "merge")
+x <- as.matrix(otu_table(nonorm_merged_resfinder_PHY))
+
+if(taxa_are_rows(nonorm_merged_resfinder_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(nonorm_merged_resfinder_PHY) <- out
+return(nonorm_merged_resfinder_PHY)
+}
+nonorm_merged_resfinder_PHY <- merge_samples_mean(nonorm_resfinder_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(nonorm_merged_resfinder_PHY)), rownames(merged_sub_metadata))
+sample_data(nonorm_merged_resfinder_PHY) <- merged_sub_metadata
+
+# Add updated OTU table
+write.table(otu_table(nonorm_merged_resfinder_PHY), "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/nonorm_merged_OTU_resfinder.txt", row.names=F, sep = "\t", col.names = T)
+nonorm_merged_OTU_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/nonorm_merged_OTU_resfinder.txt")
+
+# Change values in merged samples from double to integer
+nonorm_merged_OTU_resfinder$BH34AB <- as.integer(nonorm_merged_OTU_resfinder$BH34AB)
+nonorm_merged_OTU_resfinder$BH37_BH38 <- as.integer(nonorm_merged_OTU_resfinder$BH37_BH38)
+nonorm_merged_OTU_resfinder$BH44_BH45 <- as.integer(nonorm_merged_OTU_resfinder$BH44_BH45)
+nonorm_merged_OTU_resfinder$BH58_BH59_BH60 <- as.integer(nonorm_merged_OTU_resfinder$BH58_BH59_BH60)
+nonorm_merged_OTU_resfinder$BH61_BH62 <- as.integer(nonorm_merged_OTU_resfinder$BH61_BH62)
+nonorm_merged_OTU_resfinder$FH7_FH8 <- as.integer(nonorm_merged_OTU_resfinder$FH7_FH8)
+
+## rpoB
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(rpob_resfinder_PHY, merge){
+group_sums <- as.matrix(table(sample_data(rpob_resfinder_PHY)$merge))[,1]
+merged_rpob_resfinder_PHY <- merge_samples(rpob_resfinder_PHY, "merge")
+x <- as.matrix(otu_table(merged_rpob_resfinder_PHY))
+
+if(taxa_are_rows(merged_rpob_resfinder_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_rpob_resfinder_PHY) <- out
+return(merged_rpob_resfinder_PHY)
+}
+merged_rpob_resfinder_PHY <- merge_samples_mean(rpob_resfinder_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_rpob_resfinder_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_rpob_resfinder_PHY) <- merged_sub_metadata
+
+# Combine into phyloseq object
+rpob_merged_resfinder_PHY <- phyloseq(otu_table(merged_rpob_resfinder_PHY, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(clusters_tax_table_resfinder)), sample_data(merged_sub_metadata))
+```
+## CARD results, perform normalizations and create phyloseq object
+```{r}
+# Headers simplified & ";" cahenged into tab in excel
+OTU_CARD <-as.matrix(read.table("mod_COUNT_TABLE.txt", header= T, check.names = F, row.names = 1))
+match <- match(rownames(sub_metadata), colnames(OTU_CARD))
+OTU_CARD <- OTU_CARD[,match]
+
+# Normalization with Metaxa2 SSU counts
+all(colnames(OTU_CARD) == rownames(sub_metadata))
+OTU_CARD_norm <- t(t(OTU_CARD)/sub_metadata$SSU_counts)
+all(rownames(sub_metadata) == colnames(OTU_CARD_norm))
+identical(OTU_CARD[106, 4]/sub_metadata$SSU_counts[4], OTU_CARD_norm[106, 4])
+
+# Normalization with HMM rpoB counts
+#OTU_CARD_norm_rpoB <- t(t(OTU_CARD)/sub_metadata$rpoB_counts)
+#all(rownames(sub_metadata) == colnames(OTU_CARD_norm_rpoB))
+
+# Tax table (Modified in excel)
+tax_table_CARD <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_CARD.txt", header=FALSE, sep="\t")
+colnames(tax_table_CARD) <- c("Gene", "Class")
+all(tax_table_CARD$Gene == rownames(OTU_CARD_norm))
+
+# Reload to get new row numbers
+write.table(OTU_CARD_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_CARD_norm.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_CARD_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_CARD_norm.txt", row.names=NULL)
+OTU_CARD_norm$row.names<-NULL
+
+CARD_PHY <- phyloseq(otu_table(OTU_CARD_norm, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(tax_table_CARD)))
+```
+# Merge
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(CARD_PHY, merge){
+group_sums <- as.matrix(table(sample_data(CARD_PHY)$merge))[,1]
+merged_CARD_PHY <- merge_samples(CARD_PHY, "merge")
+x <- as.matrix(otu_table(merged_CARD_PHY))
+
+if(taxa_are_rows(merged_CARD_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_CARD_PHY) <- out
+return(merged_CARD_PHY)
+}
+merged_CARD_PHY <- merge_samples_mean(CARD_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_CARD_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_CARD_PHY) <- merged_sub_metadata
+```
+## Load MGE results, perform normalizations and create phyloseq object
+```{r}
+OTU_MGE <-as.matrix(read.table("mod_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
+
+match <- match(rownames(sub_metadata), colnames(OTU_MGE))
+OTU_MGE <- OTU_MGE[,match]
+
+# Normalization with Metaxa2 SSU counts
+all(colnames(OTU_MGE) == rownames(sub_metadata))
+OTU_MGE_norm <- t(t(OTU_MGE)/sub_metadata$SSU_counts)
+all(rownames(sub_metadata) == colnames(OTU_MGE_norm))
+identical(OTU_MGE[106, 4]/sub_metadata$SSU_counts[4], OTU_MGE_norm[106, 4])
+
+# Tax table (MGE_tax_table_trim.txt from Github)
+tax_table_MGE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_MGE.txt", header=T)
+tax_table_MGE$Gene <- rownames(OTU_MGE)
+# Reorder columns
+col_order <- c("Gene", "Element", "Class")
+tax_table_MGE <- tax_table_MGE[, col_order]
+
+match <- match(rownames(OTU_MGE), tax_table_MGE$Gene)
+tax_table_MGE <- tax_table_MGE[match,]
+all(tax_table_MGE$Gene == rownames(OTU_MGE_norm))
+
+# Reload to get new row numbers
+write.table(OTU_MGE_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_MGE.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_MGE_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_MGE.txt", row.names=NULL)
+OTU_MGE_norm$row.names<-NULL
+
+# Reload to get new row numbers
+write.table(tax_table_MGE, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_MGE.txt", row.names=F, sep = "\t", col.names = T)
+tax_table_MGE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_MGE.txt", row.names=NULL)
+
+# Combine to phyloseq object
+MGE_PHY <- phyloseq(otu_table(OTU_MGE_norm, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(tax_table_MGE)))
+```
+# Merge
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(MGE_PHY, merge){
+group_sums <- as.matrix(table(sample_data(MGE_PHY)$merge))[,1]
+merged_MGE_PHY <- merge_samples(MGE_PHY, "merge")
+x <- as.matrix(otu_table(merged_MGE_PHY))
+
+if(taxa_are_rows(merged_MGE_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_MGE_PHY) <- out
+return(merged_MGE_PHY)
+}
+merged_MGE_PHY <- merge_samples_mean(MGE_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_MGE_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_MGE_PHY) <- merged_sub_metadata
+```
+## Load VFDB results, perform normalizations and create phyloseq object
+```{r}
+OTU_VFDB <-as.matrix(read.table("mod_VF_COUNT_TABLE.txt", header= T, check.names = F, row.names = 1))
+
+match <- match(rownames(sub_metadata), colnames(OTU_VFDB))
+OTU_VFDB <- OTU_VFDB[,match]
+
+# Normalization with Metaxa2 SSU counts
+all(colnames(OTU_VFDB) == rownames(sub_metadata))
+OTU_VFDB_norm <- t(t(OTU_VFDB)/sub_metadata$SSU_counts)
+all(rownames(sub_metadata) == colnames(OTU_VFDB_norm))
+identical(OTU_VFDB[106, 4]/sub_metadata$SSU_counts[4], OTU_VFDB_norm[106, 4])
+
+# Normalization with HMM rpoB counts
+#OTU_CARD_norm_rpoB <- t(t(OTU_CARD)/sub_metadata$rpoB_counts)
+#all(rownames(sub_metadata) == colnames(OTU_CARD_norm_rpoB))
+
+# Reload to get new row numbers
+write.table(OTU_VFDB_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_VFDB_norm.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_VFDB_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_VFDB_norm.txt", row.names=NULL)
+OTU_VFDB_norm$row.names<-NULL
+
+# Tax table (Modified in excel)
+# DB accessions
+#grep ">" VFDB_setB_pro.fas > db_headers.txt
+#sed -i 's/>//g' db_headers.txt
+
+# In excel separate columns with ";" and replace spaces in other than first column with "_" and get it back to Puhti as "mod_db_headers.txt"
+
+# Hits
+#sed -n 's/\(;\).*/\1/p' VF_COUNT_TABLE > output_headers.txt
+#sed -i 's/;//g' output_headers.txt
+#sed -i '/^$/d' output_headers.txt
+
+#grep -Fw -f output_headers.txt mod_db_headers.txt > VF.txt
+
+# Change gene name back to tab delimited
+#sed -i 's/_;/\t/g' VF.txt
+#sed -i 's/;/\t/g' VF.txt
+
+#sed 's/ /\t/1g' VF.txt
+output_headers <- read.table("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/output_headers.txt", quote="\"", comment.char="")
+colnames(output_headers) <- c("Accession")
+
+tax_table_VFDB <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/VF.txt", header=FALSE)
+colnames(tax_table_VFDB) <- c("Accession", "Gene", "Description", "Class", "Reference")
+
+# order as in the genemat
+match <- match(output_headers$Accession, tax_table_VFDB$Accession)
+tax_table_VFDB <- tax_table_VFDB[match,]
+identical(tax_table_VFDB$Accession, output_headers$Accession)
+
+# Reload to get new row numbers
+write.table(tax_table_VFDB, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_VFDB.txt", row.names=F, sep = "\t", col.names = T)
+tax_table_VFDB <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_VFDB.txt", row.names=NULL)
+identical(tax_table_VFDB$BFH31_S149, output_headers$BFH31_S149)
+identical(tax_table_VFDB$Accession, output_headers$Accession)
+
+VFDB_PHY <- phyloseq(otu_table(OTU_VFDB_norm, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(tax_table_VFDB)))
+```
+# Merge
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(VFDB_PHY, merge){
+group_sums <- as.matrix(table(sample_data(VFDB_PHY)$merge))[,1]
+merged_VFDB_PHY <- merge_samples(VFDB_PHY, "merge")
+x <- as.matrix(otu_table(merged_VFDB_PHY))
+
+if(taxa_are_rows(merged_VFDB_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_VFDB_PHY) <- out
+return(merged_VFDB_PHY)
+}
+merged_VFDB_PHY <- merge_samples_mean(VFDB_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_VFDB_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_VFDB_PHY) <- merged_sub_metadata
+```
+## crAssphage
+```{r}
+# Load data (modified in excel to match metadata order)
+crassphage_table <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/crassphage_table.txt", row.names=NULL)
+
+match <- match(rownames(sub_metadata), colnames(crassphage_table))
+crassphage_table <- crassphage_table[,match]
+identical(rownames(sub_metadata), colnames(crassphage_table))
+
+crassphage_table_norm <- t(t(crassphage_table)/sub_metadata$total_seqs)
+
+# log transform
+crassphage_norm_log <- log10(crassphage_table_norm)
+
+write.table(crassphage_table_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/crassphage_table_norm.txt", row.names=T, sep = "\t", col.names = T)
+crassphage_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/crassphage_table_norm.txt", row.names=NULL)
+crassphage_norm$row.names<-NULL
+
+crass_PHY<-phyloseq(otu_table(crassphage_table_norm, taxa_are_rows = TRUE), sample_data(sub_metadata))
+```
+# Merge
+```{r}
+# Merge BH09_BH10, BH34AB, BH37_BH38, BH44_BH45, BH58_BH59_BH60, BH61_BH62, FH7_FH8
+merge_samples_mean <- function(crass_PHY, merge){
+group_sums <- as.matrix(table(sample_data(crass_PHY)$merge))[,1]
+merged_crass_PHY <- merge_samples(crass_PHY, "merge")
+x <- as.matrix(otu_table(merged_crass_PHY))
+
+if(taxa_are_rows(merged_crass_PHY)){ x<-t(x) }
+out <- t(x/group_sums)
+out <- otu_table(out, taxa_are_rows = TRUE)
+otu_table(merged_crass_PHY) <- out
+return(merged_crass_PHY)
+}
+merged_crass_PHY <- merge_samples_mean(crass_PHY, "merge")
+
+# Add updated metadata into merged phyloseq
+merged_sub_metadata <-read.table("merged_sub_metadata.txt", sep="\t", header = T, row.names = 1, fill = 1)
+identical(rownames(sample_data(merged_crass_PHY)), rownames(merged_sub_metadata))
+sample_data(merged_crass_PHY) <- merged_sub_metadata
+```
+## PCoA ordination plots
+```{r}
+# Metaxa2
+metaxa_rel_PHY_ord <- ordinate(metaxa_rel_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(metaxa_rel_PHY, metaxa_rel_PHY_ord, color = "country")
+metaxa.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+  geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + ggtitle("Taxonomy, Metaxa2") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+metaxa_temp <- subset_samples(merged_metaxa_PHY, (country == "Benin" | country == "Finland"))
+metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
+adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
+
+metaxa_temp <- subset_samples(merged_metaxa_PHY, (country == "Burkina Faso" | country == "Finland"))
+metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
+adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
+
+metaxa_temp <- subset_samples(merged_metaxa_PHY, (country == "Benin" | country == "Burkina Faso"))
+metaxa_dist <- vegdist(t(otu_table(metaxa_temp)), dist = "horn")
+adonis(metaxa_dist ~ country, data = data.frame(sample_data(metaxa_temp), permutations = 9999))
+
+# Metaphlan3
+metaphlan_PHY_ord <- ordinate(merged_metaphlan_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(merged_metaphlan_PHY, metaphlan_PHY_ord, color = "country")
+metaphlan.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+    geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + ggtitle("Taxonomy, Metaphlan3") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+metaphlan_temp <- subset_samples(merged_metaphlan_PHY, (country == "Benin" | country == "Finland"))
+metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
+adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
+
+metaphlan_temp <- subset_samples(merged_metaphlan_PHY, (country == "Burkina Faso" | country == "Finland"))
+metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
+adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
+
+metaphlan_temp <- subset_samples(merged_metaphlan_PHY, (country == "Burkina Faso" | country == "Benin"))
+metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
+adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
+
+legend <- get_legend(metaphlan.p_ord)
+plot_grid(metaxa.p_ord + theme(legend.position="none"), 
+          metaphlan.p_ord + theme(legend.position="none"), legend, ncol = 3, rel_widths = c(1.25, 1.25, 0.5))
+
+# ResFinder
+resfinder_PHY_ord <- ordinate(merged_resfinder_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(merged_resfinder_PHY, resfinder_PHY_ord, color = "country")
+resfinder.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+    geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+#    geom_text(mapping = aes(label = location), size = 3, hjust = 0.75, vjust = -1) +
+    theme_minimal() + ggtitle("Resistome, ResFinder") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+resfinder_temp <- subset_samples(merged_resfinder_PHY, (country == "Benin" | country == "Finland"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+resfinder_temp <- subset_samples(merged_resfinder_PHY, (country == "Burkina Faso" | country == "Finland"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+resfinder_temp <- subset_samples(merged_resfinder_PHY, (country == "Burkina Faso" | country == "Benin"))
+resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
+adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
+
+# CARD
+CARD_PHY_ord <- ordinate(merged_CARD_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(merged_CARD_PHY, CARD_PHY_ord, color = "country")
+CARD.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+    geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + ggtitle("Resistome, CARD") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+CARD_temp <- subset_samples(merged_CARD_PHY, (country == "Finland" | country == "Benin"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+
+CARD_temp <- subset_samples(merged_CARD_PHY, (country == "Finland" | country == "Burkina Faso"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+
+CARD_temp <- subset_samples(merged_CARD_PHY, (country == "Burkina Faso" | country == "Benin"))
+CARD_dist <- vegdist(t(otu_table(CARD_temp)), dist = "horn")
+adonis(CARD_dist ~ country, data = data.frame(sample_data(CARD_temp), permutations = 9999))
+
+legend <- get_legend(CARD.p_ord)
+plot_grid(resfinder.p_ord + theme(legend.position="none"), 
+          CARD.p_ord + theme(legend.position="none"), legend, ncol = 3, rel_widths = c(1.25, 1.25, 0.5))
+
+# MGE
+MGE_PHY_ord <- ordinate(merged_MGE_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(merged_MGE_PHY, MGE_PHY_ord, color = "country")
+MGE.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+    geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + ggtitle("Mobilome, MobileGeneticElements DB") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+MGE_temp <- subset_samples(merged_MGE_PHY, (country == "Finland" | country == "Benin"))
+MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
+adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
+
+MGE_temp <- subset_samples(merged_MGE_PHY, (country == "Finland" | country == "Burkina Faso"))
+MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
+adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
+
+MGE_temp <- subset_samples(merged_MGE_PHY, (country == "Burkina Faso" | country == "Benin"))
+MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
+adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
+
+# VFDB
+VFDB_ord <- ordinate(merged_VFDB_PHY, method = "PCoA", distance = "horn")
+p_ord <- plot_ordination(merged_VFDB_PHY, VFDB_ord, color = "country")
+VFDB.p_ord <- p_ord + scale_color_manual(values=c("#FF333F", "#EFAB15", "#785EF0")) + 
+    geom_point(pch = 20, size = 5, alpha = 0.5) + stat_ellipse(level = 0.95, linetype = 1) +
+    theme_minimal() + ggtitle("Virulence genes, VFDB") + 
+    theme(plot.title = element_text(size = 25)) +
+    theme(legend.text = element_text(size = 20)) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title = element_text(size = 20)) +
+    guides(fill = guide_legend(override.aes = list(linetype = 0)),
+         color = guide_legend(override.aes = list(linetype = 0, size=5)))
+
+# Test significance using pair-wise adonis
+VFDB_temp <- subset_samples(merged_VFDB_PHY, (country == "Benin" | country == "Finland"))
+VFDB_dist <- vegdist(t(otu_table(VFDB_temp)), dist = "horn")
+adonis(VFDB_dist ~ country, data = data.frame(sample_data(VFDB_temp), permutations = 9999))
+
+VFDB_temp <- subset_samples(merged_VFDB_PHY, (country == "Burkina Faso" | country == "Finland"))
+VFDB_dist <- vegdist(t(otu_table(VFDB_temp)), dist = "horn")
+adonis(VFDB_dist ~ country, data = data.frame(sample_data(VFDB_temp), permutations = 9999))
+
+VFDB_temp <- subset_samples(merged_VFDB_PHY, (country == "Burkina Faso" | country == "Benin"))
+VFDB_dist <- vegdist(t(otu_table(VFDB_temp)), dist = "horn")
+adonis(VFDB_dist ~ country, data = data.frame(sample_data(VFDB_temp), permutations = 9999))
+
+legend <- get_legend(MGE.p_ord)
+plot_grid(MGE.p_ord + theme(legend.position="none"), 
+          VFDB.p_ord + theme(legend.position="none"), legend, ncol = 3, rel_widths = c(1.25, 1.25, 0.5))
+```
+## Alpha diversity
+# Metaxa2
+```{r}
+PHY <- prune_species(speciesSums(merged_metaxa_PHY) > 0, merged_metaxa_PHY)
+
+# List of paiwise comparisons
+countries <- levels(merged_sub_metadata$country)
+countries.pairs <- combn(seq_along(countries), 2, simplify = FALSE, FUN = function(i)countries[i])
+
+shannon <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Shannon",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+a <- shannon + stat_compare_means(comparisons = countries.pairs)
+
+chao1 <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Chao1",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+b <- chao1 + stat_compare_means(comparisons = countries.pairs) 
+
+pielou <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Pielou",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+c <- pielou + stat_compare_means(comparisons = countries.pairs) 
+
+# Get metedata
+metaxa.meta <- meta(PHY)
+
+# Collect index data
+metaxa_tab <-microbiome::alpha(PHY, index = "diversity_shannon")
+## Add indexes to data table
+metaxa.meta$diversity_shannon <- metaxa_tab$diversity_shannon
+
+# Collect index data
+metaxa_tab <-microbiome::richness(PHY, index = "chao1")
+## Add indexes to data table
+metaxa.meta$chao1 <- metaxa_tab$chao1
+
+# Collect index data
+metaxa_tab <-microbiome::evenness(PHY, index = "pielou")
+## Add indexes to data table
+metaxa.meta$pielou <- metaxa_tab$pielou
+
+# Normality test
+hist(metaxa.meta$diversity_shannon)
+shapiro.test(metaxa.meta$diversity_shannon) 
+qqnorm(metaxa.meta$diversity_shannon)
+
+# Test significance
+anova <- aov(metaxa.meta$diversity_shannon ~ country, data=metaxa.meta)
+TukeyHSD(anova)
+# Test significance
+anova <- aov(metaxa.meta$chao1 ~ country, data=metaxa.meta)
+TukeyHSD(anova)
+# Test significance
+anova <- aov(metaxa.meta$pielou ~ country, data=metaxa.meta)
+TukeyHSD(anova)
+
+legend <- get_legend(a)
+plot_grid(a + theme(legend.position="none",
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          b + theme(legend.position="none", 
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          c + theme(legend.position="none",
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          legend, 
+          ncol = 4, rel_widths = c(1.25, 1.25, 1.25, 0.5))
+```
+# ResFinder
+```{r}
+PHY <- prune_species(speciesSums(nonorm_merged_resfinder_PHY) > 0, nonorm_merged_resfinder_PHY)
+
+# List of paiwise comparisons
+countries <- levels(merged_sub_metadata$country)
+countries.pairs <- combn(seq_along(countries), 2, simplify = FALSE, FUN = function(i)countries[i])
+
+shannon <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Shannon",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+a <- shannon + stat_compare_means(comparisons = countries.pairs) 
+
+chao1 <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Chao1",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+b <- chao1 + stat_compare_means(comparisons = countries.pairs) 
+
+pielou <- plot_alpha_diversities(PHY,
+  type = "diversities",
+  index.val = "Pielou",
+  plot.type = "boxplot",
+  variableA = "country",
+  palette = "jco"
+)
+c <- pielou + stat_compare_means(comparisons = countries.pairs) 
+
+# Get metedata
+resfinder.meta <- meta(PHY)
+
+# Collect index data
+resfinder_tab <-microbiome::alpha(PHY, index = "diversity_shannon")
+## Add indexes to data table
+resfinder.meta$diversity_shannon <- resfinder_tab$diversity_shannon
+
+# Collect index data
+resfinder_tab <-microbiome::richness(PHY, index = "chao1")
+## Add indexes to data table
+resfinder.meta$chao1 <- resfinder_tab$chao1
+
+# Collect index data
+resfinder_tab <-microbiome::evenness(PHY, index = "pielou")
+## Add indexes to data table
+resfinder.meta$pielou <- resfinder_tab$pielou
+
+# Normality test
+hist(resfinder.meta$diversity_shannon)
+shapiro.test(resfinder.meta$diversity_shannon) 
+qqnorm(resfinder.meta$diversity_shannon)
+
+# Test significance
+anova <- aov(resfinder.meta$diversity_shannon ~ country, data=resfinder.meta)
+TukeyHSD(anova)
+# Test significance
+anova <- aov(resfinder.meta$chao1 ~ country, data=resfinder.meta)
+TukeyHSD(anova)
+# Test significance
+anova <- aov(resfinder.meta$pielou ~ country, data=resfinder.meta)
+TukeyHSD(anova)
+
+legend <- get_legend(a)
+plot_grid(a + theme(legend.position="none",
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          b + theme(legend.position="none", 
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          c + theme(legend.position="none",
+                    axis.title = element_blank(),
+                    axis.text = element_text(size = 17),
+                    strip.text.x = element_text(size = 14)), 
+          legend, 
+          ncol = 4, rel_widths = c(1.25, 1.25, 1.25, 0.5))
+```
+## Correlation between diversity of taxonomy and resistome
+```{r}
+div <- data.frame(metaxa.meta$diversity_shannon, metaxa.meta$chao1, metaxa.meta$pielou,
+                  resfinder.meta$diversity_shannon, resfinder.meta$chao1, resfinder.meta$pielou)
+colnames(div) <- c("metaxa_diversity_shannon", "metaxa_chao1", "metaxa_pielou",
+                   "resfinder_diversity_shannon", "resfinder_chao1", "resfinder_pielou")
+
+p <- ggplot(div, aes(x=metaxa_diversity_shannon, y=resfinder_diversity_shannon)) +
+  geom_point(size=7, shape=19, color = "#3110D2") +
+  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, level=0.95, color = "#FB2A38", fill = "#8A91F8") +
+    theme_bw() +
+  theme(axis.title = element_text(size = 30),
+        axis.text = element_text(size = 28),
+        plot.title = element_text(size = 30)) +
+ xlab("Shannon index, Metaxa2") + ylab("Shannon index, ResFinder") +
+  ggtitle("Pearson correlation between ARG diversity and taxonomy diversity indexes")
+cor <- p + stat_cor(method = "pearson")
+cor
+
+ggsave(filename = "cor_div.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+## Correlation between SSU & rpoB counts
+```{r}
+p <- ggplot(merged_sub_metadata, aes(x=SSU_counts, y=rpoB_counts)) +
+  geom_point(size=7, shape=19, color = "#3110D2") +
+  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, level=0.95, color = "#FB2A38", fill = "#8A91F8") +
+    theme_bw() +
+  theme(axis.title = element_text(size = 30),
+        axis.text = element_text(size = 28),
+        plot.title = element_text(size = 30)) +
+ xlab("16s rRNA") + ylab("rpoB") +
+  ggtitle("Correlation of 16s rRNA and rpoB counts")
+cor <- p + stat_cor(method = "pearson", label.x = 65000, label.y = 2000, )
+cor
+
+ggsave(filename = "cor_normaliz.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+#Plot 15 most abundant genera, Metaphlan
+```{r}
+m_Genus <- tax_glom(merged_metaphlan_PHY, taxrank = "Class")
+m_abund <- prune_taxa(names(sort(taxa_sums(m_Genus), TRUE)[1:15]), m_Genus)
+
+m_abund <- subset_samples(m_abund, sample_sums(m_abund) != 0)
+
+m_trans <- transform_sample_counts(m_abund, function(x) x / sum(x))
+
+m <- plot_bar(m_trans, fill = "Class") 
+
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 17)
+m_plot <- m +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("Relative abundance of 15 most abundant taxa"), atop("Metaphlan3")))) +
+  ggtitle("15 most abundant genera") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14, family = "Times", angle = 60, hjust = 1), 
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.75),
+        strip.background = element_rect(colour = "white"))
+
+sam_order <- c("BH58_BH59_BH60", "BH37_BH38", "BH35_S100", "BH03_S78", "BH34AB", "BH27_S92", "BH44_BH45", "BH61_BH62", "BFH15_S133", "BFH31_S149", "BFH6_S125", "BFH23_S141", "BFH40_S159", "BFH32_S150", "BFH1_S123",  "BFH21_S139", "FH1_S162", "FH6_S167", "FH2_S163", "FH4_S165", "FH3_S164", "FH7_FH8", "FH9_S170", "FH5_S166")
+m_plot$data$Sample <- factor(m_plot$data$Sample, levels = sam_order)
+m_plot
+
+ggsave(filename = "15_metaphlan.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+#Plot ARGs by classses, SSU normalized, ResFinder
+```{r}
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 18)
+rfc <- plot_bar(rpob_merged_resfinder_PHY, fill = "Class") 
+rfc_plot <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARG Abundance normalized to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14, family = "Times", angle = 60, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.75),
+        strip.background = element_rect(colour = "white"))
+
+sam_order <- c("BH58_BH59_BH60", "BH37_BH38", "BH35_S100", "BH03_S78", "BH34AB", "BH27_S92", "BH44_BH45", "BH61_BH62", "BFH15_S133", "BFH31_S149", "BFH6_S125", "BFH23_S141", "BFH40_S159", "BFH32_S150", "BFH1_S123",  "BFH21_S139", "FH1_S162", "FH6_S167", "FH2_S163", "FH4_S165", "FH3_S164", "FH7_FH8", "FH9_S170", "FH5_S166")
+rfc_plot$data$Sample <- factor(rfc_plot$data$Sample, levels = sam_order)
+rfc_plot
+
+ggsave(filename = "15_resfinder.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+#Plot integrase MGEs, SSU normalized, MGEDB
+```{r}
+mge_int = subset_taxa(merged_MGE_PHY, Element == "integrase")
+
+mge_int <- subset_samples(mge_int, sample_sums(mge_int) != 0)
+
+mge <- plot_bar(mge_int, fill = "Class") 
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 17)
+mge_plot <- mge +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("MGEs normalized to 16s rRNA"), atop("MGDB")))) +
+  ggtitle("Relative abundance of integrase elements") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14, family = "Times", angle = 60, hjust = 1), 
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.75),
+        strip.background = element_rect(colour = "white"))
+
+sam_order <- c("BH58_BH59_BH60", "BH37_BH38", "BH35_S100", "BH03_S78", "BH34AB", "BH27_S92", "BH44_BH45", "BH61_BH62", "BFH15_S133", "BFH31_S149", "BFH6_S125", "BFH23_S141", "BFH40_S159", "BFH32_S150", "BFH1_S123",  "BFH21_S139", "FH1_S162", "FH6_S167", "FH2_S163", "FH4_S165", "FH3_S164", "FH7_FH8", "FH9_S170", "FH5_S166")
+mge_plot$data$Sample <- factor(mge_plot$data$Sample, levels = sam_order)
+mge_plot
+
+ggsave(filename = "int_mge.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+#Plot crAssphage, library size normalized
+```{r}
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 1)
+crass <- plot_bar(merged_crass_PHY) 
+crass_plot <- crass +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("crAssphage")))) +
+  ggtitle("crAssphage abundance normalized to library size") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14, family = "Times", angle = 60, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.75),
+        strip.background = element_rect(colour = "white"))
+
+sam_order <- c("BH58_BH59_BH60", "BH37_BH38", "BH35_S100", "BH03_S78", "BH34AB", "BH27_S92", "BH44_BH45", "BH61_BH62", "BFH15_S133", "BFH31_S149", "BFH6_S125", "BFH23_S141", "BFH40_S159", "BFH32_S150", "BFH1_S123",  "BFH21_S139", "FH1_S162", "FH6_S167", "FH2_S163", "FH4_S165", "FH3_S164", "FH7_FH8", "FH9_S170", "FH5_S166")
+crass_plot$data$Sample <- factor(crass_plot$data$Sample, levels = sam_order)
+crass_plot
+
+ggsave(filename = "crass.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+#Plot virulence genes, SSU normalized
+```{r}
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 1)
+VFDB <- plot_bar(merged_VFDB_PHY) 
+VFDB_plot <- VFDB +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("Virulence factors normalized to 16s rRNA")))) +
+  ggtitle("Virulence factor abundance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 14, family = "Times", angle = 60, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.75),
+        strip.background = element_rect(colour = "white"))
+
+sam_order <- c("BH58_BH59_BH60", "BH37_BH38", "BH35_S100", "BH03_S78", "BH34AB", "BH27_S92", "BH44_BH45", "BH61_BH62", "BFH15_S133", "BFH31_S149", "BFH6_S125", "BFH23_S141", "BFH40_S159", "BFH32_S150", "BFH1_S123",  "BFH21_S139", "FH1_S162", "FH6_S167", "FH2_S163", "FH4_S165", "FH3_S164", "FH7_FH8", "FH9_S170", "FH5_S166")
+VFDB_plot$data$Sample <- factor(VFDB_plot$data$Sample, levels = sam_order)
+VFDB_plot
+
+ggsave(filename = "VFDB.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+## DESeq
+# Metaxa2
+```{r}
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 16)
+
+metaxa_deseq <- phyloseq(otu_table(merged_OTU_metaxa, taxa_are_rows = T), sample_data(merged_sub_metadata), 
+    tax_table(as.matrix(tax_table_metaxa)))
+
+# Take pair wise comparisons
+#metaxa_deseq = subset_samples(metaxa_deseq, country != "Benin")
+metaxa_deseq = subset_samples(metaxa_deseq, country != "Finland")
+#metaxa_deseq = subset_samples(metaxa_deseq, country != "Burkina Faso")
+
+metaxa_deseq = prune_taxa(taxa_sums(metaxa_deseq) > 10, metaxa_deseq)
+
+hist(log10(apply(otu_table(metaxa_deseq), 1, var)), xlab = "log10(variance)")
+
+varianceThreshold = 30
+keepOTUs = apply(otu_table(metaxa_deseq), 1, var) > varianceThreshold
+metaxa_deseq1 = prune_taxa(keepOTUs, metaxa_deseq)
+metaxa_deseq1
+
+dds_metaxa = phyloseq_to_deseq2(metaxa_deseq1, ~country)
+
+dds_metaxa$country <- relevel(dds_metaxa$country, "Burkina Faso", "Benin")
+
+dds_metaxa = DESeq(dds_metaxa, fitType = "mean", test = "Wald", betaPrior = FALSE)
+
+res_metaxa = results(dds_metaxa, cooksCutoff = FALSE, alpha = 0.05)
+resultsNames(dds_metaxa)
+plotDispEsts(dds_metaxa)
+head(res_metaxa)
+summary(res_metaxa)
+
+res_metaxa = res_metaxa[order(res_metaxa$padj, na.last=NA), ]
+
+alpha = 0.05
+sigtab_metaxa = res_metaxa[which(res_metaxa$padj < alpha), ]
+
+sigtab_metaxa = cbind(as(sigtab_metaxa, "data.frame"), as(tax_table(merged_metaxa_PHY)[rownames(sigtab_metaxa), 
+    ], "matrix"))
+
+n <- rowSums(otu_table(metaxa_deseq1))
+
+sigtab_metaxa = merge(sigtab_metaxa, as.data.frame(n), by = 0)
+
+kable(sigtab_metaxa, caption = "Taxonomy")
+
+# Plot
+# Domain
+x = tapply(sigtab_metaxa$log2FoldChange, sigtab_metaxa$Domain, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_metaxa$Domain = factor(as.character(sigtab_metaxa$Domain), levels = names(x))
+
+# Phylum
+x = tapply(sigtab_metaxa$log2FoldChange, sigtab_metaxa$Phylum, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_metaxa$Phylum = factor(as.character(sigtab_metaxa$Phylum), levels = names(x))
+
+# Family 
+x = tapply(sigtab_metaxa$log2FoldChange, sigtab_metaxa$Family, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_metaxa$Family = factor(as.character(sigtab_metaxa$Family), levels = names(x))
+
+# Class
+x = tapply(sigtab_metaxa$log2FoldChange, sigtab_metaxa$Class, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_metaxa$Class = factor(as.character(sigtab_metaxa$Class), levels = names(x))
+
+# Genus 
+x = tapply(sigtab_metaxa$log2FoldChange, sigtab_metaxa$Genus, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_metaxa$Genus = factor(as.character(sigtab_metaxa$Genus), levels = names(x))
+
+# Plot
+b <- ggplot(sigtab_metaxa, aes(x = Class, y = log2FoldChange, color = Phylum, 
+    size = n)) + 
+  geom_point(alpha = 0.9) + 
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 0.95, vjust = 1, size = 12, face = "italic"), 
+        axis.text.y = element_text(size = 22), 
+        axis.title.x = element_blank(), axis.title.y = element_text(size = 22), 
+        legend.text = element_text(size = 10), legend.title = element_text(size = 24), 
+        legend.position = c(0.80, 0.80), legend.key.width = unit(0.15, "lines"), 
+        legend.key.height = unit(0.5, "lines"),
+        legend.background = element_rect(colour = "white"),
+        plot.title = element_text(size = 24)) + 
+  scale_color_manual(values = cols) + 
+    scale_size(range = c(1, 5), breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) + 
+    labs(color = "") + guides(size = FALSE) + ylim(-10, 10) + 
+  geom_hline(yintercept = 0, linetype = 2, color = "grey", alpha = 0.7) + ylab("log2 fold change\n  Benin         Burkina Faso") + 
+    ggtitle("DESeq analysis, Metaxa2")
+b
+
+ggsave(filename = "deseq_BF_Ben.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+## DESeq2
+# ResFinder
+```{r}
+cols <- get_palette(c("#FD8FD9", "#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225", "#B94ED9"), 16)
+
+# OTU table
+OTU_resfinder <-as.matrix(read.table("mod_ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+match <- match(rownames(sub_metadata), colnames(OTU_resfinder))
+OTU_resfinder <- OTU_resfinder[,match]
+
+# Reload to get new row numbers, without normalization
+write.table(OTU_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder.txt", 
+            row.names=T, sep = "\t", col.names = T)
+OTU_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder.txt", row.names=NULL)
+OTU_resfinder$row.names<-NULL
+temp_OTU <- OTU_resfinder
+
+# Load tax table
+clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt")
+
+Class <- as.data.frame(clusters_tax_table_resfinder$Class)
+Cluster_name <- as.data.frame(clusters_tax_table_resfinder$Cluster_name)
+Gene <- as.data.frame(clusters_tax_table_resfinder$Gene)
+
+temp_OTU <- cbind(temp_OTU, Class)
+temp_OTU <- cbind(temp_OTU, Cluster_name)
+temp_OTU <- cbind(temp_OTU, Gene)
+
+names(temp_OTU)[names(temp_OTU) == "clusters_tax_table_resfinder$Class"] <- "Class"
+names(temp_OTU)[names(temp_OTU) == "clusters_tax_table_resfinder$Cluster_name"] <- "Cluster_name"
+names(temp_OTU)[names(temp_OTU) == "clusters_tax_table_resfinder$Gene"] <- "Gene"
+
+# Merge clusters
+merged_temp_OTU <- ddply(temp_OTU,"Cluster_name",numcolwise(sum))
+# Remove duplicates
+uniq_clust <- clusters_tax_table_resfinder[!duplicated(clusters_tax_table_resfinder[ , c("Cluster_name")]),]
+match <- match(uniq_clust$Cluster_name, merged_temp_OTU$Cluster_name)
+merged_temp_OTU <- merged_temp_OTU[match,]
+all(merged_temp_OTU$Cluster_name == uniq_clust$Cluster_name)
+# Reload to get new row numbers
+write.table(uniq_clust, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/deseq_clusters_tax_table_resfinder.txt", row.names=F, sep = "\t", col.names = T)
+deseq_clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/deseq_clusters_tax_table_resfinder.txt", row.names=NULL)
+
+# Reload to get new row numbers
+write.table(merged_temp_OTU, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/deseq_OTU_resfinder.txt", 
+            row.names=T, sep = "\t", col.names = T)
+deseq_OTU_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/deseq_OTU_resfinder.txt", row.names=NULL)
+deseq_OTU_resfinder$row.names<-NULL
+deseq_OTU_resfinder$Cluster_name <- NULL
+
+# Deseq
+arg_data <- deseq_OTU_resfinder[, ] * 10^5 + 1
+
+resfinder_deseq <- phyloseq(otu_table(arg_data, taxa_are_rows = T), sample_data(sub_metadata), 
+    tax_table(as.matrix(deseq_clusters_tax_table_resfinder)))
+
+resfinder_deseq = subset_samples(resfinder_deseq, name != "BH38_S103" & name != "BH34.B_S99" & name != "BH45_S106" & name != "BH59_S114" & name != "BH60_S115" & name != "BH62_S117" & name != "FH8_S169")
+
+# Take pair wise comparisons
+#resfinder_deseq = subset_samples(resfinder_deseq, country != "Benin")
+#resfinder_deseq = subset_samples(resfinder_deseq, country != "Finland")
+resfinder_deseq = subset_samples(resfinder_deseq, country != "Burkina Faso")
+
+hist(log10(apply(otu_table(resfinder_deseq), 1, var)), xlab = "log10(variance)")
+
+varianceThreshold = 50
+keepOTUs = apply(otu_table(resfinder_deseq), 1, var) > varianceThreshold
+resfinder_deseq1 = prune_taxa(keepOTUs, resfinder_deseq)
+resfinder_deseq1
+
+dds_resfinder = phyloseq_to_deseq2(resfinder_deseq1, ~country)
+
+dds_resfinder$country <- relevel(dds_resfinder$country, "Benin", "Finland")
+
+dds_resfinder = DESeq(dds_resfinder, fitType = "mean", test = "Wald", betaPrior = FALSE)
+
+res_resfinder = results(dds_resfinder, cooksCutoff = FALSE, alpha = 0.05)
+resultsNames(dds_resfinder)
+plotDispEsts(dds_resfinder)
+head(res_resfinder)
+summary(res_resfinder)
+
+res_metaxa = res_metaxa[order(res_resfinder$padj, na.last=NA), ]
+
+alpha = 0.05
+sigtab_resfinder = res_resfinder[which(res_resfinder$padj < alpha), ]
+
+sigtab_resfinder = cbind(as(sigtab_resfinder, "data.frame"), as(tax_table(resfinder_deseq)[rownames(sigtab_resfinder), 
+    ], "matrix"))
+
+n <- rowSums(otu_table(resfinder_deseq1))
+
+sigtab_resfinder = merge(sigtab_resfinder, as.data.frame(n), by = 0)
+
+kable(sigtab_resfinder, caption = "Taxonomy")
+
+# Plot
+# Class
+x = tapply(sigtab_resfinder$log2FoldChange, sigtab_resfinder$Class, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_resfinder$Class = factor(as.character(sigtab_resfinder$Class), levels = names(x))
+
+# Gene cluster
+x = tapply(sigtab_resfinder$log2FoldChange, sigtab_resfinder$Cluster_name, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_resfinder$Cluster_name = factor(as.character(sigtab_resfinder$Cluster_name), levels = names(x))
+
+# Gene 
+x = tapply(sigtab_resfinder$log2FoldChange, sigtab_resfinder$Gene, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_resfinder$Gene = factor(as.character(sigtab_resfinder$Gene), levels = names(x))
+
+# Plot
+b <- ggplot(sigtab_resfinder, aes(x = Cluster_name, y = log2FoldChange, color = Class, 
+    size = n)) + 
+  geom_point(alpha = 0.9) + 
+ # theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.95, vjust = 1, size = 9, face = "italic"), 
+        axis.text.y = element_text(size = 22), 
+        axis.title.x = element_blank(), axis.title.y = element_text(size = 22), 
+        legend.text = element_text(size = 10), legend.title = element_text(size = 24), 
+        legend.position = c(0.80, 0.80), legend.key.width = unit(0.15, "lines"), 
+        legend.key.height = unit(0.5, "lines"),
+        legend.background = element_rect(colour = "white"),
+        plot.title = element_text(size = 24)) + 
+  scale_color_manual(values = cols) + 
+    scale_size(range = c(1, 5), breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) + 
+    labs(color = "") + guides(size = FALSE) + ylim(-20, 20) + 
+  geom_hline(yintercept = 0, linetype = 2, color = "grey", alpha = 0.7) + ylab("log2 fold change\n  Benin         Finland") + 
+    ggtitle("DESeq analysis, ResFinder")
+b
+
+#ggsave(filename = "RF_deseq_BF_Ben.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+# CARD
+```{r}
+arg_data <- OTU_CARD_norm[, ] * 10^5 + 1
+
+card_deseq <- phyloseq(otu_table(arg_data, taxa_are_rows = T), sample_data(merged_sub_metadata), 
+    tax_table(as.matrix(tax_table_CARD)))
+
+hist(log10(apply(otu_table(card_deseq), 1, var)), xlab = "log10(variance)")
+
+dds_card = phyloseq_to_deseq2(card_deseq, ~country)
+
+dds_card$country <- relevel(dds_card$country, 
+                           #"Benin", 
+                           "Burkina Faso", "Finland"
+                           )
+
+dds_card = DESeq(dds_card, fitType = "mean", test = "Wald", betaPrior = FALSE)
+
+res_card = results(dds_card, cooksCutoff = FALSE, alpha = 0.05)
+resultsNames(dds_card)
+head(res_card)
+summary(res_card)
+
+res_card = res_card[order(res_card$padj, na.last=NA), ]
+
+alpha = 0.05
+sigtab_card = res_card[which(res_card$padj < alpha), ]
+
+sigtab_card = cbind(as(sigtab_card, "data.frame"), as(tax_table(card_deseq)[rownames(sigtab_card), 
+    ], "matrix"))
+
+otu_table(card_deseq)[otu_table(card_deseq) == 1] <- 0
+otu_table(card_deseq)[otu_table(card_deseq) > 0] <- 1
+n <- rowSums(otu_table(card_deseq))
+
+sigtab_card = merge(sigtab_card, as.data.frame(n), by = 0)
+
+kable(sigtab_card, caption = "Taxonomy")
+
+# Plot
+# Class
+x = tapply(sigtab_card$log2FoldChange, sigtab_card$Class, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_card$Class = factor(as.character(sigtab_card$Class), levels = names(x))
+
+# Gene 
+x = tapply(sigtab_card$log2FoldChange, sigtab_card$Gene, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_card$Gene = factor(as.character(sigtab_card$Gene), levels = names(x))
+
+# Plot
+b <- ggplot(sigtab_card, aes(x = Gene, y = log2FoldChange, color = Class, 
+    size = n)) + geom_point(alpha = 0.9) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 0.95, vjust = 0.5, size = rel(0.7)), axis.text.y = element_text(size = rel(0.7)), 
+    axis.title.x = element_blank(), axis.title.y = element_text(size = rel(0.6)), 
+    legend.text = element_text(size = rel(0.55)), legend.title = element_text(size = rel(0.6)), 
+    legend.position = c(0.15, 0.35), legend.key.width = unit(0.1, "lines"), 
+    legend.key.height = unit(0.5, "lines")) + scale_color_brewer(palette = "Set3") + 
+    scale_size(range = c(1, 5), breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) + 
+    labs(color = "") + guides(size = FALSE) + ylim(-10, 10) + geom_hline(yintercept = 0, 
+    linetype = 2, color = "grey", alpha = 0.7) + ylab("log2 fold change\n      Burkina Faso         Finland") + 
+    ggtitle("x")
+b
+```
+
+# MGE
+```{r}
+mge_data <- OTU_MGE_norm[, ] * 10^5 + 1
+
+mge_deseq <- phyloseq(otu_table(mge_data, taxa_are_rows = T), sample_data(merged_sub_metadata), 
+    tax_table(as.matrix(tax_table_MGE)))
+
+hist(log10(apply(otu_table(mge_deseq), 1, var)), xlab = "log10(variance)")
+
+dds_mge = phyloseq_to_deseq2(mge_deseq, ~country)
+
+dds_mge$country <- relevel(dds_mge$country, 
+                           #"Burkina Faso", 
+                           "Benin", "Finland"
+                           )
+
+dds_mge = DESeq(dds_mge, fitType = "mean", test = "Wald", betaPrior = FALSE)
+
+res_mge = results(dds_mge, cooksCutoff = FALSE, alpha = 0.05)
+resultsNames(dds_mge)
+head(res_mge)
+summary(res_mge)
+
+res_mge = res_mge[order(res_mge$padj, na.last=NA), ]
+
+alpha = 0.05
+sigtab_mge = res_mge[which(res_mge$padj < alpha), ]
+
+sigtab_mge = cbind(as(sigtab_mge, "data.frame"), as(tax_table(mge_deseq)[rownames(sigtab_mge), 
+    ], "matrix"))
+
+otu_table(mge_deseq)[otu_table(mge_deseq) == 1] <- 0
+otu_table(mge_deseq)[otu_table(mge_deseq) > 0] <- 1
+n <- rowSums(otu_table(mge_deseq))
+
+sigtab_mge = merge(sigtab_mge, as.data.frame(n), by = 0)
+
+kable(sigtab_mge, caption = "Taxonomy")
+
+# Plot
+# Class
+x = tapply(sigtab_mge$log2FoldChange, sigtab_mge$Class, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_mge$Class = factor(as.character(sigtab_mge$Class), levels = names(x))
+
+# Element
+x = tapply(sigtab_mge$log2FoldChange, sigtab_mge$Element, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_mge$Element = factor(as.character(sigtab_mge$Element), levels = names(x))
+
+# Gene 
+x = tapply(sigtab_mge$log2FoldChange, sigtab_mge$Gene, function(x) max(x))
+x = sort(x, TRUE)
+sigtab_mge$Gene = factor(as.character(sigtab_mge$Gene), levels = names(x))
+
+# Plot
+b <- ggplot(sigtab_mge, aes(x = Class, y = log2FoldChange, color = Element, 
+    size = n)) + geom_point(alpha = 0.9) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 0.95, vjust = 0.5, size = rel(0.7)), axis.text.y = element_text(size = rel(0.7)), 
+    axis.title.x = element_blank(), axis.title.y = element_text(size = rel(0.6)), 
+    legend.text = element_text(size = rel(0.55)), legend.title = element_text(size = rel(0.6)), 
+    legend.position = c(0.15, 0.35), legend.key.width = unit(0.1, "lines"), 
+    legend.key.height = unit(0.5, "lines")) + scale_color_brewer(palette = "Set3") + 
+    scale_size(range = c(1, 5), breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) + 
+    labs(color = "") + guides(size = FALSE) + ylim(-10, 10) + geom_hline(yintercept = 0, 
+    linetype = 2, color = "grey", alpha = 0.7) + ylab("log2 fold change\n      Benin         Finland") + 
+    ggtitle("x")
+b
+```
+## Heatmap, ResFinder
+# Merge genes with same cluster name
+```{r}
+# OTU table
+df<- OTU_resfinder
+df1 <- df + 1
+df_norm <- t(t(df1)/sub_metadata$SSU_counts)
+all(df1[2020, 4]/sub_metadata$SSU_counts[4] == df_norm[2020, 4])
+identical(colnames(df1), rownames(sub_metadata))
+
+clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt")
+
+all(clusters_tax_table_resfinder$Gene == rownames(df_norm))
+
+Class <- as.data.frame(clusters_tax_table_resfinder$Class)
+Cluster_name <- as.data.frame(clusters_tax_table_resfinder$Cluster_name)
+Gene <- as.data.frame(clusters_tax_table_resfinder$Gene)
+
+df_norm <- cbind(df_norm, Class)
+df_norm <- cbind(df_norm, Cluster_name)
+df_norm <- cbind(df_norm, Gene)
+
+names(df_norm)[names(df_norm) == "clusters_tax_table_resfinder$Class"] <- "Class"
+names(df_norm)[names(df_norm) == "clusters_tax_table_resfinder$Cluster_name"] <- "Cluster_name"
+names(df_norm)[names(df_norm) == "clusters_tax_table_resfinder$Gene"] <- "Gene"
+
+# Merge
+merged_df <- ddply(df_norm,"Cluster_name",numcolwise(sum))
+# Remove duplicates
+uniq_clust <- clusters_tax_table_resfinder[!duplicated(clusters_tax_table_resfinder[ , c("Cluster_name")]),]
+match <- match(uniq_clust$Cluster_name, merged_df$Cluster_name)
+merged_df <- merged_df[match,]
+
+# Tax table
+match <- match(merged_df$Cluster_name, clusters_tax_table_resfinder$Cluster_name)
+heat_clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
+
+identical(merged_df$Cluster_name, heat_clusters_tax_table_resfinder$Cluster_name)
+
+# Reload to get new row numbers
+write.table(merged_df, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_OTU_resfinder.txt", 
+            row.names=T, sep = "\t", col.names = T)
+heat_OTU_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_OTU_resfinder.txt", row.names=NULL)
+heat_OTU_resfinder$row.names<-NULL
+heat_OTU_resfinder$Cluster_name <- NULL
+
+# Reload to get new row numbers
+write.table(heat_clusters_tax_table_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_clusters_tax_table_resfinder.txt", row.names=F, sep = "\t", col.names = T)
+heat_clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_clusters_tax_table_resfinder.txt", row.names=NULL)
+
+# Create phyloseq
+heat_resfinder_PHY <- phyloseq(otu_table(heat_OTU_resfinder, taxa_are_rows = TRUE), sample_data(sub_metadata), 
+    tax_table(as.matrix(heat_clusters_tax_table_resfinder)))
+
+# Exclude replicate samples (those that were merged in the previous analysis; 
+#BH38_S103, BH34.B_S99, BH45_S106, BH59_S114, BH60_S115, BH62_S117, FH8_S169
+heat_resfinder_PHY = subset_samples(heat_resfinder_PHY, name != "BH38_S103" & name != "BH34.B_S99" & name != "BH45_S106" & name != "BH59_S114" & name != "BH60_S115" & name != "BH62_S117" & name != "FH8_S169")
+```
+## Heatmap for ResFinder gene clusters
+```{r}
+# Exctract ARGs
+heat_resfinder_PHY_Cluster_name <- tax_glom(heat_resfinder_PHY, taxrank = "Cluster_name")
+# Selected clusters
+selected <- subset_taxa(heat_resfinder_PHY_Cluster_name, Cluster_name == "blaIMP-1_1_clust" | Cluster_name == "blaOXA-370_1_clust" | 
+                        Cluster_name == "blaVIM-7_1" | Cluster_name == "blaNDM-18_1_clust" | 
+                        Cluster_name == "blaCTX-M-211_1_clust" | Cluster_name == "blaKPC-34_1_clust" | 
+                        Cluster_name == "blaGES-1_1_clust" | Cluster_name == "blaVEB-1_1_clust" | 
+                        Cluster_name == "blaOXA-368_1_clust" | Cluster_name == "blaOXA-392_1_clust" | 
+                        Cluster_name == "cfxA_1_clust" | Cluster_name == "cfxA6_1" | 
+                        Cluster_name == "blaVIM-48_1_clust" | Cluster_name == "blaCMY-150_2_clust" | 
+                        Cluster_name == "blaCMY-1_1_clust" | Cluster_name == "blaDHA-1_1_clust" |
+                        Cluster_name == "aph(6)-Id_1_clust" | Cluster_name == "aadA13_2_clust" |
+                        Cluster_name == "aadA2_1_clust" | Cluster_name == "catB3_2_clust" |
+                        Cluster_name == "cmlA1_1_clust" | Cluster_name == "mcr-3.1_1_clust" |
+                        Cluster_name == "mcr-5.1_1_clust" | Cluster_name == "mcr-9_1" |
+                        Cluster_name == "mcr-1.11_1_clust" | Cluster_name == "qnrA1_1_clust" |
+                        Cluster_name == "qnrB1_1_clust" | Cluster_name == "qnrVC1_1_clust" |
+                        Cluster_name == "qnrVC4_1_clust" | Cluster_name == "ant(2'')-Ia_2_clust" |
+                        Cluster_name == "qnrS1_1_clust" | Cluster_name == "qnrS1_1_clust" |
+                        Cluster_name == "qnrS2_1_clust" | Cluster_name == "mph(E)_1_clust" |
+                        Cluster_name == "mef(A)_3_clust" | Cluster_name == "mef(A)_4_clust" |
+                        Cluster_name == "nimA_1" | Cluster_name == "nimE_1_clust" |
+                        Cluster_name == "sul1_11_clust" | Cluster_name == "sul2_7_clust" |
+                        Cluster_name == "tet(A)_6_clust" | Cluster_name == "tet(S/M)_1_clust" |
+                        Cluster_name == "dfrA1_7" | Cluster_name == "dfrA14_5_clust" |
+                        Cluster_name == "erm(B)_18_clust" | Cluster_name == "erm(A)_2" |
+                        Cluster_name == "aac(6')-Ib_2_clust" | Cluster_name == "aac(3)-Ib-aac(6')-I_" |
+                        Cluster_name == "aac(3)-IIa_1_clust" | Cluster_name == "aac(6')-IIc_1" |
+                        Cluster_name == "ant(3'')-Ia_1_clust" | Cluster_name == "aadA4_1_clust" |
+                        Cluster_name == "blaOXA-347_1" | Cluster_name == "blaOXA-415_1_clust" |
+                        Cluster_name == "blaOXA-427_1" | Cluster_name == "blaIMP-58_1_clust" |
+                        Cluster_name == "blaACT-1_1_clust" | Cluster_name == "blaBEL-1_1_clust" |
+                        Cluster_name == "blaMOX-5_1_clust" | Cluster_name == "blaOXA-5_1_clust" |
+                        Cluster_name == "blaOXA-46_1_clust" | Cluster_name == "blaOXA-209_1" |
+                        Cluster_name == "blaSHV-100_1_clust" | Cluster_name == "blaTEM-1A_1_clust" |
+                        Cluster_name == "ampH_1_clust" | Cluster_name == "blaNPS_1_clust" |
+                        Cluster_name == "imiS_1_clust" | Cluster_name == "blaAER-1_1" |
+                        Cluster_name == "blaZ_29_clust" | Cluster_name == "blaVIM-48_1_clust" |
+                        Cluster_name == "blaOXA-296_1" | Cluster_name == "blaCARB-50_1_clust" |
+                        Cluster_name == "blaPAU-1_1" | Cluster_name == "fosA5_1_clust" |
+                        Cluster_name == "VanHAX_1_clust" | Cluster_name == "VanHBX_1_clust" |
+                        Cluster_name == "ere(A)_5_clust" | Cluster_name == "ere(D)_1" |
+                        Cluster_name == "erm(F)_3_clust" | Cluster_name == "msr(E)_1" |
+                        Cluster_name == "msr(D)_2_clust" | Cluster_name == "ere(B)_2_clust" |
+                        Cluster_name == "lnu(F)_1_clust" | Cluster_name == "mph(A)_1" |
+                        Cluster_name == "mph(E)_1_clust" | Cluster_name == "mdf(A)_1" |
+                        Cluster_name == "catB8_1" | Cluster_name == "floR_1_clust" |
+                        Cluster_name == "tet(O/32/O)_4_clust" | Cluster_name == "tet(Q)_3_clust")
+
+selected <- subset_taxa(heat_resfinder_PHY_Cluster_name, Cluster_name == "blaOXA-370_1_clust" | 
+                        Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaCTX-M-211_1_clust" | 
+                        Cluster_name == "blaKPC-34_1_clust" | Cluster_name == "catB3_2_clust" |
+                        Cluster_name == "blaGES-1_1_clust" | Cluster_name == "blaVEB-1_1_clust" |
+                        Cluster_name == "cfxA_1_clust" | Cluster_name == "blaCMY-150_2_clust" |
+                        Cluster_name == "aph(6)-Id_1_clust" | Cluster_name == "aadA13_2_clust" |
+                        Cluster_name == "cmlA1_1_clust" | Cluster_name == "mcr-3.1_1_clust" |
+                        Cluster_name == "mcr-5.1_1_clust" | Cluster_name == "mph(E)_1_clust" |
+                        Cluster_name == "mcr-1.11_1_clust" | Cluster_name == "qnrA1_1_clust" |
+                        Cluster_name == "nimA_1" | Cluster_name == "nimE_1_clust" |
+                        Cluster_name == "sul1_11_clust" | Cluster_name == "sul2_7_clust" |
+                        Cluster_name == "tet(A)_6_clust" | Cluster_name == "tet(S/M)_1_clust" | 
+                        Cluster_name == "dfrA14_5_clust" | Cluster_name == "erm(B)_18_clust" |
+                        Cluster_name == "blaMOX-5_1_clust" | Cluster_name == "blaOXA-5_1_clust" |
+                        Cluster_name == "blaAER-1_1" | Cluster_name == "blaNPS_1_clust" |
+                        Cluster_name == "VanHAX_1_clust" | Cluster_name == "VanHBX_1_clust" |
+                        Cluster_name == "msr(E)_1" | Cluster_name == "floR_1_clust" |
+                        Cluster_name == "mph(E)_1_clust")
+
+# OTU matrix
+heat_OTU = as(otu_table(heat_resfinder_PHY_Cluster_name), "matrix")
+# Coerce to data.frame
+heat.df = as.data.frame(heat_OTU)
+
+# Tax table matrix
+heat_tax = as(tax_table(heat_resfinder_PHY), "matrix")
+
+# Save to get it back without the current first header row
+write.table(heat_tax, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=T, sep = "\t", col.names = F)
+heat_tax <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/heat_tax", row.names=1, header = F)
+# Into dataframe
+heat_tax.df = as.data.frame(heat_tax)
+# Swap colnames
+match <- match(rownames(heat.df), rownames(heat_tax.df))
+temp <- heat_tax.df[match,]
+rownames(heat.df) <- temp$V3
+
+# Rename colnames
+names(heat.df)[names(heat.df) =="BFH1_S123"]<-"Nanoro Hospital"
+names(heat.df)[names(heat.df) =="BFH15_S133"]<-"Source de Vie, Ouagadougou"
+names(heat.df)[names(heat.df) =="BFH21_S139"]<-"Koudougou Hospital_1"
+names(heat.df)[names(heat.df) =="BFH23_S141"]<-"Koudougou Hospital_2"
+names(heat.df)[names(heat.df) =="BFH31_S149"]<-"Yalgado teaching hospital of Ouagadougou_1"
+names(heat.df)[names(heat.df) =="BFH32_S150"]<-"Yalgado teaching hospital of Ouagadougou_2"
+names(heat.df)[names(heat.df) =="BFH40_S159"]<-"Yalgado teaching hospital of Ouagadougou_3"
+names(heat.df)[names(heat.df) =="BFH6_S125"]<-"Clinique SOUKA"
+names(heat.df)[names(heat.df) =="BH03_S78"]<-"Hopital de Zone Calavi"
+names(heat.df)[names(heat.df) =="BH27_S92"]<-"Menontin hospital_1"
+names(heat.df)[names(heat.df) =="BH34.A_S98"]<-"Menontin hospital_2"
+names(heat.df)[names(heat.df) =="BH35_S100"]<-"Menontin hospital_3"
+names(heat.df)[names(heat.df) =="BH37_S102"]<-"Menontin hospital_4"
+names(heat.df)[names(heat.df) =="BH44_S105"]<-"Hospital Saint Jean"
+names(heat.df)[names(heat.df) =="BH58_S113"]<-"Central clinic of Calavi_1"
+names(heat.df)[names(heat.df) =="BH61_S116"]<-"Central clinic of Calavi_2"
+names(heat.df)[names(heat.df) =="FH1_S162"]<-"Helsinki University Hospital_1"
+names(heat.df)[names(heat.df) =="FH2_S163"]<-"Helsinki University Hospital_2"
+names(heat.df)[names(heat.df) =="FH3_S164"]<-"Helsinki University Hospital_3"
+names(heat.df)[names(heat.df) =="FH4_S165"]<-"Central Finland Health Care District_1"
+names(heat.df)[names(heat.df) =="FH5_S166"]<-"Central Finland Health Care District_2"
+names(heat.df)[names(heat.df) =="FH6_S167"]<-"Central Finland Health Care District_3"
+names(heat.df)[names(heat.df) =="FH7_S168"]<-"Turku University Hospital"
+names(heat.df)[names(heat.df) =="FH9_S170"]<-"Lapland Central Hospital"
+
+# Annotations
+metadata_row <- data.frame(temp$V2, row.names=rownames(heat.df))
+colnames(metadata_row) <- c("Antibiotic class")
+
+metadata_col <- data.frame(Country= factor(rep(c("Benin", "Burkina_Faso", "Finland"), rep(c(8, 8, 8)))))
+rownames(metadata_col) <- colnames(heat.df)
+
+ann_colors = list(
+    Country = c(Benin = "#E72F0E", Burkina_Faso = "#EDD931", Finland = "#5C32C4"))
+
+## Plot log: palette
+newnames <- lapply(
+  rownames(heat.df),
+  function(x) bquote(italic(.(x))))
+
+heat <- pheatmap(log10(heat.df), cluster_rows = F, cluster_cols = T, 
+                        cellwidth = 12, cellheight = 10, 
+                        border_color = "white",
+                        fontsize=5,
+                        colorRampPalette(brewer.pal(9, "Blues"))(100), main = "ARGs/16S rRNA, log10", 
+                        angle_col = 90, legend = TRUE, fontsize_row = 7, fontsize_col = 7, 
+                        labels_row = as.expression(newnames),
+                        #gaps_col = c(1, 9, 17),
+                        filename = "selected_heat.png",
+                        annotation_row = metadata_row,
+                        annotation_col = metadata_col,
+                        annotation_colors = ann_colors,
+                        treeheight_row = 0,
+                        cutree_cols = 2,
+                        treeheight_col = 20
+                        )
+heat
+ggsave(filename = "all_heat.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
