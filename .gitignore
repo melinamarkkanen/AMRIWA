@@ -8,3 +8,5 @@ trimmed_data/
 slurm*
 .DS_Store
 .Rproj.user
+.RData
+.RHistory
