@@ -164,7 +164,7 @@ metaxa2_dc -o metaxa_genus.txt *level_6.txt
 ```
 # Modify Metaphlan3 outputs prior loading intto R.
 ```
-sed -i 's/_profile//g' mod_merged_abundance_table_species.txt
+sed -i 's/_profile//g' merged_abundance_table.txt
 sed -n '2p'  merged_abundance_table.txt > merged_abundance_table_species.txt
 sed -i 's/_profile//g' merged_abundance_table_species.txt
 grep -E "s__" merged_abundance_table.txt >> merged_abundance_table_species.txt
