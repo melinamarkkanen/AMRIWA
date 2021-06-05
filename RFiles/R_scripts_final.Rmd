@@ -703,8 +703,8 @@ A <- plot_grid(p1, p2, nrow = 2, rel_widths = c(1, 1))
 B <- plot_grid(p3, NULL, compass, NULL, ncol = 1, rel_widths = c(1, 1, 0.333, 1), rel_heights = c(1, 0.333, 0.333, 0.333))
 plot_grid(A,B)
 
-#ggsave(filename = "map.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "map.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Outliers
 MyVar <- c("country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "continent", "no_of_beds", "daily_patient_visits", "ARG_SUM", "intI1_SUM", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
@@ -1048,6 +1048,84 @@ resfinder_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.i
 
 #ggsave(filename = "resfinder_sum_M0_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+```
+## Hospitals / hospital sections
+```{r}
+# Benin
+resfinder_PHY_stat_Ben <- subset_samples(resfinder_PHY_stat, country == "Benin")
+df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat_Ben),
+               hospital_section=as.factor(sample_data(resfinder_PHY_stat_Ben)$hospital_section),
+               SSU_counts=as.factor(sample_data(resfinder_PHY_stat_Ben)$SSU_counts),
+               hospital=as.factor(sample_data(resfinder_PHY_stat_Ben)$hospital))
+              
+df$SSU_counts <- as.character(df$SSU_counts)
+df$SSU_counts <- as.numeric(df$SSU_counts)
+#str(df)
+
+# Simple model
+M0 <- glm(ARG_SUM ~ hospital,
+           data = df, family="Gamma"(link="log"))
+summary(M0)
+
+glht.M0 <- glht(M0, mcp(hospital = "Tukey"))
+summary(glht(glht.M0))
+
+# BF
+resfinder_PHY_stat_BF <- subset_samples(resfinder_PHY_stat, country == "Burkina Faso")
+df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat_BF),
+               hospital_section=as.factor(sample_data(resfinder_PHY_stat_BF)$hospital_section),
+               SSU_counts=as.factor(sample_data(resfinder_PHY_stat_BF)$SSU_counts),
+               hospital=as.factor(sample_data(resfinder_PHY_stat_BF)$hospital))
+              
+df$SSU_counts <- as.character(df$SSU_counts)
+df$SSU_counts <- as.numeric(df$SSU_counts)
+#str(df)
+
+# Simple model
+M0 <- glm(ARG_SUM ~ hospital,
+           data = df, family="Gamma"(link="log"))
+summary(M0)
+
+glht.M0 <- glht(M0, mcp(hospital = "Tukey"))
+summary(glht(glht.M0))
+
+# Finland
+resfinder_PHY_stat_Fin <- subset_samples(resfinder_PHY_stat, country == "Finland")
+df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat_Fin),
+               hospital_section=as.factor(sample_data(resfinder_PHY_stat_Fin)$hospital_section),
+               SSU_counts=as.factor(sample_data(resfinder_PHY_stat_Fin)$SSU_counts),
+               hospital=as.factor(sample_data(resfinder_PHY_stat_Fin)$hospital))
+              
+df$SSU_counts <- as.character(df$SSU_counts)
+df$SSU_counts <- as.numeric(df$SSU_counts)
+#str(df)
+
+# Simple model
+M0 <- glm(ARG_SUM ~ hospital,
+           data = df, family="Gamma"(link="log"))
+summary(M0)
+
+glht.M0 <- glht(M0, mcp(hospital = "Tukey"))
+summary(glht(glht.M0))
+
+
+# Hospital section
+df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
+               hospital_section=as.factor(sample_data(resfinder_PHY_stat)$hospital_section),
+               SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
+               hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital))
+              
+df$SSU_counts <- as.character(df$SSU_counts)
+df$SSU_counts <- as.numeric(df$SSU_counts)
+#str(df)
+
+# Simple model
+M0 <- glm(ARG_SUM ~ hospital_section,
+           data = df, family="Gamma"(link="log"))
+summary(M0)
+
+glht.M0 <- glht(M0, mcp(hospital_section = "Tukey"))
+summary(glht(glht.M0))
 ```
 ##### Modelling MGE abundance #####
 ```{r}
@@ -1534,8 +1612,8 @@ resfinder.p_ord <- p_ord +
 resfinder.p_ord
 
 # Save
-#ggsave(filename = "ord_resfinder_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "ord_resfinder_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Test significance using pair-wise adonis
 #resfinder_temp <- subset_samples(resfinder_PHY_stat_equal, (country == "Benin" | country == "Finland"))
@@ -1573,8 +1651,8 @@ metaphlan.p_ord <- p_ord +
 metaphlan.p_ord
 
 # Save
-#ggsave(filename = "ord_metaphlan_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "ord_metaphlan_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Test significance using pair-wise adonis
 #metaphlan_temp <- subset_samples(metaphlan_PHY_stat_equal, (country == "Benin" | country == "Finland"))
@@ -1610,8 +1688,8 @@ MGE.p_ord <- p_ord +
 MGE.p_ord
 
 # Save
-#ggsave(filename = "ord_mge_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "ord_mge_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Test significance using pair-wise adonis
 #MGE_temp <- subset_samples(MGE_PHY_stat_equal, (country == "Benin" | country == "Finland"))
@@ -3626,100 +3704,25 @@ BF <- data.frame(resfinder_PHY_stat_BF_abun@tax_table)$Gene
 Finland <- data.frame(resfinder_PHY_stat_Fin_abun@tax_table)$Gene
 
 top_ARGs <- data.frame(Benin, BF, Finland)
-
-## Pristine samples
-resfinder_PHY_selected <- subset_samples(resfinder_PHY, alias == "BSE74" | alias == "BSE79" | alias == "BSE93" | alias == "BSE100")
-
-resfinder_PHY_selected_abun <- tax_glom(resfinder_PHY_selected, taxrank = "Gene")
-
-# Take 15 most abundant
-resfinder_PHY_selected_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_selected_abun), TRUE)[1:15]), 
-    resfinder_PHY_selected_abun)
-
-pristine <- data.frame(resfinder_PHY_selected_abun@tax_table)$Gene
-```
-## Interesting samples
-# "clean water"
-```{r}
-resfinder_PHY_selected <- subset_samples(resfinder_PHY, alias == "BFH27" | alias ==  "BFH42" | alias ==  "BH11" | alias ==  "BH13" | alias == "BH14" | alias == "BH32" | alias == "BH52" | alias == "BSE100" | alias == "BSE74" | alias == "BSE79" | alias == "BSE93" | alias == "BSE100")
-
-cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98"), 18)
-rfc <- plot_bar(resfinder_PHY_selected, fill = "Class") 
-rfc_plot <- rfc +
-  geom_bar(stat="identity", color = NA, size = 0) +
-  scale_fill_manual(values = cols) +
-  labs(y = expression(bold("Relative abundance of ARGs (ResFinder)"))) +
-  ggtitle("ARG Abundance normalized to 16s rRNA") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", face = "bold", angle = 45, hjust = 1),
-        axis.text.y = element_text(size = 28, family = "Times", face = "bold"),
-        axis.title.y = element_text(size = 30, family = "Times"),
-        axis.title.x = element_blank(),
-        legend.text = element_text(size = 18, family = "Times"),
-        legend.title = element_blank(),
-        legend.key = element_rect(size = 2, color = "white"),
-        legend.key.size = unit(1, "cm"),
-        legend.spacing.y = unit(2.2, "char"),
-        panel.background = element_rect(fill = "#FFFCF3"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank(),
-        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
-  facet_grid(~category, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 18, family = "Times", hjust = 0.5, vjust = 0.5, angle = 0),
-        strip.background = element_rect(colour = "white"))
-
-# Taxonomy
-metaphlan_PHY_selected <- subset_samples(metaphlan_PHY, alias == "BFH27" | alias ==  "BFH42" | alias ==  "BH11" | alias ==  "BH13" | alias == "BH14" | alias == "BH32" | alias == "BH52" | alias == "BSE100" | alias == "BSE74" | alias == "BSE79" | alias == "BSE93" | alias == "BSE100")
-
-metaphlan_PHY_Genus <- tax_glom(metaphlan_PHY_selected, taxrank = "Genus")
-metaphlan_PHY_Genus_abund <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_Genus), TRUE)[1:15]), metaphlan_PHY_Genus)
-
-cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 15)
-mp <- plot_bar(metaphlan_PHY_Genus_abund, fill = "Genus") 
-mp_plot <- mp +
-  geom_bar(stat="identity", color = NA, size = 0) +
-  scale_fill_manual(values = cols) +
-  labs(y = expression(bold("Relative abundance of genera"))) +
-  ggtitle("15 Most abundant genera (Metaphlan3)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", face = "bold", angle = 45, hjust = 1),
-        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
-        axis.title.y = element_text(size = 30, family = "Times"),
-        axis.title.x = element_blank(),
-        legend.text = element_text(size = 18, family = "Times"),
-        legend.title = element_blank(),
-        legend.key = element_rect(size = 2, color = "white"),
-        legend.key.size = unit(1, "cm"),
-        legend.spacing.y = unit(2.2, "char"),
-        panel.background = element_rect(fill = "#FFFCF3"),
-        panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank(),
-        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
-  facet_grid(~category, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 18, family = "Times", hjust = 0.5, vjust = 0.5, angle = 0),
-        strip.background = element_rect(colour = "white"))
 ```
 ## Interesting ARGs
 # MCR
 ```{r}
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#F22D3D", "#FDA4B3", "#882255"), 8)
+#cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#F22D3D", "#FDA4B3", "#882255"), 11)
 
 resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_stat, Class == "Polymyxin")
 
-# Other samples
-#resfinder_PHY_mcr_other <- subset_samples(resfinder_PHY, alias == "BFH26" | alias == "BFH27" | alias == "BFH42" | alias == "BH11" | alias == "BH13" | alias == "BH14" | alias == "BH32" | alias == "BH52" | alias == "BSE100" | alias == "BSE74" | alias == "BSE93" | alias == "BSE79")
-
 # save sums
-resfinder_PHY_mcr_pruned <- tax_glom(resfinder_PHY_mcr, taxrank = "Cluster_name")
-resfinder_PHY_mcr_pruned <- subset_taxa(resfinder_PHY_mcr_pruned, Cluster_name == "mcr-3.1_1_clust")
-df <- data.frame(sample_sums(resfinder_PHY_mcr_pruned))
+#resfinder_PHY_mcr_pruned <- tax_glom(resfinder_PHY_mcr, taxrank = "Cluster_name")
+#resfinder_PHY_mcr_pruned <- subset_taxa(resfinder_PHY_mcr_pruned, Cluster_name == "mcr-3.1_1_clust")
+#df <- data.frame(sample_sums(resfinder_PHY_mcr_pruned))
 
 # plot
 resfinder_PHY_mcr <- subset_samples(resfinder_PHY_mcr, sample_sums(resfinder_PHY_mcr) >= 0.0005)
 resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_mcr, taxa_sums(resfinder_PHY_mcr) != 0)
 
-alias <- paste(resfinder_PHY_mcr@sam_data$alias)
-hospital <- paste(resfinder_PHY_mcr@sam_data$hospital)
+hospital <- factor(c("I", "I", "I", "J", "J", "J", "J", "J", "J", "J", "G", "A", "A", "B", "B", "B", "B", "B", "B", "C", "C", "C", "K", "M", "M", "L"))
 
 rfc <- plot_bar(resfinder_PHY_mcr, fill = "Cluster_name")
 rfc_plot <- rfc +
@@ -3729,7 +3732,7 @@ rfc_plot <- rfc +
   ggtitle("Relative abundance of ARGs") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_mcr)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 90, face = "bold"),
+  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 0, face = "bold"),
         axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
         axis.title.y = element_text(size = 30, family = "Times"),
         axis.title.x = element_blank(),
@@ -3747,8 +3750,8 @@ rfc_plot <- rfc +
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 rfc_plot
 
-#ggsave(filename = "mcr_bar_plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "mcr_bar_plot.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Visualization using heatmap
 #resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_selected, Cluster_name == "mcr-5.1_1_clust" | Cluster_name == "mcr-1.11_1_clust" | Cluster_name == "mcr-3.17_1" | Cluster_name == "mcr-4.1_1_clust" | Cluster_name == "mcr-7.1_1" | Cluster_name == "mcr-9_1" | Cluster_name == "mcr-10_1" | Cluster_name == "mcr-8_1" | Cluster_name == "mcr-6.1_1" | Cluster_name == "mcr-2.1_1_clust")
@@ -3864,7 +3867,9 @@ resfinder_PHY_Cluster <- merge_phyloseq(resfinder_PHY_Cluster_1, resfinder_PHY_C
 #resfinder_PHY_Cluster <- subset_samples(resfinder_PHY_Cluster, sample_sums(resfinder_PHY_Cluster) != 0)
 
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
-names <- paste(resfinder_PHY_Cluster@sam_data$hospital)
+alias <- factor(c("BFH1",	"BFH10",	"BFH11",	"BFH12",	"BFH13",	"BFH14",	"BFH15",	"BFH16",	"BFH17",	"BFH18",	"BFH19",	"BFH20",	"BFH21",	"BFH22",	"BFH23",	"BFH25",	"BFH28",	"BFH29",	"BFH30",	"BFH31",	"BFH32",	"BFH33",	"BFH34",	"BFH35",	"BFH36",	"BFH37",	"BFH38A",	"BFH39",	"BFH4",	"BFH40",	"BFH41",	"BFH6",	"BFH8",	"BFH9",	"BH01",	"BH02",	"BH03",	"BH05",	"BH06",	"BH07",	"BH09",	"BH27",	"BH29",	"BH30",	"BH34A",	"BH35",	"BH36",	"BH37",	"BH38",	"BH39",	"BH44",	"BH46",	"BH47",	"BH48",	"BH49",	"BH50",	"BH58",	"BH60",	"BH61",	"FH1",	"FH2",	"FH3",	"FH4",	"FH5",	"FH6",	"FH7",	"FH9"))
+
+hospital <- factor(c("F",	"G",	"G",	"G",	"H",	"H",	"H",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"F",	"J",	"J",	"G",	"G",	"G",	"A",	"A",	"A",	"A",	"A",	"A",	"A",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"C",	"C",	"C",	"C",	"C",	"C",	"D",	"D",	"D",	"K",	"K",	"K",	"M",	"M",	"M",	"N",	"L"))
 
 rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name") 
 rfc_plot <- rfc +
@@ -3872,9 +3877,9 @@ rfc_plot <- rfc +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
   labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
   ggtitle("Relative abundance of ARGs in hospital WW samples") +
-  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=names, expression(bar("x"))) +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=alias, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 0, face = "bold"),
+  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 90, hjust = 1, vjust = 1),
         axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
         axis.title.y = element_text(size = 30, family = "Times"),
         axis.title.x = element_blank(),
@@ -3887,12 +3892,13 @@ rfc_plot <- rfc +
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         plot.title = element_text(size = 30, family = "Times", face = "bold")) +
-  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+  facet_grid(~country, scales = "free", space = "free") +
+  theme(strip.text.x= element_text(size = 28, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+rfc_plot
 
-#ggsave(filename = "carbapenemases.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+ggsave(filename = "carbapenemases.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
 
 # Check out also with the CARD data
 CARD_PHY_Cluster <- subset_taxa(CARD_PHY_stat, Class == "carbapenem")
@@ -3924,6 +3930,214 @@ card_plot <- card +
   facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
   theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white"))
+```
+## Carbapenemases in other than hospital WW
+```{r}
+resfinder_PHY_Cluster_1 <- subset_taxa(resfinder_PHY, Cluster_name == "blaKPC-34_1_clust"| Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaVIM-48_1_clust" | Cluster_name == "blaIMP-1_1_clust" | Cluster_name == "blaOXA-397_1_clust")
+
+resfinder_PHY_Cluster_2 <- subset_taxa(resfinder_PHY, Gene == "blaGES-2_1_AF326355" | Gene == "blaGES-4_1_AB116723" | Gene == "blaGES-5_1_DQ236171" 
+                                       | Gene == "blaGES-6_1_AY494718" | Gene == "blaGES-14_1_GU207844" | Gene == "blaGES-16_1_HM173356" 
+                                       | Gene == "blaGES-18_1_JQ028729" | Gene == "blaGES-20_1_JN596280" # carbapenemase blaGES
+                                       
+                                       | Gene == "blaOXA-48_1_AY236073" | Gene == "blaOXA-162_1_GU197550" | Gene == "blaOXA-181_1_CM004561" 
+                                       | Gene == "blaOXA-199_1_JN704570" | Gene == "blaOXA-204_1_KP027885" | Gene == "blaOXA-232_1_JX423831" 
+                                       | Gene == "blaOXA-244_1_KP659189" | Gene == "blaOXA-245_1_JX438001" | Gene == "blaOXA-247_1_JX893517" 
+                                       | Gene == "blaOXA-247_1_JX893517" | Gene == "blaOXA-514_1_KU866382" | Gene == "blaOXA-515_1_KU866383" 
+                                       | Gene == "blaOXA-517_1_KU878974") # blaOXA-48-like
+
+resfinder_PHY_Cluster <- merge_phyloseq(resfinder_PHY_Cluster_1, resfinder_PHY_Cluster_2)
+
+## Benin
+# Feces
+resfinder_PHY_feces <- subset_samples(resfinder_PHY_Cluster, alias == "BH20" | alias == "BH22" | alias == "BH24" | alias == "BH25")
+df <- sample_sums(resfinder_PHY_feces)
+
+cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
+names <- paste(resfinder_PHY_feces@sam_data$alias)
+
+rfc <- plot_bar(resfinder_PHY_feces, fill = "Cluster_name") 
+rfc_plot1 <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Benin") +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_feces)))), labels=names, expression(bar("x"))) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.background = element_rect(fill = "#FFFDF9"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 30, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+        strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+rfc_plot1
+
+#ggsave(filename = "carbapenemases_feces_ben.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+
+# Drinking
+resfinder_PHY_ben_drink <- subset_samples(resfinder_PHY_Cluster, alias == "BSE100" | alias == "BSE74" | alias == "BSE79"
+                                    | alias == "BSE93"| alias ==  "BH11")
+df <- sample_sums(resfinder_PHY_ben_drink)
+
+cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
+names <- paste(resfinder_PHY_ben_drink@sam_data$alias)
+
+rfc <- plot_bar(resfinder_PHY_ben_drink, fill = "Cluster_name") 
+rfc_plot2 <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Benin") +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_drink)))), labels=names, expression(bar("x"))) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.background = element_rect(fill = "#FFFDF9"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 20, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 26, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+        strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+rfc_plot2
+
+#ggsave(filename = "carbapenemases_drinking_ben.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+
+# other
+resfinder_PHY_ben_other <- subset_samples(resfinder_PHY_Cluster, alias ==  "BH13" | alias == "BH14"| alias == "BH32" | alias == "BH52")
+df <- sample_sums(resfinder_PHY_ben_other)
+
+cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
+names <- paste(resfinder_PHY_ben_other@sam_data$alias)
+
+rfc <- plot_bar(resfinder_PHY_ben_other, fill = "Cluster_name") 
+rfc_plot3 <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Benin") +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_other)))), labels=names, expression(bar("x"))) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.background = element_rect(fill = "#FFFDF9"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~plot_name, scales = "free", space = "free", 
+            labeller = label_wrap_gen(width = 20, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 26, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+        strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+rfc_plot3
+
+#ggsave(filename = "carbapenemases_other_ben.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+
+a <- plot_grid(rfc_plot1, 
+          rfc_plot2 + theme(axis.title.y = element_blank()), 
+          rfc_plot3 + theme(axis.title.y = element_blank()), nrow = 1, coord_fixed())
+a
+#ggsave(filename = "carbapenemases_all.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+
+## Burkina Faso
+# other
+resfinder_PHY_BF_other <- subset_samples(resfinder_PHY_Cluster, alias == "BFH27" | alias ==  "BFH42" | alias == "BFH26")
+df <- sample_sums(resfinder_PHY_BF_other)
+
+cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
+
+names <- paste(resfinder_PHY_BF_other@sam_data$alias)
+
+rfc <- plot_bar(resfinder_PHY_BF_other, fill = "Cluster_name") 
+rfc_plot4 <- rfc +
+  geom_bar(stat="identity", size = 0, color = NA) +
+  scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Burkina Faso") +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_BF_other)))), labels=names, expression(bar("x"))) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.background = element_rect(fill = "#FFFDF9"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 50, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 22, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+        strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+rfc_plot4
+#ggsave(filename = "carbapenemases_other_bf.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+
+
+###################
+# Sample sums
+# feces
+resfinder_PHY_feces <- subset_samples(resfinder_PHY, alias == "BH20" | alias == "BH22" | alias == "BH24" | alias == "BH25")
+resfinder_PHY_feces <- tax_glom(resfinder_PHY_feces, taxrank = "Gene")
+
+# Take 15 most abundant
+resfinder_PHY_feces_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_feces), TRUE)[1:15]), 
+    resfinder_PHY_feces)
+
+# Specific ARGs
+resfinder_PHY_feces_clust <- tax_glom(resfinder_PHY_feces, taxrank = "Cluster_name")
+resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_clust, Cluster_name == "nimE_1_clust")
+resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_nim, taxa_sums(resfinder_PHY_feces_nim) != 0)
+
+resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_clust, Cluster_name == "nimA_1")
+resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_nim, taxa_sums(resfinder_PHY_feces_nim) != 0)
+
+# drinking
+resfinder_PHY_ben_drink <- subset_samples(resfinder_PHY, alias == "BSE100" | alias == "BSE74" | alias == "BSE79"
+                                    | alias == "BSE93"| alias ==  "BH11")
+resfinder_PHY_ben_drink <- subset_taxa(resfinder_PHY_ben_drink, taxa_sums(resfinder_PHY_ben_drink) != 0)
+df <- data.frame(tax_table(resfinder_PHY_ben_drink))
+
+resfinder_PHY_ben_drink <- tax_glom(resfinder_PHY_ben_drink, taxrank = "Gene")
+
+# Take 15 most abundant
+resfinder_PHY_ben_drink_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_drink), TRUE)[1:15]), 
+    resfinder_PHY_ben_drink)
+
+# other, Benin
+resfinder_PHY_ben_other <- subset_samples(resfinder_PHY, alias ==  "BH13" | alias == "BH14"| alias == "BH32" | alias == "BH52")
+resfinder_PHY_ben_other <- subset_taxa(resfinder_PHY_ben_other, taxa_sums(resfinder_PHY_ben_other) != 0)
+df <- data.frame(tax_table(resfinder_PHY_ben_other))
+
+resfinder_PHY_ben_other <- tax_glom(resfinder_PHY_ben_other, taxrank = "Gene")
+
+# Take 15 most abundant
+resfinder_PHY_ben_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_other), TRUE)[1:15]), 
+    resfinder_PHY_ben_other)
+
+# other, BF
+resfinder_PHY_BF_other <- subset_samples(resfinder_PHY, alias == "BFH27" | alias ==  "BFH42" | alias == "BFH26")
+resfinder_PHY_BF_other <- subset_taxa(resfinder_PHY_BF_other, taxa_sums(resfinder_PHY_BF_other) != 0)
+df <- data.frame(tax_table(resfinder_PHY_BF_other))
+
+resfinder_PHY_BF_other <- tax_glom(resfinder_PHY_BF_other, taxrank = "Gene")
+
+# Take 15 most abundant
+resfinder_PHY_BF_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_BF_other), TRUE)[1:15]), 
+    resfinder_PHY_BF_other)
 ```
 # Taxonomy
 ```{r}
