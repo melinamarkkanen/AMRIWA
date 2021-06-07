@@ -3879,8 +3879,9 @@ rfc_plot <- rfc +
   ggtitle("Relative abundance of ARGs in hospital WW samples") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 90, hjust = 1, vjust = 1),
-        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+  theme(axis.text.x = element_blank(),
+          #element_text(size = 12, family = "Times", angle = 90, hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 0),
         axis.title.y = element_text(size = 30, family = "Times"),
         axis.title.x = element_blank(),
         legend.text = element_text(size = 28, family = "Times", face = "italic"),
