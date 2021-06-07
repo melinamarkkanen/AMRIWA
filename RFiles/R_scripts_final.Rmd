@@ -1639,7 +1639,7 @@ metaphlan.p_ord <- p_ord +
   geom_point(size = 5.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
     geom_text_repel(mapping = aes(label = hospital), size = 6, family = "Times", hjust = 1.2) +
-    theme_minimal() + labs(title= "Taxonomy (Metaphlan3)", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
+    theme_minimal() + labs(title= "Taxonomical composition (Metaphlan3)", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
           legend.text = element_text(size = 50, family = "Times"),
@@ -3808,7 +3808,7 @@ rfc_plot <- rfc +
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         plot.title = element_text(size = 30, family = "Times", face = "bold")) +
-  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  facet_grid(~hospital, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
   theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white"))
 
@@ -4098,12 +4098,18 @@ resfinder_PHY_feces_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_feces)
     resfinder_PHY_feces)
 
 # Specific ARGs
-resfinder_PHY_feces_clust <- tax_glom(resfinder_PHY_feces, taxrank = "Cluster_name")
-resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_clust, Cluster_name == "nimE_1_clust")
-resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_nim, taxa_sums(resfinder_PHY_feces_nim) != 0)
+resfinder_PHY_subset <- subset_samples(resfinder_PHY, alias == "BH11")
+resfinder_PHY_subset <- tax_glom(resfinder_PHY_subset, taxrank = "Cluster_name")
 
-resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_clust, Cluster_name == "nimA_1")
-resfinder_PHY_feces_nim <- subset_taxa(resfinder_PHY_feces_nim, taxa_sums(resfinder_PHY_feces_nim) != 0)
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "nimE_1_clust")
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, taxa_sums(resfinder_PHY_subset) != 0)
+
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "nimA_1")
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, taxa_sums(resfinder_PHY_subset) != 0)
+
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "blaNDM-18_1_clust")
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, taxa_sums(resfinder_PHY_subset) != 0)
+df <- sample_sums(resfinder_PHY_subset)
 
 # drinking
 resfinder_PHY_ben_drink <- subset_samples(resfinder_PHY, alias == "BSE100" | alias == "BSE74" | alias == "BSE79"
