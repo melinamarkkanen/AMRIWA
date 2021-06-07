@@ -3877,7 +3877,7 @@ rfc_plot <- rfc +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
   labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
   ggtitle("Relative abundance of ARGs in hospital WW samples") +
-  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=alias, expression(bar("x"))) +
+  scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 12, family = "Times", angle = 90, hjust = 1, vjust = 1),
         axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
@@ -3899,8 +3899,9 @@ rfc_plot
 
 ggsave(filename = "carbapenemases.png",
        width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
-
-# Check out also with the CARD data
+```
+## Check out also with the CARD data
+```{r}
 CARD_PHY_Cluster <- subset_taxa(CARD_PHY_stat, Class == "carbapenem")
 CARD_PHY_Cluster <- subset_taxa(CARD_PHY_stat, Gene == "KPC-4" | Gene == "KPC-8" | Gene == "KPC-10" | Gene == "KPC-12" | Gene == "NDM-10" | Gene == "NDM-6" | Gene == "NDM-24" | Gene == "NDM-13" | Gene == "GES-14" | Gene == "GES-15" | Gene == "GES-18" | Gene == "GES-20" | Gene == "GES-21" | Gene == "VIM-5" | Gene == "VIM-6" | Gene == "VIM-7" | Gene == "VIM-8" | Gene == "VIM-12" | Gene == "VIM-17" | Gene == "VIM-30" | Gene == "VIM-35" | Gene == "VIM-37" | Gene == "VIM-38" | Gene == "IMP-1" | Gene == "IMP-2" | Gene == "IMP-4" | Gene == "IMP-11" | Gene == "IMP-14" | Gene == "IMP-15" | Gene == "IMP-28" | Gene == "IMP-29"| Gene == "IMP-31" | Gene == "IMP-33" | Gene == "IMP-26" | Gene == "IMP-42" | Gene == "IMP-48" | Gene == "IMP-51" | Gene == "OXA-2")
 
