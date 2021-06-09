@@ -1015,6 +1015,9 @@ head(MyData)
 ```
 ## Simple model
 ```{r}
+#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
+cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
+
 glht.M0 <- glht(M0, mcp(country = "Tukey"))
 summary(glht(glht.M0))
 
@@ -1034,20 +1037,20 @@ resfinder_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(val
   geom_jitter(data = dfA, aes(x = country, y = ARG_SUM, color = country), size = 12, alpha = 1, width = 0.3) + 
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + geom_point(size = 0.9) + 
   theme_linedraw() + 
-  theme(axis.text.x = element_text(angle = 0, size = 40, family = "Times", face = "bold"), 
+  theme(axis.text.x = element_text(angle = 0, size = 50, family = "Times", face = "bold"), 
         axis.title.x = element_blank(),
         axis.text.y = element_text(size = 36, family = "Times"),
         axis.title.y = element_text(size = 36, family = "Times"),
         legend.title = element_blank(),
         legend.text = element_text(size = 28, family = "Times"),
-        plot.title = element_text(size = 40, family = "Times")) +
+        plot.title = element_text(size = 46, family = "Times", face = "bold")) +
   labs(y = "ARGs normalized to 16S rRNA", x = "") + 
   guides(color = FALSE, alpha = FALSE) + 
   labs(title = "Sum relative abundance of ARGs (ResFinder)")
-resfinder_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.increase = 0.05, tip.length = 0.01, size = 9)
+resfinder_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.increase = 0.05, tip.length = 0.01, size = 12)
 
-#ggsave(filename = "resfinder_sum_M0_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "resfinder_sum_M0_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Hospitals / hospital sections
 ```{r}
@@ -1180,7 +1183,8 @@ pvalues
 dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predict(M0, 
     newdata = df, type = "response", se.fit = T)$se.fit)
 
-cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
+#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
+cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 MGE_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
   geom_line() + 
@@ -1193,14 +1197,14 @@ MGE_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=co
         axis.title.y = element_text(size = 36, family = "Times"),
         legend.title = element_blank(),
         legend.text = element_text(size = 28, family = "Times"),
-        plot.title = element_text(size = 40, family = "Times")) +
+        plot.title = element_text(size = 46, family = "Times", face = "bold")) +
   labs(y = "MGEs normalized to 16S rRNA", x = "") + 
   guides(color = FALSE, alpha = FALSE) + 
   labs(title = "Sum relative abundance of MGEs (MGE database)")
-MGE_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 7, step.increase = 0.05, tip.length = 0.01, size = 9)
+MGE_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 7, step.increase = 0.05, tip.length = 0.01, size = 12)
 
-#ggsave(filename = "MGE_sum_M0_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "MGE_sum_M0_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ##### Modelling intI1 abundance #####
 ```{r}
@@ -1255,7 +1259,8 @@ pvalues
 dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predict(M0, 
     newdata = df, type = "response", se.fit = T)$se.fit)
 
-cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
+#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
+cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 MGE_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
   geom_line() + 
@@ -1268,14 +1273,14 @@ MGE_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=co
         axis.title.y = element_text(size = 36, family = "Times"),
         legend.title = element_blank(),
         legend.text = element_text(size = 28, family = "Times"),
-        plot.title = element_text(size = 40, family = "Times")) +
+        plot.title = element_text(size = 40, family = "Times", face = "bold")) +
   labs(y = "intI1 normalized to 16S rRNA", x = "") + 
   guides(color = FALSE, alpha = FALSE) + 
   labs(title = "Sum relative abundance of Class 1 integrons (MGE database)")
-MGE_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 1.05, step.increase = 0.05, tip.length = 0.01, size = 9)
+MGE_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 1.05, step.increase = 0.05, tip.length = 0.01, size = 12)
 
-#ggsave(filename = "intI1_sum_M0_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "intI1_sum_M0_new.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 # Relative sums of ARGs with all samples based on category
 ```{r}
