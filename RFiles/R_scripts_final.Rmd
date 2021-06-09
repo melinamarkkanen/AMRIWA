@@ -1596,10 +1596,11 @@ a
 resfinder_PHY_ord <- ordinate(resfinder_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(resfinder_PHY_stat, resfinder_PHY_ord, color = "country")
 resfinder.p_ord <- p_ord + 
-  scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
-  geom_point(size = 5.5) + 
+ # scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
+  scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
+  geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-    geom_text_repel(mapping = aes(label = hospital), size = 6, family = "Times", hjust = 1.2) +
+    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
     theme_minimal() + labs(title= "Resistome (ResFinder)", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -1635,10 +1636,11 @@ PHY = transform_sample_counts(metaphlan_PHY_stat, function(x) 1E6 * x/sum(x))
 metaphlan_PHY_ord <- ordinate(PHY, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(PHY, metaphlan_PHY_ord, color = "country")
 metaphlan.p_ord <- p_ord + 
-  scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
-  geom_point(size = 5.5) + 
+  #scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
+  scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
+  geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-    geom_text_repel(mapping = aes(label = hospital), size = 6, family = "Times", hjust = 1.2) +
+    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
     theme_minimal() + labs(title= "Taxonomical composition (Metaphlan3)", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -1672,10 +1674,11 @@ ggsave(filename = "ord_metaphlan_new.png",
 MGE_PHY_ord <- ordinate(MGE_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(MGE_PHY_stat, MGE_PHY_ord, color = "country")
 MGE.p_ord <- p_ord + 
-  scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
-  geom_point(size = 5.5) + 
+  #scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
+  scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
+  geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-  geom_text_repel(mapping = aes(label = hospital), size = 6, family = "Times", hjust = 1.2) +
+  geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
    theme_minimal() + labs(title= "Mobilome (MGE database)", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -1709,7 +1712,8 @@ ggsave(filename = "ord_mge_new.png",
 intI1_PHY_ord <- ordinate(MGE_PHY_int_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(MGE_PHY_int_stat, intI1_PHY_ord, color = "country")
 intI1.p_ord <- p_ord + 
-  scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
+  #scale_color_manual(values = c("#B2182B", "#44AA99", "#2166AC")) +
+  scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 5.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
     geom_text_repel(mapping = aes(label = hospital), size = 3, family = "Times", hjust = 1.2) +
