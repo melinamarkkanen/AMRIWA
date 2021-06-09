@@ -4791,9 +4791,9 @@ m0 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "s
                          legend.text = element_text(family = "Times", size = 20),
                          legend.key.size = unit(1.4, "cm")))
 
-title1 <- ggdraw() + draw_label("ARGs enriched in comparison Benin-Finland",
+title1 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs in Benin vs. Finland",
     fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 26)
-title2 <- ggdraw() + draw_label("ARGs enriched in comparison BF-Finland",
+title2 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs in Burkina Faso vs. Finland",
     fontface = 'bold', x = 0.35, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 26)
 
 m1 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "square",
@@ -4839,8 +4839,8 @@ AB <- plot_grid(A, B, ncol = 1)
 #plot_grid(AB, legend, ncols = 2, rel_widths = c(2, 1))
 AB
 
-#ggsave(filename = "ARGs_corr_deseq.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "ARGs_corr_deseq.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Same but for 15 most abundant ARGs
 ```{r}
