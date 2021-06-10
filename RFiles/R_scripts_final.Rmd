@@ -3545,7 +3545,14 @@ heat
 ````{r}
 metaphlan_PHY_Species <- tax_glom(metaphlan_PHY_stat, taxrank = "Species")
 # ESKAPE and other relevant taxa
-selected <- subset_taxa(metaphlan_PHY_Species,  Species == "Acinetobacter_baumannii" | Species == "Acinetobacter_nosocomialis" | Species == "Acinetobacter_towneri" | Species == "Acinetobacter_bohemicus" | Species == "Acinetobacter_parvus" | Species == "Acinetobacter_johnsonii" | Species == "Enterobacter_cloacae_complex" | Species == "Enterococcus_faecium" | Species == "Klebsiella_pneumoniae" | Species == "Staphylococcus_aureus" | Species == "Stenotrophomonas_maltophilia" | Species == "Pseudomonas_aeruginosa_group")
+selected <- subset_taxa(metaphlan_PHY_Species,  Species == "Acinetobacter_baumannii" | Species == "Acinetobacter_nosocomialis" 
+                        | Species == "Acinetobacter_bouvetii"
+                        | Species == "Acinetobacter_johnsonii" | Species == "Acinetobacter_radioresistens" | Species == "Acinetobacter_lwoffii" | Species == "Acinetobacter_calcoaceticus" | Species == "Acinetobacter_haemolyticus" | Species == "Acinetobacter_bereziniae" | Species == "Acinetobacter_venetianus" | Species == "Acinetobacter_calcoaceticus" | Species == "Acinetobacter_pittii" | Species == "Acinetobacter_guillouiae" | Species == "Acinetobacter_schindleri" | Species == "Acinetobacter_bereziniae" | Species == "Acinetobacter_kyonggiensis" |  Species == "Enterobacter_cloacae_complex" | Species == "Enterococcus_faecium" | Species == "Klebsiella_pneumoniae" | Species == "Staphylococcus_aureus" | Species == "Pseudomonas_aeruginosa_group" | Species == "Escherichia_coli"
+                        #| Species == "Stenotrophomonas_maltophilia"
+                        )
+
+# Filter out low abundance taxa
+selected <- subset_taxa(selected, taxa_sums(selected) != 0)
 
 # OTU matrix
 heat_OTU = as(otu_table(selected), "matrix")
@@ -3589,7 +3596,7 @@ newnames <- lapply(
 heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
                         border_color = "grey",
                         colorRampPalette(brewer.pal(9, "Blues"))(100), 
-                        main = "Relative abundance of clinically relevant species,\n (Metaphlan3, square root transormed)", 
+                        main = "Relative abundance of clinically significant species,\n (Metaphlan3, square root transormed)", 
                         angle_col = 90, legend = TRUE, fontsize_row = 11,
                         labels_row = as.expression(newnames),
                         filename = "eskape_heat.png",
@@ -3598,7 +3605,7 @@ heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T,
                         show_colnames = T,
                  cellwidth = 13,
                  cellheight = 26,
-                 gaps_row = rep(c(1, 6, 7, 8, 9, 10, 11)),
+                 gaps_row = rep(c(12)),
                  annotation_colors = ann_colors
                         )
 heat
@@ -4115,10 +4122,10 @@ resfinder_PHY_feces_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_feces)
 resfinder_PHY_subset <- subset_samples(resfinder_PHY, alias == "BH11")
 resfinder_PHY_subset <- tax_glom(resfinder_PHY_subset, taxrank = "Cluster_name")
 
-resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "nimE_1_clust")
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_feces, Cluster_name == "nimE_1_clust")
 resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, taxa_sums(resfinder_PHY_subset) != 0)
 
-resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "nimA_1")
+resfinder_PHY_subset <- subset_taxa(resfinder_PHY_feces, Cluster_name == "nimA_1")
 resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, taxa_sums(resfinder_PHY_subset) != 0)
 
 resfinder_PHY_subset <- subset_taxa(resfinder_PHY_subset, Cluster_name == "blaNDM-18_1_clust")
