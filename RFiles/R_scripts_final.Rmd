@@ -3789,6 +3789,10 @@ ggsave(filename = "mcr_bar_plot.png",
 # mec variants
 resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Cluster_name == "mecA_1_clust" | Cluster_name == "mecB_1" | Cluster_name == "mecC2_1_clust" | Cluster_name == "mecD_1")
 
+# Metronidazole
+resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Class == "Metronidazole")
+resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY, Class == "Metronidazole")
+
 # van variants
 resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Cluster_name == "VanHAX_1_clust" | Cluster_name == "VanHAX_PA" | Cluster_name == "VanHBX_1_clust" | Cluster_name == "VanC1XY_1_clust"  | Cluster_name == "VanC3XY_1_clust" | Cluster_name == "VanHDX_6" | Cluster_name == "VanHDX_7_clust" | Cluster_name == "VanHDX_3_clust" | Cluster_name == "VanHFX_1" | Cluster_name == "VanE_1_clust" | Cluster_name == "VanGXY_1" | Cluster_name == "VanG2XY_1" | Cluster_name == "VanLXY_1" | Cluster_name == "VanHMX_1" | Cluster_name == "VanNXY_1" | Cluster_name == "VanHOX_1" | Cluster_name == "vanXmurFvanWI_1" | Cluster_name == "vanXmurFvanKWI_1" | Cluster_name == "vanXmurFvanKWI_2")
 
