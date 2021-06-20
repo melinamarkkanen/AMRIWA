@@ -1724,8 +1724,11 @@ arg <- p_ord +
   geom_point(size = 5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
     geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
-    theme_minimal() + labs(title= "Resistome (ResFinder)") +
-    theme(plot.title = element_text(size = 24, family = "Times", face = "bold"),
+    theme_minimal() + labs(title = "Hospital wastewaters in Benin, \nBurkina Faso and Finland
+                           
+                           ", subtitle = "Resistome (ResFinder)") +
+    theme(plot.subtitle = element_text(size = 24, family = "Times", face = "bold"),
+          plot.title = element_text(size = 26, family = "Times"),
           legend.position = "bottom",
           legend.text = element_text(size = 28, family = "Times"),
           legend.title = element_blank(),
@@ -1782,16 +1785,18 @@ mge
 #                    plot_layout(guides = 'keep', widths = c(1), heights = c(1, 1), ncol = 1, nrow = 1)
 
 mp_mge <- plot_grid(mp, mge, nrow = 2)
-ordinations <- plot_grid(arg, mp_mge, ncol = 2, rel_widths = c(1.25, 0.75), rel_heights = c(1, 1))
+ordinations <- plot_grid(arg, mp_mge, ncol = 2, scale = c(1.15, .75, 75))
 ordinations
 
+plot_grid(ordinations, ncol = 1)
+
+
+# OR
 mp_mge <- plot_grid(mp, mge, nrow = 2)
-ordinations <- plot_grid(arg, mp_mge, ncol = 2, rel_widths = c(1.25, 0.75), rel_heights = c(1, 1))
+ordinations <- plot_grid(arg, mp_mge, ncol = 2, scale = c(1.15, .75, 75))
 ordinations
 
-mp_mge <- plot_grid(mp, mge, nrow = 2)
-ordinations <- plot_grid(arg, mp_mge, ncol = 2, scale = c(1.1, .70, 70))
-ordinations
+plot_grid(ordinations, ncol = 1) + theme(plot.margin = unit(c(1,0.5,0.5,0.5), "cm"))
 
 # Save
 ggsave(filename = "ord_patch_new.png",
