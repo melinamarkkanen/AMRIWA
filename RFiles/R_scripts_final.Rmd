@@ -1714,16 +1714,13 @@ MGE.p_ord
 ```
 # Figure panel for ordination plots
 ```{r}
-devtools::install_github("thomasp85/patchwork")
-library(ggplot2)
-library(patchwork)
 resfinder_PHY_ord <- ordinate(resfinder_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(resfinder_PHY_stat, resfinder_PHY_ord, color = "country")
 arg <- p_ord + 
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
+#    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
     theme_minimal() + labs(title = "Resistome (ResFinder)") +
     theme(plot.title = element_text(size = 26, family = "Times", face = "bold"),
           legend.position = "bottom",
@@ -1731,6 +1728,7 @@ arg <- p_ord +
           legend.title = element_blank(),
           axis.title = element_text(size = 18, family = "Times"),
           axis.text = element_text(size = 18, family = "Times")) +
+  theme(plot.margin = unit(c(0.1, 0.1, 0.1, 1), "cm")) +
     coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
@@ -1744,12 +1742,13 @@ mp <- p_ord +
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-    geom_text_repel(mapping = aes(label = hospital), size = 5.5, family = "Times", hjust = 1.2) +
+#    geom_text_repel(mapping = aes(label = hospital), size = 5.5, family = "Times", hjust = 1.2) +
     theme_minimal() + labs(title= "Taxonomical composition (Metaphlan3)") + 
-    theme(plot.title = element_text(size = 20, family = "Times", face = "bold"),
+    theme(plot.title = element_text(size = 20, family = "Times", face = "bold", hjust = 0.5),
           legend.position = "none",
           axis.title = element_text(size = 18, family = "Times"),
           axis.text = element_text(size = 18, family = "Times")) +
+  theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
     coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
@@ -1761,12 +1760,13 @@ mge <- p_ord +
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-  geom_text_repel(mapping = aes(label = hospital), size = 5.5, family = "Times", hjust = 1.2) +
+#  geom_text_repel(mapping = aes(label = hospital), size = 5.5, family = "Times", hjust = 1.2) +
    theme_minimal() + labs(title= "Mobilome (MGE database)") +
-    theme(plot.title = element_text(size = 20, family = "Times", face = "bold"),
+    theme(plot.title = element_text(size = 20, family = "Times", face = "bold", hjust = 0.5),
           legend.position = "none",
           axis.title = element_text(size = 18, family = "Times"),
           axis.text = element_text(size = 18, family = "Times")) +
+  theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
   coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
@@ -1793,6 +1793,15 @@ plot_grid(ordinations, ncol = 1) + theme(plot.margin = unit(c(0,0,0,2), "cm"))
 ((arg + plot_layout(guides = 'keep')) | mp / mge) + plot_layout(guides = 'keep') + 
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 24, family = "Times"))
+
+# OR
+layout <- "
+AABB
+AACC
+"
+arg + mp + mge +
+  plot_layout(design = layout) + plot_annotation(tag_levels = list(c("A", "B", "C"))) &
+  theme(plot.tag = element_text(size = 24, family = "Times"), plot.tag.position = c(0, 1))
 
 # Save
 ggsave(filename = "ord_patch_new.png",
@@ -4279,33 +4288,34 @@ rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name")
 rfc_plot <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
-  ggtitle("Relative abundance of ARGs in hospital WW samples") +
+  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  ggtitle("Hospital wastewaters") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 16, family = "Times", angle = 0, hjust = 1, vjust = 1),
-        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 0),
-        axis.title.y = element_text(size = 30, family = "Times"),
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 16, family = "Times", angle = 0),
+        axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-  #      legend.text = element_text(size = 30, family = "Times", face = "italic"),
-  #      legend.title = element_blank(),
-  #      legend.key = element_rect(size = 4, color = "white"),
-  #      legend.key.size = unit(1.5, "cm"),
-  #      legend.spacing.y = unit(5, "char"),
+  #     legend.text = element_text(size = 14, family = "Times",  face = "italic"),
+  #     legend.title = element_blank(),
+  #     legend.key = element_rect(size = 1, color = "white"),
+  #     legend.key.size = unit(1, "cm"),
+  #     legend.spacing.y = unit(2.2, "char"),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+        plot.title = element_text(size = 26, family = "Times", face = "bold")) +
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.01), breaks=seq(0, 0.1, 0.05)) +
   facet_grid(~country, scales = "free", space = "free") +
-  theme(strip.text.x= element_text(size = 28, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+  theme(strip.text.x= element_text(size = 16, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
 # Save legend
-#leg <- get_legend(rfc_plot)
+leg <- get_legend(rfc_plot)
 
 # Convert to a ggplot and print
-#as_ggplot(leg)
+as_ggplot(leg)
 
 # Other than HWW
 resfinder_PHY_Cluster_1 <- subset_taxa(resfinder_PHY, Cluster_name == "blaKPC-34_1_clust"| Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaVIM-48_1_clust" | Cluster_name == "blaIMP-1_1_clust" | Cluster_name == "blaOXA-397_1_clust")
@@ -4333,21 +4343,22 @@ rfc_plot1 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   ggtitle("Benin") +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  scale_y_continuous(limits = c(0,0.01)) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+      ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_feces)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 22, family = "Times", angle = 0, face = "bold"),
-        axis.text.y = element_text(size = 22, family = "Times", face = "bold", angle = 0),
-        axis.title.y = element_blank(),
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 16, family = "Times", angle = 0),
+        axis.title.y = element_text(size = 24, family = "Times"),
         axis.title.x = element_blank(),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        plot.title = element_text(size = 26, family = "Times", face = "bold")) +
+        plot.title = element_text(size = 16, family = "Times", face = "bold")) +
+  scale_y_continuous(limits = c(0, 0.005), labels = scales::number_format(accuracy = 0.001), breaks = seq(0, 0.005, by = 0.0025)) +
   facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 15, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+  theme(strip.text.x= element_text(size = 16, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
 # Drinking
@@ -4361,21 +4372,22 @@ rfc <- plot_bar(resfinder_PHY_ben_drink, fill = "Cluster_name")
 rfc_plot2 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  scale_y_continuous(limits = c(0,0.01)) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+      ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_drink)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 22, family = "Times", angle = 0, face = "bold"),
-       axis.text.y = element_text(size = 22, family = "Times", face = "bold", angle = 0),
-       axis.title.y = element_text(size = 30, family = "Times"),
-        axis.title.x = element_blank(),
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 16, family = "Times", angle = 0),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        plot.title = element_text(size = 26, family = "Times", face = "bold")) +
+        plot.title = element_text(size = 16, family = "Times", face = "bold")) +
+  scale_y_continuous(limits = c(0, 0.005), labels = scales::number_format(accuracy = 0.001), breaks = seq(0, 0.005, by = 0.0025)) +
   facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 20, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 15, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+  theme(strip.text.x= element_text(size = 16, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
 # other
@@ -4388,27 +4400,23 @@ rfc <- plot_bar(resfinder_PHY_ben_other, fill = "Cluster_name")
 rfc_plot3 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  scale_y_continuous(limits = c(0,0.01)) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+    ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_other)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 22, family = "Times", angle = 0, face = "bold"),
-        axis.text.y = element_text(size = 22, family = "Times", face = "bold", angle = 0), 
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 16, family = "Times", angle = 0),
         axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-#       legend.text = element_text(size = 18, family = "Times",  face = "italic"),
-#       legend.title = element_blank(),
-#       legend.key = element_rect(size = 2, color = "white"),
-#       legend.key.size = unit(1, "cm"),
-#       legend.spacing.y = unit(2.2, "char"),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        plot.title = element_text(size = 26, family = "Times", face = "bold")) +
+        plot.title = element_text(size = 16, family = "Times", face = "bold")) +
+ scale_y_continuous(limits = c(0, 0.01), labels = scales::number_format(accuracy = 0.001), breaks = seq(0, 0.01, by = 0.005)) +
   facet_grid(~plot_name, scales = "free", space = "free", 
             labeller = label_wrap_gen(width = 20, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 15, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+  theme(strip.text.x= element_text(size = 16, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
 ## Burkina Faso
@@ -4422,26 +4430,22 @@ rfc <- plot_bar(resfinder_PHY_BF_other, fill = "Cluster_name")
 rfc_plot4 <- rfc +
   geom_bar(stat="identity", size = 0, color = NA) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA"), atop("ResFinder")))) +
+  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
   ggtitle("Burkina Faso") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_BF_other)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 22, family = "Times", angle = 0, face = "bold"),
-        axis.text.y = element_text(size = 22, family = "Times", face = "bold", angle = 0),
+  theme(axis.text.x = element_text(size = 20, family = "Times", angle = 0, face = "bold"),
+        axis.text.y = element_text(size = 16, family = "Times", angle = 0),
         axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-  #     legend.text = element_text(size = 18, family = "Times",  face = "italic"),
-  #     legend.title = element_blank(),
-  #     legend.key = element_rect(size = 2, color = "white"),
-  #     legend.key.size = unit(1, "cm"),
-  #     legend.spacing.y = unit(2.2, "char"),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        plot.title = element_text(size = 26, family = "Times", face = "bold")) +
+        plot.title = element_text(size = 16, family = "Times", face = "bold")) +
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.01), breaks=seq(0, 0.02, 0.01)) +
   facet_grid(~plot_name, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
-  theme(strip.text.x= element_text(size = 15, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
+  theme(strip.text.x= element_text(size = 16, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
 #(rfc_plot1 / rfc_plot2 / rfc_plot3 + plot_layout(guides = 'keep')) + plot_annotation(tag_levels = list(c("B", "C", "D"))) &
@@ -4464,11 +4468,20 @@ other <- rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 +
 other_leg <- other + inset_element(leg, left = 0.5, bottom = -3.25, right = 0.5, top = 0)
 other_leg
 
-ggsave(filename = "carbapenemases_grid.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
-
-rfc_plot + plot_layout(guides = 'keep') + plot_annotation(tag_levels = "A")  &
+# OR
+layout <- "
+AAAA
+AAAA
+AAAA
+BBCC
+DDEE
+"
+p <- rfc_plot + rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 + 
+  plot_layout(design = layout) + plot_annotation(tag_levels = list(c("A", "B", "C", "D", "E"))) &
   theme(plot.tag = element_text(size = 24, family = "Times"))
+
+p_leg <- p + inset_element(leg, left = 0.5, bottom = 1, right = 0.5, top = 0)
+p_leg
 
 ggsave(filename = "carbapenemases_grid.png",
        width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
