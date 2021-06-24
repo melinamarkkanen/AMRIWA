@@ -3754,7 +3754,7 @@ newnames <- lapply(
 heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
                         border_color = "grey",
                         colorRampPalette(brewer.pal(9, "Blues"))(100), 
-                        main = "Relative abundance of clinically significant species,\n (Metaphlan3, square root transormed)", 
+                        main = "Relative abundance of clinically relevant species,\n (Metaphlan3, square root transormed)", 
                         angle_col = 90, legend = TRUE, fontsize_row = 11,
                         labels_row = as.expression(newnames),
                         filename = "eskape_heat.png",
