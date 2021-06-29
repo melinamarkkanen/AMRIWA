@@ -672,7 +672,7 @@ mytheme$par.main.text$fontfamily="Times"
 mytheme$par.main.text$cex=2.25
 
 p1 <- xyplot(long ~ lat, aspect = "fill", col = "#B2182B", pch = 19, data = df_Benin, cex = 3.5, par.settings=mytheme,
-        ylab = "Longitude", xlab = "Latitude", main = "Benin",
+        ylab = "Latitude", xlab = "Longitude", main = "Benin",
     panel = function(x, y, ...) {
     panel.grid(h = -1, v = -1, col.line = grey(0.9))
     panel.xyplot(x, y, ...)
@@ -680,8 +680,8 @@ p1 <- xyplot(long ~ lat, aspect = "fill", col = "#B2182B", pch = 19, data = df_B
       col = "white", cex = 1.5, position = "top", offset = 1, fontfamily = "Times")
   })
 
-p2 <- xyplot(long ~ lat, aspect = "fill", col = "#44AA99", pch = 19, data = df_BF, cex = 3.5, par.settings=mytheme,
-               ylab = "Longitude", xlab = "Latitude", main = "Burkina Faso",
+p2 <- xyplot(lat ~ long, aspect = "fill", col = "#44AA99", pch = 19, data = df_BF, cex = 3.5, par.settings=mytheme,
+               ylab = "Latitude", xlab = "Longitude", main = "Burkina Faso",
     panel = function(x, y, ...) {
     panel.grid(h = -3, v = -1, col.line = grey(0.9))
     panel.xyplot(x, y, ...)
@@ -689,8 +689,8 @@ p2 <- xyplot(long ~ lat, aspect = "fill", col = "#44AA99", pch = 19, data = df_B
       col = "white", cex = 1.5, position = "top", offset = 1, fontfamily = "Times")
   })
 
-p3 <- xyplot(long ~ lat, aspect = "fill", col = "#2166AC", pch = 19, data = df_Finland, cex = 3.5, par.settings=mytheme,
-               ylab = "Longitude", xlab = "Latitude", main = "Finland",
+p3 <- xyplot(lat ~ long, aspect = "fill", col = "#2166AC", pch = 19, data = df_Finland, cex = 3.5, par.settings=mytheme,
+               ylab = "Latitude", xlab = "Longitude", main = "Finland",
     panel = function(x, y, ...) {
     panel.grid(h = -1, v = -1, col.line = grey(0.9))
     panel.xyplot(x, y, ...)
@@ -704,8 +704,22 @@ A <- plot_grid(p1, p2, nrow = 2, rel_widths = c(1, 1))
 B <- plot_grid(p3, NULL, compass, NULL, ncol = 1, rel_widths = c(1, 1, 0.333, 1), rel_heights = c(1, 0.333, 0.333, 0.333))
 plot_grid(A,B)
 
-ggsave(filename = "map.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "map.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+# OR
+#cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
+#ggplot(data = df_Benin, aes(x = long, y = lat, fill = hospital)) +
+#  geom_text(data=df_Benin, aes(label = hospital, x = long, y = lat), hjust = 1.5, vjust = 1.75, size = 5, family = "Times") +
+#  geom_point(shape = 19, size = 4, colour = "#B2182B") +
+#  coord_equal() +
+#  theme(axis.title = element_text(family = "Times"),
+#        axis.text = element_text(family = "Times"),
+#        plot.title = element_text(family = "Times"),
+#        legend.position = "none") +
+#  ggtitle("Benin") + 
+#  scale_y_continuous(minor_breaks = seq(2.30e+14, 2.50e+14, 1.0e+12), limits = c(2.30e+14, 2.50e+14)) +
+#  scale_x_continuous(minor_breaks = seq(6.30e+14, 6.50e+14, 1.0e+12), limits = c(6.30e+14, 6.50e+14))
 
 # Outliers
 MyVar <- c("country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "continent", "no_of_beds", "daily_patient_visits", "ARG_SUM", "intI1_SUM", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
