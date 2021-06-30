@@ -650,6 +650,7 @@ library("rnaturalearthdata")
 library("ggspatial")
 theme_bw()
 
+# Benin
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
 
@@ -657,17 +658,16 @@ gps <- metadata[!duplicated(metadata[,c('lat','long')]),]
 gps <- gps[ , c("country", "lat", "long")] 
 gps_Ben <- subset(gps, country=="Benin")
 
-# Add in capital and important cities & countru name
+# Add in capital and important cities
 gps_Ben_labels <- data.frame(country = c("Benin", "Benin", "Benin"),
-                               lat = c("6.4990718", "6.3676953", "7.165446"),
-                               long = c("2.6253361", "2.4252507", "1.9828804"))
-rownames(gps_Ben_labels) <- c("Porto Novo", "Cotonou", "Abomey")
+                               lat = c("6.4990718", "6.3676953", "9.3400159"),
+                               long = c("2.6253361", "2.4252507", "2.6278258"))
+rownames(gps_Ben_labels) <- c("Porto Novo", "Cotonou", "Parakou")
 
 gps_data <- rbind(gps_Ben, gps_Ben_labels)
-gps_data$Label <- c("nd", "nd", "nd", "nd", "nd", "Porto Novo", "Cotonou", "Abomey")
+gps_data$Label <- c("nd", "nd", "nd", "nd", "nd", "Porto Novo", "Cotonou", "Parakou")
 gps_data$lat <- as.numeric(gps_data$lat)
 gps_data$long <- as.numeric(gps_data$long)
-
 
 map <- ggplot(data = world) +
     geom_sf() +
@@ -690,7 +690,45 @@ annotation_scale(location = "bl", width_hint = 0.4)
 #        style = north_arrow_fancy_orienteering)
 map
 
+# BF
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
 
+gps <- metadata[!duplicated(metadata[,c('lat','long')]),]
+gps <- gps[ , c("country", "lat", "long")] 
+gps_BF <- subset(gps, country=="Burkina Faso")
+
+# Add in capital and important cities
+gps_BF_labels <- data.frame(country = c("Burkina Faso", "Burkina Faso", "Burkina Faso"),
+                               lat = c("12.3681873", "11.1757783", "10.642703"),
+                               long = c("-1.5270944", "-4.2957591", "-4.752639"))
+rownames(gps_BF_labels) <- c("Ouagadougou", "Bobo Dioulasso", "Banfora")
+
+gps_data <- rbind(gps_BF, gps_BF_labels)
+gps_data$Label <- c("nd", "nd", "nd", "nd", "Ouagadougou", "Bobo Dioulasso", "Banfora")
+gps_data$lat <- as.numeric(gps_data$lat)
+gps_data$long <- as.numeric(gps_data$long)
+
+map <- ggplot(data = world) +
+    geom_sf() +
+    borders("world", colour="black", fill="wheat1")  +
+    theme(panel.background = element_rect(fill = "azure1", colour = "azure1")) +
+    geom_point(data = subset(gps_data, Label == "nd"), 
+               aes(x = long, y = lat), size = 4, shape = 16, color = "#B2182B") +
+    geom_point(data = subset(gps_data, Label != "nd"), 
+               aes(x = long, y = lat), size = 3, shape = 9, color = "black") +
+    geom_label_repel(data=subset(gps_data, Label !="nd"),  
+                     aes(x = long, y = lat, label = Label, family = "Times"), color = "black", size = 5) +
+  coord_sf(ylim = c(9, 15), xlim = c(-6, 2.5), expand = T) + 
+  theme(axis.text = element_text(family = "Times", size = 12),
+        plot.title = element_text(family = "Times", face = "bold", size = 24),
+        axis.title = element_blank()) +
+  ggtitle("Burkina Faso") +
+annotation_scale(location = "bl", width_hint = 0.4)
+#    annotation_north_arrow(location = "tl", which_north = "true", 
+#        pad_x = unit(0.25, "in"), pad_y = unit(0.25, "in"),
+#        style = north_arrow_fancy_orienteering)
+map
 
 
 
