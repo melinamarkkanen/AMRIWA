@@ -797,7 +797,7 @@ p_map3 <- p_map2 +
                aes(x = long, y = lat), size = 0, shape = 16, color = "black") +
   geom_text_repel(data = subset(gps_data, Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"),
                                                  aes(x = long, y = lat, label = Label), 
-                  color = "#4C4B49", size = 7, family = "Times")
+                  color = "#4C4B49", size = 10, family = "Times")
 p_map3
 
 ggsave(filename = "p_map.png",
