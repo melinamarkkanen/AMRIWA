@@ -622,12 +622,9 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                hospital_section=as.factor(sample_data(resfinder_PHY_stat)$hospital_section),
                SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
-               category=as.factor(sample_data(resfinder_PHY_stat)$category),
                country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               continent=as.factor(sample_data(resfinder_PHY_stat)$continent),
                R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
-               daily_patient_visits=as.factor(sample_data(resfinder_PHY_stat)$daily_patient_visits),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
                A260_280=as.numeric(sample_data(resfinder_PHY_stat)$A260_280),
@@ -638,8 +635,6 @@ df$SSU_counts <- as.character(df$SSU_counts)
 df$SSU_counts <- as.numeric(df$SSU_counts)
 df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
 df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
-df$daily_patient_visits <- as.character(df$daily_patient_visits)
-df$daily_patient_visits <- as.numeric(df$daily_patient_visits)
 df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 ```
@@ -736,78 +731,9 @@ annotation_scale(location = "bl", width_hint = 0.1)
 
 Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ```
-## OLD map
-```{r}
-#df$long <- as.numeric(gsub(",", ".", gsub("\\.", "", df$long)))
-#df$lat <- as.numeric(gsub(",", ".", gsub("\\.", "", df$lat)))                   
-#str(df)
-
-xyplot(long ~ lat, col = 1, pch = 16, data = df, scales = list(y = list(log = 10), x = list(log = 10)), aspect = "fill")
-
-xyplot(long ~ lat, aspect = "fill", col = 1, pch = 16, data = df, 
-    panel = function(x, y, ...) {
-    panel.grid(h = -1, v = -1, col.line = grey(0.9))
-    panel.xyplot(x, y, ...)
-    panel.text(x, y, labels = df$hospital, 
-      col = grey(0.5), cex = 0.7, pos = 3, offset = 1)
-  })
-
-df_Benin <- df[ which(df$country=="Benin"), ]
-df_Finland <- df[ which(df$country=="Finland"), ]
-df_BF <- df[ which(df$country=="Burkina Faso"), ]
-df_Ben_BF <- df[ which(df$country == "Burkina Faso" | df$country == "Benin"), ]
-
-gps <- data.frame(df$hospital, df$long, df$lat)
-
-mytheme<-list()
-mytheme$par.xlab.text$fontfamily="Times"
-mytheme$par.ylab.text$fontfamily="Times"
-mytheme$par.xlab.text$cex=1.25
-mytheme$par.ylab.text$cex=1.25
-mytheme$axis.text$cex=1.3
-mytheme$axis.text$fontfamily="Times"
-mytheme$par.main.text$fontfamily="Times"
-mytheme$par.main.text$cex=2.25
-
-p1 <- xyplot(long ~ lat, aspect = "fill", col = "#B2182B", pch = 19, data = df_Benin, cex = 3.5, par.settings=mytheme,
-        ylab = "Latitude", xlab = "Longitude", main = "Benin",
-    panel = function(x, y, ...) {
-    panel.grid(h = -1, v = -1, col.line = grey(0.9))
-    panel.xyplot(x, y, ...)
-    panel.text(x, y, labels = df_Benin$hospital, 
-      col = "white", cex = 1.5, position = "top", offset = 1, fontfamily = "Times")
-  })
-
-p2 <- xyplot(lat ~ long, aspect = "fill", col = "#44AA99", pch = 19, data = df_BF, cex = 3.5, par.settings=mytheme,
-               ylab = "Latitude", xlab = "Longitude", main = "Burkina Faso",
-    panel = function(x, y, ...) {
-    panel.grid(h = -3, v = -1, col.line = grey(0.9))
-    panel.xyplot(x, y, ...)
-    panel.text(x, y, labels = df_BF$hospital, 
-      col = "white", cex = 1.5, position = "top", offset = 1, fontfamily = "Times")
-  })
-
-p3 <- xyplot(lat ~ long, aspect = "fill", col = "#2166AC", pch = 19, data = df_Finland, cex = 3.5, par.settings=mytheme,
-               ylab = "Latitude", xlab = "Longitude", main = "Finland",
-    panel = function(x, y, ...) {
-    panel.grid(h = -1, v = -1, col.line = grey(0.9))
-    panel.xyplot(x, y, ...)
-    panel.text(x, y, labels = df_Finland$hospital, 
-      col = "white", cex = 1.5, position = "top", offset = 1, fontfamily = "Times")
-  })
-
-compass <- north2(p1, symbol = 1)
-
-A <- plot_grid(p1, p2, nrow = 2, rel_widths = c(1, 1))
-B <- plot_grid(p3, NULL, compass, NULL, ncol = 1, rel_widths = c(1, 1, 0.333, 1), rel_heights = c(1, 0.333, 0.333, 0.333))
-plot_grid(A,B)
-
-#ggsave(filename = "map.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-```
 ```{r}
 # Outliers
-MyVar <- c("country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "continent", "no_of_beds", "daily_patient_visits", "ARG_SUM", "intI1_SUM", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
+MyVar <- c("country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "no_of_beds", "ARG_SUM", "intI1_SUM", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
 Mydotplot(df[,MyVar])
 
 # Identify the outlier
@@ -1115,7 +1041,6 @@ head(MyData)
 ```
 ## Simple model
 ```{r}
-#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
 cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 glht.M0 <- glht(M0, mcp(country = "Tukey"))
@@ -1239,12 +1164,9 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                hospital_section=as.factor(sample_data(resfinder_PHY_stat)$hospital_section),
                SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
-               category=as.factor(sample_data(resfinder_PHY_stat)$category),
                country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               continent=as.factor(sample_data(resfinder_PHY_stat)$continent),
                R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
-               daily_patient_visits=as.factor(sample_data(resfinder_PHY_stat)$daily_patient_visits),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
                A260_280=as.numeric(sample_data(resfinder_PHY_stat)$A260_280),
@@ -1255,8 +1177,6 @@ df$SSU_counts <- as.character(df$SSU_counts)
 df$SSU_counts <- as.numeric(df$SSU_counts)
 df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
 df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
-df$daily_patient_visits <- as.character(df$daily_patient_visits)
-df$daily_patient_visits <- as.numeric(df$daily_patient_visits)
 df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 
@@ -1283,7 +1203,6 @@ pvalues
 dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predict(M0, 
     newdata = df, type = "response", se.fit = T)$se.fit)
 
-#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
 cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 MGE_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
@@ -1315,12 +1234,9 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                hospital_section=as.factor(sample_data(resfinder_PHY_stat)$hospital_section),
                SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
-               category=as.factor(sample_data(resfinder_PHY_stat)$category),
                country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               continent=as.factor(sample_data(resfinder_PHY_stat)$continent),
                R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
-               daily_patient_visits=as.factor(sample_data(resfinder_PHY_stat)$daily_patient_visits),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
                A260_280=as.numeric(sample_data(resfinder_PHY_stat)$A260_280),
@@ -1331,8 +1247,6 @@ df$SSU_counts <- as.character(df$SSU_counts)
 df$SSU_counts <- as.numeric(df$SSU_counts)
 df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
 df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
-df$daily_patient_visits <- as.character(df$daily_patient_visits)
-df$daily_patient_visits <- as.numeric(df$daily_patient_visits)
 df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 
@@ -1359,7 +1273,6 @@ pvalues
 dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predict(M0, 
     newdata = df, type = "response", se.fit = T)$se.fit)
 
-#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
 cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 intI1_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
@@ -1423,19 +1336,14 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_cat_stat),
                hospital_section=as.factor(sample_data(resfinder_PHY_cat_stat)$hospital_section),
                SSU_counts=as.factor(sample_data(resfinder_PHY_cat_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_cat_stat)$hospital),
-               category=as.factor(sample_data(resfinder_PHY_cat_stat)$category),
                country=as.factor(sample_data(resfinder_PHY_cat_stat)$country),
-               continent=as.factor(sample_data(resfinder_PHY_cat_stat)$continent),
                R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_cat_stat)$R1_rpoB_counts),
                no_of_beds=as.factor(sample_data(resfinder_PHY_cat_stat)$no_of_beds),
-               daily_patient_visits=as.factor(sample_data(resfinder_PHY_cat_stat)$daily_patient_visits),
                sample_material=as.factor(sample_data(resfinder_PHY_cat_stat)$sample_material))
 df$SSU_counts <- as.character(df$SSU_counts)
 df$SSU_counts <- as.numeric(df$SSU_counts)
 df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
 df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
-df$daily_patient_visits <- as.character(df$daily_patient_visits)
-df$daily_patient_visits <- as.numeric(df$daily_patient_visits)
 df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 #str(df)
