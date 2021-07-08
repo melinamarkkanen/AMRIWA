@@ -652,6 +652,10 @@ class(world)
 gps <- metadata[!duplicated(metadata[,c('lat','long')]),]
 gps <- gps[ , c("country", "lat", "long", "hospital")] 
 gps <- subset(gps, country=="Benin" | country == "Burkina Faso")
+gps0 <- data.frame("Burkina Faso", "12.500000", "-1.666670", "H")
+rownames(gps0) <- "BFH13_S131"
+colnames(gps0) <- c("country", "lat", "long", "hospital")
+gps <- rbind(gps, gps0)
 
 # Add important cities
 gps_labels <- data.frame(country = c("country_name", "Benin", "Benin", "country_name", 
@@ -665,7 +669,7 @@ rownames(gps_labels) <- c("Benin", "Cotonou", "Parakou", "Burkina Faso",
                           "Ouagadougou", "Bobo Dioulasso", "Gulf of Guinea")
 
 gps_data <- rbind(gps, gps_labels)
-gps_data$Label <- c("nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd",
+gps_data$Label <- c("nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd",
                     "Benin", "Cotonou", "Parakou", "Burkina Faso", 
                     "Ouagadougou", "Bobo Dioulasso", "Gulf of Guinea")
 gps_data$lat <- as.numeric(gps_data$lat)
@@ -678,7 +682,7 @@ p_map1 <- ggplot(data = world) +
     geom_point(data = subset(gps_data, Label == "nd"), 
                aes(x = long, y = lat), size = 4, shape = 16, color = "#B2182B") +
     geom_text_repel(data = subset(gps_data, Label == "nd"), 
-                    mapping = aes(x = long, y = lat, label = hospital, family = "Times"), size = 9, 
+                    mapping = aes(x = long, y = lat, label = hospital, family = "Times"), size = 7.5, 
                     #hjust = -1.3, vjust = -0.1,
                     point.padding = 1e-06) +
   coord_sf(ylim = c(4.5, 14.75), xlim = c(-6, 3.95), expand = T) + 
@@ -693,8 +697,8 @@ p_map2 <- p_map1 +
                aes(x = long, y = lat), size = 5, shape = 9, color = "black") +
   geom_label_repel(data=subset(gps_data, Label == "Porto Novo" | Label == "Cotonou" | Label == "Parakou" | 
                              Label == "Ouagadougou" | Label == "Bobo Dioulasso"),  
-                      aes(x = long, y = lat, label = Label), color = "black", size = 10, family = "Times", 
-                   box.padding = 1.55)
+                      aes(x = long, y = lat, label = Label), color = "black", size = 8, family = "Times", 
+                   box.padding = 1.75)
 p_map2
 
 # Add countries
