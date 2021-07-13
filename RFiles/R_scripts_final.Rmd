@@ -4536,6 +4536,94 @@ p_leg
 ggsave(filename = "carbapenemases_grid.png",
        width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
+# ESBLs
+```{r}
+resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Cluster_name == "blaCTX-M-211_1_clust" | Cluster_name == "blaCTX-M-4_1_clust" |
+                                           Cluster_name == "blaCTX-M-8_1_clust" | Cluster_name == "blaCTX-M-110_1_clust" |
+                                           Cluster_name == "blaCTX-M-25_1_clust" | Cluster_name == "blaCTX-M-64_1_clust" |
+                                           Cluster_name == "blaCTX-M-74_1_clust" | Cluster_name == "blaCTX-M-151_1" |
+                                           Cluster_name == "blaPER-1_1_clust" | Cluster_name == "blaPER-2_1" |
+                                           Cluster_name == "blaPER-6_1" | Cluster_name == "blaRAHN-1_1_clust" |
+                                           Cluster_name == "blaRAHN-1_1_clust" | Cluster_name == "blaRAHN-2_2" | 
+                                           Cluster_name == "blaTEM-1A_1_clust" | Cluster_name == "blaVEB-1_1_clust" | 
+                                           Cluster_name == "blaBES-1_1" | Cluster_name == "blaTLA-1_1" | 
+                                           Cluster_name == "cfxA_1_clust" | Cluster_name == "cfxA6_1" | 
+                                           Cluster_name == "blaSHV-100_1_clust" | Cluster_name == "blaLUT-1_1" |
+                                           Cluster_name == "blaCME-1_1" | Cluster_name == "blaDES-1_1" | 
+                                           Cluster_name == "blaACI-1_1" | Cluster_name == "blaPME-1_1" | 
+                                           Cluster_name == "blaERP-1_1" | Cluster_name == "blaFAR-1_1")
+
+resfinder_PHY_Cluster <- subset_samples(resfinder_PHY_Cluster, sample_sums(resfinder_PHY_Cluster) != 0)
+
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 43)
+rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name") 
+rfc_plot <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARGs to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9, family = "Times", angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~hospital, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+        strip.background = element_rect(colour = "white"))
+rfc_plot
+```
+# Less famous carbs
+```{r}
+#carb: sim, ind, spm, fri, imi, sme, bkc, sfc, nmcA, imis, penA, blaEBR-1_1, cgb, bic, dim
+resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Cluster_name == "blaSIM-1_1" | Cluster_name == "blaIND-1_1_clust" |
+                                           Cluster_name == "blaIND-2_2_clust" | Cluster_name == "blaIND-3_1_clust" |
+                                           Cluster_name == "blaIND-4_1" | Cluster_name == "blaIND-5_1" |
+                                           Cluster_name == "blaIND-6_1" | Cluster_name == "blaIND-8_1_clust" |
+                                           Cluster_name == "blaIND-9_1" | Cluster_name == "blaSPM-1_1" |
+                                           Cluster_name == "blaFRI-1_1_clust" | Cluster_name == "blaFRI-5_1" |
+                                           Cluster_name == "imiS_1_clust" | Cluster_name == "blaSME-1_1_clust" | 
+                                           Cluster_name == "blaBKC-1_1" | Cluster_name == "blaSFC-1_1" | 
+                                           Cluster_name == "blaNMC-A_1_clust" | Cluster_name == "penA_1" | 
+                                           Cluster_name == "blaEBR-1_1" | Cluster_name == "blaCGB-1_1" | 
+                                           Cluster_name == "blaBIC-1_1" | Cluster_name == "blaDIM-1_1")
+
+resfinder_PHY_Cluster <- subset_samples(resfinder_PHY_Cluster, sample_sums(resfinder_PHY_Cluster) != 0)
+
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 43)
+rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name") 
+rfc_plot <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARGs to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9, family = "Times", angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~hospital, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+        strip.background = element_rect(colour = "white"))
+rfc_plot
+```
 # Taxonomy
 ```{r}
 # 15 most abundant taxa in hospital WW in each country
