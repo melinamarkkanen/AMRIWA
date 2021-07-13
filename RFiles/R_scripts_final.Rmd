@@ -4583,18 +4583,20 @@ rfc_plot
 ```
 # Less famous carbs
 ```{r}
-#carb: sim, ind, spm, fri, imi, sme, bkc, sfc, nmcA, imis, penA, blaEBR-1_1, cgb, bic, dim
-resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, Cluster_name == "blaSIM-1_1" | Cluster_name == "blaIND-1_1_clust" |
-                                           Cluster_name == "blaIND-2_2_clust" | Cluster_name == "blaIND-3_1_clust" |
-                                           Cluster_name == "blaIND-4_1" | Cluster_name == "blaIND-5_1" |
-                                           Cluster_name == "blaIND-6_1" | Cluster_name == "blaIND-8_1_clust" |
-                                           Cluster_name == "blaIND-9_1" | Cluster_name == "blaSPM-1_1" |
-                                           Cluster_name == "blaFRI-1_1_clust" | Cluster_name == "blaFRI-5_1" |
-                                           Cluster_name == "imiS_1_clust" | Cluster_name == "blaSME-1_1_clust" | 
-                                           Cluster_name == "blaBKC-1_1" | Cluster_name == "blaSFC-1_1" | 
-                                           Cluster_name == "blaNMC-A_1_clust" | Cluster_name == "penA_1" | 
-                                           Cluster_name == "blaEBR-1_1" | Cluster_name == "blaCGB-1_1" | 
-                                           Cluster_name == "blaBIC-1_1" | Cluster_name == "blaDIM-1_1")
+resfinder_PHY_Cluster <- subset_taxa(resfinder_PHY_stat, 
+                                           #Cluster_name == "blaSIM-1_1" | Cluster_name == "blaIND-1_1_clust" |
+                                           #Cluster_name == "blaIND-2_2_clust" | Cluster_name == "blaIND-3_1_clust" |
+                                           #Cluster_name == "blaIND-4_1" | Cluster_name == "blaIND-5_1" |
+                                           #Cluster_name == "blaIND-6_1" | Cluster_name == "blaIND-8_1_clust" |
+                                           #Cluster_name == "blaIND-9_1" | Cluster_name == "blaSPM-1_1" |
+                                           #Cluster_name == "blaFRI-1_1_clust" | Cluster_name == "blaFRI-5_1" |
+                                           #Cluster_name == "imiS_1_clust" | Cluster_name == "blaSME-1_1_clust" | 
+                                           Cluster_name == "blaBKC-1_1"
+                                           #Cluster_name == "blaSFC-1_1" | 
+                                           #Cluster_name == "blaNMC-A_1_clust" | Cluster_name == "penA_1" | 
+                                           #Cluster_name == "blaEBR-1_1" | Cluster_name == "blaCGB-1_1" | 
+                                           #Cluster_name == "blaBIC-1_1" | Cluster_name == "blaDIM-1_1"
+                                     )
 
 resfinder_PHY_Cluster <- subset_samples(resfinder_PHY_Cluster, sample_sums(resfinder_PHY_Cluster) != 0)
 
@@ -4623,6 +4625,36 @@ rfc_plot <- rfc +
   theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white"))
 rfc_plot
+
+# Check with CARD
+CARD_PHY_Cluster <- subset_taxa(CARD_PHY_stat, Gene == "BKC-1")
+CARD_PHY_Cluster <- subset_samples(CARD_PHY_Cluster, sample_sums(CARD_PHY_Cluster) != 0)
+
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 43)
+card <- plot_bar(CARD_PHY_Cluster, fill = "Gene") 
+card_plot <- card +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARGs to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9, family = "Times", angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~hospital, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+        strip.background = element_rect(colour = "white"))
+card_plot
 ```
 # Taxonomy
 ```{r}
@@ -4680,62 +4712,6 @@ mp_plot <- mp +
   facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
   theme(strip.text.x= element_text(size = 26, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=2))
-```
-# Global sewage, mcr (Hendriksen et al.)
-```{r}
-#GlobalSewage_ResFinder <- readRDS("GlobalSewage_ResFinder.rds")
-#tax_table_GlobalSewage <- data.frame(tax_table(GlobalSewage_ResFinder))
-#OTU_table_GlobalSewage <- data.frame(t(otu_table(GlobalSewage_ResFinder)))
-#GlobalSewage_metadata <- data.frame(GlobalSewage_ResFinder@sam_data)
-
-# Add country as column to metadata (GlobalSewage_metadata)
-#GlobalSewage_metadata$country <- rownames(GlobalSewage_metadata)
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "Viet Nam"] <- "Viet.Nam"
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "Sri Lanka"] <- "Sri.Lanka"
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "South Africa"] <- "South.Africa"
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "New Zealand"] <- "New.Zealand"
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "Czech Republic"] <- "Czech.Republic"
-#rownames(GlobalSewage_metadata)[rownames(GlobalSewage_metadata) == "Cote d'Ivoire"] <- "Cote.d.Ivoire"
-
-#GlobalSewage_metadata$continent <- c("Europe", "Oceania", "Europe", "Africa", "South America", "Europe", "Africa", "North America", "Africa", "Asia", "South America", "Africa", "Europe", "Europe", "Europe", "South America", "Africa", "Europe", "Africa", "Europe", "Europe", "Africa", "Europe", "Europe", "Asia", "Middle East", "Europe", "Middle East", "Europe", "Asia", "Africa", "Europe", "Europe", "Europe", "Europe", "Asia", "Europe", "Europe", "Asia", "Europe", "Oceania", "Africa", "Europe", "Asia", "South America", "Europe", "Africa", "Europe", "Asia", "Europe", "Europe", "Africa", "Europe", "Asia", "Europe", "Europe", "Africa", "Africa", "Middle East", "North America", "Asia", "Africa")
-
-# Check
-#identical(rownames(OTU_table_GlobalSewage), rownames(tax_table_GlobalSewage))
-#all(colnames(OTU_table_GlobalSewage) == rownames(GlobalSewage_metadata))
-
-#GlobalSewage_ResFinder <- phyloseq(otu_table(OTU_table_GlobalSewage, taxa_are_rows=TRUE), 
-#                       tax_table(as.matrix(tax_table_GlobalSewage)), sample_data(GlobalSewage_metadata))
-
-# All
-#GlobalSewage_ResFinder_mcr <- subset_taxa(GlobalSewage_ResFinder, Gene == "mcr-3.20" | Gene == "mcr-3.4" | Gene == "mcr-1.3" | Gene == "mcr-3.8" | Gene == "mcr-1.14" | Gene == "mcr-4.3" | Gene == "mcr-3.24" | Gene == "mcr-1.13" | Gene == "mcr-3.19" | Gene == "mcr-3.15" | Gene == "mcr-8" | Gene == "mcr-3.17" | Gene == "mcr-3.11" | Gene == "mcr-3.16" | Gene == "mcr-1.2" | Gene == "mcr-1.1" | Gene == "mcr-3.6" | Gene == "mcr-4.6" | Gene == "mcr-3.21" | Gene == "mcr-3.9" | Gene == "mcr-3.25" | Gene == "mcr-2.2" | Gene == "mcr-3.2" | Gene == "mcr-3.1" | Gene == "mcr-4.4" | Gene == "mcr-3.13" | Gene == "mcr-4.2" | Gene == "mcr-1.5" | Gene == "mcr-3.12" | Gene == "mcr-3.10" | Gene == "mcr-3.23" | Gene == "mcr-4.5" | Gene == "mcr-3.3" | Gene == "mcr-3.18" | Gene == "mcr-3.5" | Gene == "mcr-4.1" | Gene == "mcr-7.1" | Gene == "mcr-3.7" | Gene == "mcr-3.14" | Gene == "mcr-5.2" | Gene == "mcr-5.1")
-
-# Variants
-#GlobalSewage_ResFinder_mcr <- subset_taxa(GlobalSewage_ResFinder, Gene == "mcr-5.1" | Gene == "mcr-5.2")
-
-#cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98"), 41)
-#rfc <- plot_bar(GlobalSewage_ResFinder_mcr, fill = "Gene") 
-#rfc_plot <- rfc +
-#  geom_bar(stat="identity", color = NA, size = 0) +
-#  scale_fill_manual(values = cols) +
-#  labs(y = expression(bold("Relative abundance (ResFinder)"))) +
-#  ggtitle("ARG Abundance normalized to 16s rRNA") +
-#  theme_minimal() +
-#  theme(axis.text.x = element_text(size = 10, family = "Times", face = "bold", angle = 90),
-#        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
-#        axis.title.y = element_text(size = 30, family = "Times"),
-#        axis.title.x = element_blank(),
-#        legend.text = element_text(size = 18, family = "Times"),
-#        legend.title = element_blank(),
-#        legend.key = element_rect(size = 2, color = "white"),
-#        legend.key.size = unit(1, "cm"),
-#        legend.spacing.y = unit(2.2, "char"),
-#        panel.background = element_rect(fill = "#FFFCF3"),
-#        panel.grid.minor = element_blank(),
-#        panel.grid.major = element_blank(),
-#        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
-#  facet_grid(~continent, scales = "free", space = "free", labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
-#  theme(strip.text.x= element_text(size = 24, family = "Times", hjust = 0.5, vjust = 0.5, angle = 0),
-#        strip.background = element_rect(colour = "white"))
 ```
 ## Mantel tests
 ```{r}
