@@ -4656,6 +4656,36 @@ card_plot <- card +
         strip.background = element_rect(colour = "white"))
 card_plot
 ```
+# Disinfection resistance genes
+```{r}
+MGE_PHY_qac_plot <- subset_samples(MGE_PHY_qac, sample_sums(MGE_PHY_qac) != 0)
+
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 43)
+rfc <- plot_bar(MGE_PHY_qac_plot, fill = "Element") 
+rfc_plot <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARGs to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9, family = "Times", angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~hospital, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+        strip.background = element_rect(colour = "white"))
+rfc_plot
+```
 # Taxonomy
 ```{r}
 # 15 most abundant taxa in hospital WW in each country
