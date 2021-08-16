@@ -685,8 +685,16 @@ p_map1 <- ggplot(data = world) +
         axis.title = element_blank()) +
 annotation_scale(location = "bl", width_hint = 0.2, height = unit(0.3, "cm"))
 
-# Add cities
+# Add countries
 p_map2 <- p_map1 + 
+  geom_point(data = subset(gps_data, Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"),
+               aes(x = long, y = lat), size = 0, shape = 16, color = "black") +
+  geom_text_repel(data = subset(gps_data, Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"),
+                                                 aes(x = long, y = lat, label = Label), 
+                  color = "#4C4B49", size = 13, family = "Times")
+
+# Add cities
+p_map3 <- p_map2 + 
   geom_point(data = subset(gps_data, Label == "Porto Novo" | Label == "Cotonou" | Label == "Parakou" | 
                              Label == "Ouagadougou" | Label == "Bobo Dioulasso"),
                aes(x = long, y = lat), size = 5, shape = 9, color = "black") +
@@ -694,18 +702,12 @@ p_map2 <- p_map1 +
                              Label == "Ouagadougou" | Label == "Bobo Dioulasso"),  
                       aes(x = long, y = lat, label = Label), color = "black", size = 8, family = "Times", 
                    box.padding = 1.75)
-p_map2
-
-# Add countries
-p_map3 <- p_map2 + 
-  geom_point(data = subset(gps_data, Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"),
-               aes(x = long, y = lat), size = 0, shape = 16, color = "black") +
-  geom_text_repel(data = subset(gps_data, Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"),
-                                                 aes(x = long, y = lat, label = Label), 
-                  color = "#4C4B49", size = 13, family = "Times")
 p_map3
-
 ggsave(filename = "p_map.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+p_map2
+ggsave(filename = "p_map_notext.png",
        width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Fin
