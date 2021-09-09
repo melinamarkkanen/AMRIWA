@@ -4368,11 +4368,11 @@ rfc_plot <- rfc +
         axis.text.y = element_text(size = 16, family = "Times", angle = 0),
         axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-  #    legend.text = element_text(size = 14, family = "Times",  face = "italic"),
+   #   legend.text = element_text(size = 14, family = "Times",  face = "italic"),
   #    legend.title = element_blank(),
-  #     legend.key = element_rect(size = 1, color = "white"),
-  #     legend.key.size = unit(0.5, "cm"),
-  #     legend.spacing.y = unit(2, "char"),
+   #    legend.key = element_rect(size = 1, color = "white"),
+    #   legend.key.size = unit(0.5, "cm"),
+     #  legend.spacing.y = unit(2, "char"),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
@@ -4520,7 +4520,6 @@ rfc_plot4 <- rfc +
   theme(strip.text.x= element_text(size = 11, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 
-# OR
 layout <- "
 AAAAAA
 AAAAAA
@@ -4528,12 +4527,34 @@ AAAAAA
 BBBCCC
 DDDEE#
 "
-p <- rfc_plot + rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 + 
-  plot_layout(design = layout) + plot_annotation(tag_levels = list(c("A", "B", "C", "D", "E"))) &
+
+p <- rfc_plot + rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 +
+  plot_layout(design = layout) + plot_annotation(tag_levels = list(c("A", "B"))) &
   theme(plot.tag = element_text(size = 24, family = "Times"))
 
 p_leg <- p + inset_element(leg, left = 1.65, bottom = 1, right = 1, top = 0)
 p_leg
+
+ggsave(filename = "carbapenemases_grid.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+
+
+
+#KOPIO
+layout <- "
+AAAAAA
+AAAAAA
+AAAAAA
+BBBCCC
+DDDEE#
+"
+p_leg <- p + inset_element(leg, left = 1.65, bottom = 1, right = 1, top = 0)
+p_leg
+
+p <- rfc_plot + rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 + 
+  plot_layout(design = layout) + plot_annotation(tag_levels = list(c("A", "B"))) &
+  theme(plot.tag = element_text(size = 24, family = "Times"))
 
 ggsave(filename = "carbapenemases_grid.png",
        width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
