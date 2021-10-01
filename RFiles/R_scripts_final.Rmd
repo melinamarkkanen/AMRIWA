@@ -22,7 +22,7 @@ library(vegan)
 library(RColorBrewer)
 library(BiocManager)
 #BiocManager::install("microbiome")
-library(microbiome)
+#library(microbiome)
 #library(microbiomeutilities)
 library(ggplot2)
 library(knitr)
@@ -1746,8 +1746,8 @@ arg <- p_ord +
     geom_text_repel(mapping = aes(label = hospital), size = 4, family = "Times", hjust = 1.2, hjust = 0.5) +
     theme_minimal() + labs(title = "Resistome") +
     theme(plot.title = element_text(size = 20, family = "Times", face = "bold"),
-    #      legend.text = element_text(size = 18, family = "Times"),
-    #      legend.title = element_blank(),
+         # legend.text = element_text(size = 18, family = "Times"),
+         # legend.title = element_blank(),
           legend.position = "none",
           axis.title = element_text(size = 18, family = "Times"),
           axis.text = element_text(size = 18, family = "Times")) +
@@ -3754,6 +3754,7 @@ ann_colors <- list(country = c("Benin" = "#B2182B",
                                     "Finland" = "#2166AC"))
 
 colnames(new_df) <- gsub(pattern = "_[A-Z].*", replacement = "_", colnames(new_df))
+rownames(new_df) <- gsub(patter = "_", replacement = " ", rownames(new_df))
 
 ## Plot log
 newnames <- lapply(
@@ -3763,7 +3764,7 @@ newnames <- lapply(
 heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
                         border_color = "grey",
                         colorRampPalette(brewer.pal(9, "Blues"))(100), 
-                        main = "Relative abundance of clinically relevant species,\n (Metaphlan3, square root transormed)", 
+                        main = "Relative abundance of clinically relevant species\n (Metaphlan3, square root transformed)", 
                         angle_col = 90, legend = TRUE, fontsize_row = 11,
                         labels_row = as.expression(newnames),
                         filename = "eskape_heat.png",
@@ -4056,7 +4057,7 @@ resfinder_PHY_Cluster <- merge_phyloseq(resfinder_PHY_Cluster_1, resfinder_PHY_C
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
 alias <- factor(c("BFH1",	"BFH10",	"BFH11",	"BFH12",	"BFH13",	"BFH14",	"BFH15",	"BFH16",	"BFH17",	"BFH18",	"BFH19",	"BFH20",	"BFH21",	"BFH22",	"BFH23",	"BFH25",	"BFH28",	"BFH29",	"BFH30",	"BFH31",	"BFH32",	"BFH33",	"BFH34",	"BFH35",	"BFH36",	"BFH37",	"BFH38A",	"BFH39",	"BFH4",	"BFH40",	"BFH41",	"BFH6",	"BFH8",	"BFH9",	"BH01",	"BH02",	"BH03",	"BH05",	"BH06",	"BH07",	"BH09",	"BH27",	"BH29",	"BH30",	"BH34A",	"BH35",	"BH36",	"BH37",	"BH38",	"BH39",	"BH44",	"BH46",	"BH47",	"BH48",	"BH49",	"BH50",	"BH58",	"BH60",	"BH61",	"FH1",	"FH2",	"FH3",	"FH4",	"FH5",	"FH6",	"FH7",	"FH9"))
 
-hospital <- factor(c("F",	"G",	"G",	"G",	"H",	"H",	"H",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"F",	"J",	"J",	"G",	"G",	"G",	"A",	"A",	"A",	"A",	"A",	"A",	"A",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"C",	"C",	"C",	"C",	"C",	"C",	"D",	"D",	"D",	"K",	"K",	"K",	"M",	"M",	"M",	"N",	"L"))
+hospital <- factor(c("F",	"G",	"G",	"G",	"H",	"H",	"H",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"F",	"J",	"J",	"G",	"G",	"G",	"A",	"A",	"A",	"A",	"A",	"A",	"A",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"C",	"C",	"C",	"C",	"C",	"C",	"D",	"D",	"D",	"K",	"K",	"K",	"L",	"L",	"L",	"M",	"N"))
 
 rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name") 
 rfc_plot <- rfc +
@@ -4354,25 +4355,25 @@ resfinder_PHY_Cluster <- merge_phyloseq(resfinder_PHY_Cluster_1, resfinder_PHY_C
 
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 11)
 
-hospital <- factor(c("F",	"G",	"G",	"G",	"H",	"H",	"H",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"F",	"J",	"J",	"G",	"G",	"G",	"A",	"A",	"A",	"A",	"A",	"A",	"A",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"C",	"C",	"C",	"C",	"C",	"C",	"D",	"D",	"D",	"K",	"K",	"K",	"M",	"M",	"M",	"N",	"L"))
+hospital <- factor(c("F",	"G",	"G",	"G",	"H",	"H",	"H",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"I",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"J",	"F",	"J",	"J",	"G",	"G",	"G",	"A",	"A",	"A",	"A",	"A",	"A",	"A",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"B",	"C",	"C",	"C",	"C",	"C",	"C",	"D",	"D",	"D",	"K",	"K",	"K",	"L",	"L",	"L",	"M",	"N"))
 
 rfc <- plot_bar(resfinder_PHY_Cluster, fill = "Cluster_name") 
 rfc_plot <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  labs(y = expression(atop(bold("ARGs/16S rRNA")))) +
   ggtitle("Hospital wastewaters") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 18, family = "Times", angle = 0, hjust = 1, vjust = 1),
+  theme(axis.text.x = element_text(size = 19, family = "Times", angle = 0, hjust = 0.6, vjust = 1),
         axis.text.y = element_text(size = 16, family = "Times", angle = 0),
         axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-   #   legend.text = element_text(size = 14, family = "Times",  face = "italic"),
-  #    legend.title = element_blank(),
-   #    legend.key = element_rect(size = 1, color = "white"),
-    #   legend.key.size = unit(0.5, "cm"),
-     #  legend.spacing.y = unit(2, "char"),
+      #legend.text = element_text(size = 14, family = "Times",  face = "italic"),
+      #legend.title = element_blank(),
+      #legend.key = element_rect(size = 1, color = "white"),
+      #legend.key.size = unit(0.5, "cm"),
+      #legend.spacing.y = unit(2, "char"),
         legend.position = "none",
         panel.background = element_rect(fill = "#FFFDF9"),
         panel.grid.minor = element_blank(),
@@ -4415,7 +4416,7 @@ rfc_plot1 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   ggtitle("Benin") +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  labs(y = expression(atop(bold("ARGs/16S rRNA")))) +
       ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_feces)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
@@ -4444,7 +4445,7 @@ rfc <- plot_bar(resfinder_PHY_ben_drink, fill = "Cluster_name")
 rfc_plot2 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  labs(y = expression(atop(bold("ARGs/16S rRNA")))) +
       ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_drink)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
@@ -4472,7 +4473,7 @@ rfc <- plot_bar(resfinder_PHY_ben_other, fill = "Cluster_name")
 rfc_plot3 <- rfc +
   geom_bar(stat="identity", color = NA, size = 0) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  labs(y = expression(atop(bold("ARGs/16S rRNA")))) +
     ggtitle("Benin") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_other)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
@@ -4502,7 +4503,7 @@ rfc <- plot_bar(resfinder_PHY_BF_other, fill = "Cluster_name")
 rfc_plot4 <- rfc +
   geom_bar(stat="identity", size = 0, color = NA) +
   scale_fill_manual(values = cols, labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) +
-  labs(y = expression(atop(bold("ARGs/16s rRNA")))) +
+  labs(y = expression(atop(bold("ARGs/16S rRNA")))) +
   ggtitle("Burkina Faso") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_BF_other)))), labels=names, expression(bar("x"))) +
   theme_minimal() +
