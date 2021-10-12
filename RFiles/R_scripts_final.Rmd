@@ -623,7 +623,7 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
                country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
+              # R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts)
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
@@ -633,8 +633,8 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
               
 df$SSU_counts <- as.character(df$SSU_counts)
 df$SSU_counts <- as.numeric(df$SSU_counts)
-df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
-df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
+#df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
+#df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
 df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 ```
@@ -735,7 +735,7 @@ Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ```
 ```{r}
 # Outliers
-MyVar <- c("country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "no_of_beds", "ARG_SUM", "intI1_SUM", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
+MyVar <- c("SSU_counts", "ARG_SUM", "intI1_SUM", "M_Seqs_trimmed")
 Mydotplot(df[,MyVar])
 
 # Identify the outlier
@@ -752,7 +752,7 @@ Mydotplot(df[,MyVar])
 # a real observation, and there are not enough observations to be sure.
 
 # Collinearity
-MySel <- c("ARG_SUM", "intI1_SUM", "country", "hospital", "hospital_section", "SSU_counts", "R1_rpoB_counts", "continent", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
+MySel <- c("ARG_SUM", "intI1_SUM", "country", "hospital", "hospital_section", "SSU_counts", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
 Mypairs(df[,MySel])
 # Obviously, there is collinearity between continent and country.
 # We can continue with onlu country. Similarly we can apply only SSU_counts 
@@ -776,10 +776,10 @@ boxplot(SSU_counts ~ country,
         xlab = "country",
         data = df, 
         main = "SSU_counts")
-boxplot(R1_rpoB_counts ~ country, 
-        xlab = "country",
-        data = df, 
-        main = "rpoB counts")
+#boxplot(R1_rpoB_counts ~ country, 
+#        xlab = "country",
+#        data = df, 
+#        main = "rpoB counts")
 boxplot(M_Seqs_trimmed ~ country, 
         xlab = "country",
         data = df, 
@@ -1167,7 +1167,7 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
                hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
                country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
+               #R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
@@ -1628,7 +1628,8 @@ resfinder.p_ord <- p_ord +
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-#    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
+    #geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
+    #geom_text_repel(mapping = aes(label = alias), size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
     theme_minimal() + labs(title= "Resistome", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -1669,6 +1670,7 @@ metaphlan.p_ord <- p_ord +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
 #    geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
+#    geom_text_repel(mapping = aes(label = alias), size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
     theme_minimal() + labs(title= "Taxonomical composition", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -1707,6 +1709,7 @@ MGE.p_ord <- p_ord +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
   #geom_text_repel(mapping = aes(label = hospital), size = 7, family = "Times", hjust = 1.2) +
+  #geom_text_repel(mapping = aes(label = alias), size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
    theme_minimal() + labs(title= "Mobilome", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
     theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
           plot.subtitle = element_text(size = 20, family = "Times"),
@@ -4067,7 +4070,7 @@ rfc_plot <- rfc +
   ggtitle("Relative abundance of ARGs in hospital WW samples") +
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_Cluster)))), labels=hospital, expression(bar("x"))) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 0, hjust = 1, vjust = 1),
+  theme(axis.text.x = element_text(size = 12, family = "Times", angle = 90, hjust = 1, vjust = 1),
         axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 0),
         axis.title.y = element_text(size = 30, family = "Times"),
         axis.title.x = element_blank(),
@@ -4085,8 +4088,8 @@ rfc_plot <- rfc +
         strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
 rfc_plot
 
-ggsave(filename = "carbapenemases.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
+#ggsave(filename = "carbapenemases.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1) 
 ```
 ## Check out also with the CARD data
 ```{r}
@@ -4709,6 +4712,37 @@ rfc_plot <- rfc +
   theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
         strip.background = element_rect(colour = "white"))
 rfc_plot
+```
+# All ARGs by class
+```{r}
+cols <- get_palette(c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#5F5E98", "#331225"), 18)
+rfc <- plot_bar(resfinder_PHY_stat, fill = "Class") 
+rfc_plot <- rfc +
+  geom_bar(stat="identity", color = NA, size = 0) +
+  scale_fill_manual(values = cols) +
+  labs(y = expression(atop(bold("ARGs to 16s rRNA"), atop("ResFinder")))) +
+  ggtitle("Relative abundance of ARGs") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9, family = "Times", angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 28, family = "Times", face = "bold", angle = 90),
+        axis.title.y = element_text(size = 30, family = "Times"),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 18, family = "Times"),
+        legend.title = element_blank(),
+        legend.key = element_rect(size = 2, color = "white"),
+        legend.key.size = unit(1, "cm"),
+        legend.spacing.y = unit(2.2, "char"),
+        panel.background = element_rect(fill = "#FFFCF3"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        plot.title = element_text(size = 30, family = "Times", face = "bold")) +
+  facet_grid(~country, scales = "free", space = "free", labeller = label_wrap_gen(width = 30, multi_line = TRUE)) +
+  theme(strip.text.x= element_text(size = 20, family = "Times", hjust = 0, vjust = 0.5, angle = 0, face = "bold"),
+        strip.background = element_rect(colour = "white"))
+rfc_plot
+
+ggsave(filename = "resfinder_all_by_class.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 # Taxonomy
 ```{r}
