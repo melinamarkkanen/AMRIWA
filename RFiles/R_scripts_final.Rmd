@@ -14,46 +14,46 @@ setwd("~/Desktop/Git/AMRIWA/RFiles")
 ```
 ## Load required libraries
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
-library(tidyverse)
+#library(tidyverse)
 library(phyloseq)
-library(viridis)
+#library(viridis)
 library(stringr)
-library(vegan)
-library(RColorBrewer)
-library(BiocManager)
+#library(vegan)
+#library(RColorBrewer)
+#library(BiocManager)
 #BiocManager::install("microbiome")
 #library(microbiome)
 #library(microbiomeutilities)
-library(ggplot2)
+#library(ggplot2)
 library(knitr)
-library(ggpubr)
-library(pheatmap)
-library(MASS)
-library(gplots)
-library(grid)
-library(cowplot)
-library(ggpubr)
-library(DESeq2)
-library(plyr)
-library(multcomp)
-library(randomForest)
-library(corrplot)
-library(ggrepel)
+#library(ggpubr)
+#library(pheatmap)
+#library(MASS)
+#library(gplots)
+#library(grid)
+#library(cowplot)
+#library(ggpubr)
+#library(DESeq2)
+#library(plyr)
+#library(multcomp)
+#library(randomForest)
+#library(corrplot)
+#library(ggrepel)
 library(Hmisc)
 source("HighstatLibV13.R")
-library(ggcorrplot)
-library(plyr)
-library(lattice)
-library(VennDiagram)
-library(ggsn)
-library(sf)
-library(psych)
-library(usefun)
-library(patchwork)
-library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(ggspatial)
+#library(ggcorrplot)
+library(dplyr)
+#library(lattice)
+#library(VennDiagram)
+#library(ggsn)
+#library(sf)
+#library(psych)
+#library(usefun)
+#library(patchwork)
+#library(sf)
+#library(rnaturalearth)
+#library(rnaturalearthdata)
+#library(ggspatial)
 ```
 ## Load metadata
 ```{r, warning=F}
@@ -64,7 +64,6 @@ metadata$A260_280 <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$A260_280
 metadata$M_Seqs_trimmed <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$M_Seqs_trimmed)))
 metadata$lat <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$lat)))
 metadata$long <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$long)))
-#str(metadata)
 ```
 ## Load Metaxa2 results and create a phyloseq object
 ```{r}
@@ -96,57 +95,57 @@ metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Chloroplast"))
 # Add SSU counts to metadata
 metadata$SSU_counts <- sample_sums(metaxa_PHY)
 
-# Create phyloseq object with all samples
-# Exclude samples with low sequencing quality (BFH24_S142, BH63_S118, FH10_S171)
-metaxa_PHY = subset_samples(metaxa_PHY, alias != "BFH24" & alias != "BH63" & alias != "FH10")
-# Exclude samples from UK hospital whose sample collection does not match with other samples
-metaxa_PHY <- subset_samples(metaxa_PHY, country != "UK")
-
 ## Exclude biological / technical replicates
-metaxa_PHY <- subset_samples(metaxa_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & alias != "BH10"
-                                     & alias != "BFH38B" & alias != "FH8" & alias != "BH45" & alias != "BH59" & alias != "BH62")
+metaxa_PHY <- subset_samples(metaxa_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & 
+                               alias != "BH10" & alias != "BFH38B" & alias != "FH8" & 
+                               alias != "BH45" & alias != "BH59" & alias != "BH62")
 
-# Create phyloseq object with only hospital WW samples sequenced here
-metaxa_PHY_stat <- subset_samples(metaxa_PHY, category == "WA hospital effluent" | category == "North Eu hospital effluent")
+# Create phyloseq object with only HWW samples
+metaxa_PHY_stat <- subset_samples(metaxa_PHY, category == "WA hospital effluent" | 
+                                    category == "North Eu hospital effluent")
 
+# Create phyloseq objects (x 3) with equal group sizes for the statistical testing
+alias = data.frame(metaxa_PHY_stat@sam_data[["alias"]])
+colnames(alias) = "sample"
+BH <- data.frame(alias[grepl("BH.", alias$sample), ])
+colnames(BH) <- c("sample")
+## Include 8 random samples per country
+random_BH_1 <- sample_n(BH, 8)
+random_BH_2 <- sample_n(BH, 8)
+random_BH_3 <- sample_n(BH, 8)
 
-# Create phyloseq object with equal group for the statistical analysis
-## Include 8 samples per country
-#BH <- data.frame(c("BH01",	"BH02",	"BH03",	"BH05",	"BH06",	"BH07",	"BH09",	"BH27",	"BH29",	"BH30",	"BH34A",	"BH35",	"BH36",	#"BH37",	"BH38",	"BH39",	"BH44",	"BH46",	"BH47",	"BH48",	"BH49",	"BH50",	"BH58",	"BH60",	"BH61"))
-#colnames(BH) <- c("sample")
-#random_BH <- sample_n(BH, 8)
-
-#BFH <- data.frame(c("BFH1",	"BFH10",	"BFH11",	"BFH12",	"BFH13",	"BFH14",	"BFH15",	"BFH16",	"BFH17",	"BFH18",	"BFH19",	#"BFH20",	"BFH21",	"BFH22",	"BFH23",	"BFH25",	"BFH28",	"BFH29",	"BFH30",	"BFH31",	"BFH32",	"BFH33",	"BFH34",	"BFH35",	#"BFH36",	"BFH37",	"BFH38A",	"BFH39",	"BFH4",	"BFH40",	"BFH41",	"BFH6",	"BFH8",	"BFH9"))
-#colnames(BFH) <- c("sample")
-#random_BFH <- sample_n(BFH, 8)
+# Create phyloseq objects (x 3) with equal group sizes for the statistical testing
+alias = data.frame(metaxa_PHY_stat@sam_data[["alias"]])
+colnames(alias) = "sample"
+BFH <- data.frame(alias[grepl("BFH.", alias$sample), ])
+colnames(BFH) <- c("sample")
+## Include 8 random samples per country
+colnames(BFH) <- c("sample")
+random_BFH_1 <- sample_n(BFH, 8)
+random_BFH_2 <- sample_n(BFH, 8)
+random_BFH_3 <- sample_n(BFH, 8)
 
 # Sample set 1
-metaxa_PHY_stat_equal <- subset_samples(metaxa_PHY, alias == "BFH1" | 	alias == "BFH19" | 	alias == "BFH25" | 	alias == "BFH31" | alias == "BFH6" | 	alias == "BFH15" | 	alias == "BFH39" |  	alias == "BFH10" | alias == "BH02" | 	alias == "BH09" | 	alias == "BH27" |  	alias == "BH34A" | alias == "BH44" | 	alias == "BH58" | 	alias == "BH61" | 	alias == "BH47" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+metaxa_PHY_stat_equal1 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_1$sample[1]) | 	alias == paste(random_BFH_1$sample[2]) | 	alias == paste(random_BFH_1$sample[3]) | 	alias == paste(random_BFH_1$sample[4]) | alias == paste(random_BFH_1$sample[5]) | 	alias == paste(random_BFH_1$sample[6]) | 	alias == paste(random_BFH_1$sample[7]) |  	alias == paste(random_BFH_1$sample[8]) | alias == paste(random_BH_1$sample[1]) | 	alias == paste(random_BH_1$sample[2]) | 	alias == paste(random_BH_1$sample[3]) |  	alias == paste(random_BH_1$sample[4]) | alias == paste(random_BH_1$sample[5]) | 	alias == paste(random_BH_1$sample[6]) | 	alias == paste(random_BH_1$sample[7]) | 	alias == paste(random_BH_1$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-#metaxa_PHY_stat_equal <- subset_samples(metaxa_PHY, alias == "BFH34" | 	alias == "BFH35" | 	alias == "BFH18" | 	alias == "BFH32" | alias == "BFH14" | 	alias == "BFH41" | 	alias == "BFH22" |  	alias == "BFH23" |  alias == "BH48" | 	alias == "BH61" | 	alias == "BH30" |  	alias == "BH47" | alias == "BH46" | 	alias == "BH60" | 	alias == "BH39" | 	alias == "BH44" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" |  alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+metaxa_PHY_stat_equal2 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_2$sample[1]) | 	alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
-#metaxa_PHY_stat_equal <- subset_samples(metaxa_PHY, alias == "BFH20" | 	alias == "BFH8" | 	alias == "BFH30" | 	alias == "BFH16" | alias == "BFH33" | 	alias == "BFH25" | 	alias == "BFH10" |  	alias == "BFH37" |  alias == "BH49" | 	alias == "BH60" | 	alias == "BH36" |  	alias == "BH46" |  alias == "BH02" | 	alias == "BH30" | 	alias == "BH61" | 	alias == "BH37" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Create phyloseq object with only West African samples
-metaxa_PHY_WA_stat <- subset_samples(metaxa_PHY, continent == "West Africa")
-
-# Create phyloseq object with only West African samples
-metaxa_PHY_WA_WW_stat <- subset_samples(metaxa_PHY_WA_stat, category == "WA hospital effluent")
+metaxa_PHY_stat_equal3 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## Load data for rpoB
 ```{r}
 HMM_RESULT_TABLE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/HMM_RESULT_TABLE.txt", row.names=1)
 HMM_RESULT_TABLE$SUM = rowSums(HMM_RESULT_TABLE[,c(2,3)])
 
+# Sum of counts for R1 and R1 reads
 # Reorder samples to match metadata and add to metadata
-# SUM
 match <- match(rownames(metadata), rownames(HMM_RESULT_TABLE))
 rpoB_counts <- HMM_RESULT_TABLE[match,]
 metadata$rpoB_counts <- rpoB_counts$SUM
 
-# R1
+# Only R1 reads
 # Reorder samples to match metadata
 match <- match(rownames(metadata), rownames(HMM_RESULT_TABLE))
 R1_rpoB_counts <- HMM_RESULT_TABLE[match,]
@@ -156,9 +155,9 @@ metadata$R1_rpoB_counts <- rpoB_counts$R1
 ```{r}
 OTU_metaphlan <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
 
-# Make sure tax tabe is in order
-#tax_table_metaphlan <- read.table("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", quote="\"", comment.char="")
-#identical(tax_table_metaphlan$V1, OTU_metaphlan$clade_name)
+# Match sample order
+tax_table_metaphlan <- read.table("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", quote="\"", comment.char="")
+identical(tax_table_metaphlan$V1, OTU_metaphlan$clade_name)
 
 tax_table_metaphlan <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", header=FALSE, sep=";")
 colnames(tax_table_metaphlan) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
@@ -178,34 +177,24 @@ metaphlan_PHY <- phyloseq(otu_table(OTU_metaphlan, taxa_are_rows=TRUE),
 # Exclude Viruses, Eukaryota & Archaea
 metaphlan_PHY <- subset_taxa(metaphlan_PHY, Kingdom != "Viruses" & Kingdom != "Eukaryota" & Kingdom != "Archaea")
 
-# Create phyloseq object with all samples
-# Exclude samples with low sequencing quality (BFH24_S142, BH63_S118, FH10_S171)
-metaphlan_PHY = subset_samples(metaphlan_PHY, alias != "BFH24" & alias != "BH63" & alias != "FH10")
-# Exclude samples from UK hospital whose sample collection does not match with other samples
-metaphlan_PHY <- subset_samples(metaphlan_PHY, country != "UK")
 ## Exclude biological / technical replicates
-metaphlan_PHY <- subset_samples(metaphlan_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & alias != "BH10"
-                                     & alias != "BFH38B" & alias != "FH8" & alias != "BH45" & alias != "BH59" & alias != "BH62")
+metaphlan_PHY <- subset_samples(metaphlan_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & 
+                               alias != "BH10" & alias != "BFH38B" & alias != "FH8" & 
+                               alias != "BH45" & alias != "BH59" & alias != "BH62")
 
-# Create phyloseq object with only hospital WW samples sequenced here
-metaphlan_PHY_stat <- subset_samples(metaphlan_PHY, category == "WA hospital effluent" | category == "North Eu hospital effluent")
+# Create phyloseq object with only HWW samples
+metaphlan_PHY_stat <- subset_samples(metaphlan_PHY, category == "WA hospital effluent" | 
+                                       category == "North Eu hospital effluent")
 
-# Create phyloseq object with equal group for the statistical analysis
-## Include 8 samples per country
+# Create phyloseq objects (x 3) with equal group sizes for the statistical testing
 # Sample set 1
-metaphlan_PHY_stat_equal <- subset_samples(metaphlan_PHY, alias == "BFH1" | 	alias == "BFH19" | 	alias == "BFH25" | 	alias == "BFH31" | alias == "BFH6" | 	alias == "BFH15" | 	alias == "BFH39" |  	alias == "BFH10" | alias == "BH02" | 	alias == "BH09" | 	alias == "BH27" |  	alias == "BH34A" | alias == "BH44" | 	alias == "BH58" | 	alias == "BH61" | 	alias == "BH47" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+metaphlan_PHY_stat_equal1 <- subset_samples(metaphlan_PHY, alias == paste(random_BFH_1$sample[1]) | 	alias == paste(random_BFH_1$sample[2]) | 	alias == paste(random_BFH_1$sample[3]) | 	alias == paste(random_BFH_1$sample[4]) | alias == paste(random_BFH_1$sample[5]) | 	alias == paste(random_BFH_1$sample[6]) | 	alias == paste(random_BFH_1$sample[7]) |  	alias == paste(random_BFH_1$sample[8]) | alias == paste(random_BH_1$sample[1]) | 	alias == paste(random_BH_1$sample[2]) | 	alias == paste(random_BH_1$sample[3]) |  	alias == paste(random_BH_1$sample[4]) | alias == paste(random_BH_1$sample[5]) | 	alias == paste(random_BH_1$sample[6]) | 	alias == paste(random_BH_1$sample[7]) | 	alias == paste(random_BH_1$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-#metaphlan_PHY_stat_equal <- subset_samples(metaphlan_PHY, alias == "BFH34" | 	alias == "BFH35" | 	alias == "BFH18" | 	alias == "BFH32" | alias == "BFH14" | 	alias == "BFH41" | 	alias == "BFH22" |  	alias == "BFH23" |  alias == "BH48" | 	alias == "BH61" | 	alias == "BH30" |  	alias == "BH47" | alias == "BH46" | 	alias == "BH60" | 	alias == "BH39" | 	alias == "BH44" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" |  alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+metaphlan_PHY_stat_equal2 <- subset_samples(metaphlan_PHY, alias == paste(random_BFH_2$sample[1]) | 	alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
-#metaphlan_PHY_stat_equal <- subset_samples(metaphlan_PHY, alias == "BFH20" | 	alias == "BFH8" | 	alias == "BFH30" | 	alias == "BFH16" | alias == "BFH33" | 	alias == "BFH25" | 	alias == "BFH10" |  	alias == "BFH37" |  alias == "BH49" | 	alias == "BH60" | 	alias == "BH36" |  	alias == "BH46" |  alias == "BH02" | 	alias == "BH30" | 	alias == "BH61" | 	alias == "BH37" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Create phyloseq object with only West African samples
-metaphlan_PHY_WA_stat <- subset_samples(metaphlan_PHY, continent == "West Africa")
-
-# Create phyloseq object with only West African wastewaters
-metaphlan_PHY_WA_WW_stat <- subset_samples(metaphlan_PHY_WA_stat, category == "WA hospital effluent")
+metaphlan_PHY_stat_equal3 <- subset_samples(metaphlan_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## Load ResFinder results and create a phyloseq object
 ```{r}
@@ -216,7 +205,7 @@ match <- match(rownames(metadata), colnames(OTU_resfinder))
 OTU_resfinder <- OTU_resfinder[,match]
 all(colnames(OTU_resfinder) == rownames(metadata))
 
-# Tax_table (Cluster names created using cd-hit and 90 % identity and added manually to the tax table in excel)
+# Tax_table (Cluster names created using CD-HIT (v4.8.1) and 90 % identity and added manually to the tax table in excel)
 clusters_tax_table_resfinder <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table.txt", header=FALSE, sep=";")
 colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
 # Reorder columns
@@ -229,7 +218,7 @@ clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
 all(rownames(OTU_resfinder) == clusters_tax_table_resfinder$Gene)
 
 # Divide by ARG gene lengths
-## Get the lengths in terminal
+## ARG lengths in computed in terminal using SeqKit (v0.12.1)
 # seqkit fx2tab --length --name --header-line resfinder.fasta > resfinder_lengths.txt
 resfinder_lengths <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/resfinder_lengths.txt", header=FALSE, comment.char="#")
 all(rownames(clusters_tax_table_resfinder$Gene) == resfinder_lengths$V1)
@@ -241,115 +230,35 @@ all(rownames(metadata) == colnames(OTU_resfinder_length_SSU_norm))
 identical(OTU_resfinder_length_norm[2025, 5]/metadata$SSU_counts[5], OTU_resfinder_length_SSU_norm[2025, 5])
 all(rownames(OTU_resfinder_length_norm) == clusters_tax_table_resfinder$Gene)
 
-# Reload to get new row numbers
-write.table(OTU_resfinder_length_SSU_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_length_SSU_norm.txt", 
-            row.names=T, sep = "\t", col.names = T)
-OTU_resfinder_length_SSU_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_length_SSU_norm.txt", row.names=NULL)
-OTU_resfinder_length_SSU_norm$row.names<-NULL
+# Hide rownames
+str(OTU_resfinder_length_SSU_norm)
+rownames(OTU_resfinder_length_SSU_norm) <- c(1:3104)
 
-# Reload to get new row numbers
-write.table(clusters_tax_table_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=F, sep = "\t", col.names = T)
-clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=NULL)
+str(clusters_tax_table_resfinder)
+rownames(clusters_tax_table_resfinder) <- c(1:3104)
 
 # Combine to phyloseq object
 resfinder_PHY <- phyloseq(otu_table(OTU_resfinder_length_SSU_norm, taxa_are_rows = TRUE), sample_data(metadata), 
     tax_table(as.matrix(clusters_tax_table_resfinder)))
 
-# Exclude samples with low sequencing quality (BFH24_S142, BH63_S118, FH10_S171)
-resfinder_PHY = subset_samples(resfinder_PHY, alias != "BFH24" & alias != "BH63" & alias != "FH10")
-# Exclude samples from UK hospital whose sample collection does not match with other samples
-resfinder_PHY <- subset_samples(resfinder_PHY, country != "UK")
 ## Exclude biological / technical replicates
-resfinder_PHY <- subset_samples(resfinder_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & alias != "BH10"
-                                     & alias != "BFH38B" & alias != "FH8" & alias != "BH45" & alias != "BH59" & alias != "BH62")
-# Create phyloseq object with only hospital WW samples sequenced here
-resfinder_PHY_stat <- subset_samples(resfinder_PHY, category == "WA hospital effluent" | category == "North Eu hospital effluent")
+resfinder_PHY <- subset_samples(resfinder_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & 
+                                  alias != "BH10" & alias != "BFH38B" & alias != "FH8" & 
+                                  alias != "BH45" & alias != "BH59" & alias != "BH62")
 
-# Create phyloseq object with equal group for the statistical analysis
-## Include 8 samples per country
+# Create phyloseq object with only hospital WW samples sequenced here
+resfinder_PHY_stat <- subset_samples(resfinder_PHY, category == "WA hospital effluent" | 
+                                       category == "North Eu hospital effluent")
+
+# Create phyloseq objects (x 3) with equal group sizes for the statistical testing
 # Sample set 1
-resfinder_PHY_stat_equal <- subset_samples(resfinder_PHY, alias == "BFH1" | 	alias == "BFH19" | 	alias == "BFH25" | 	alias == "BFH31" | alias == "BFH6" | 	alias == "BFH15" | 	alias == "BFH39" |  	alias == "BFH10" | alias == "BH02" | 	alias == "BH09" | 	alias == "BH27" |  	alias == "BH34A" | alias == "BH44" | 	alias == "BH58" | 	alias == "BH61" | 	alias == "BH47" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+resfinder_PHY_stat_equal1 <- subset_samples(resfinder_PHY, alias == paste(random_BFH_1$sample[1]) | 	alias == paste(random_BFH_1$sample[2]) | 	alias == paste(random_BFH_1$sample[3]) | 	alias == paste(random_BFH_1$sample[4]) | alias == paste(random_BFH_1$sample[5]) | 	alias == paste(random_BFH_1$sample[6]) | 	alias == paste(random_BFH_1$sample[7]) |  	alias == paste(random_BFH_1$sample[8]) | alias == paste(random_BH_1$sample[1]) | 	alias == paste(random_BH_1$sample[2]) | 	alias == paste(random_BH_1$sample[3]) |  	alias == paste(random_BH_1$sample[4]) | alias == paste(random_BH_1$sample[5]) | 	alias == paste(random_BH_1$sample[6]) | 	alias == paste(random_BH_1$sample[7]) | 	alias == paste(random_BH_1$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-#resfinder_PHY_stat_equal <- subset_samples(resfinder_PHY, alias == "BFH34" | 	alias == "BFH35" | 	alias == "BFH18" | 	alias == "BFH32" | alias == "BFH14" | 	alias == "BFH41" | 	alias == "BFH22" |  	alias == "BFH23" |  alias == "BH48" | 	alias == "BH61" | 	alias == "BH30" |  	alias == "BH47" | alias == "BH46" | 	alias == "BH60" | 	alias == "BH39" | 	alias == "BH44" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" |  alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
+resfinder_PHY_stat_equal2 <- subset_samples(resfinder_PHY, alias == paste(random_BFH_2$sample[1]) | 	alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
-#resfinder_PHY_stat_equal <- subset_samples(resfinder_PHY, alias == "BFH20" | 	alias == "BFH8" | 	alias == "BFH30" | 	alias == "BFH16" | alias == "BFH33" | 	alias == "BFH25" | 	alias == "BFH10" |  	alias == "BFH37" |  alias == "BH49" | 	alias == "BH60" | 	alias == "BH36" |  	alias == "BH46" |  alias == "BH02" | 	alias == "BH30" | 	alias == "BH61" | 	alias == "BH37" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Create phyloseq object with only West African samples
-resfinder_PHY_WA_stat <- subset_samples(resfinder_PHY, continent == "West Africa")
-
-# Create phyloseq object with only West African wastewaters
-resfinder_PHY_WA_WW_stat <- subset_samples(resfinder_PHY_WA_stat, category == "WA hospital effluent")
-```
-## Normalization with rpoB
-```{r}
-OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
-
-# Reorder to match metadata
-match <- match(rownames(metadata), colnames(OTU_resfinder))
-OTU_resfinder <- OTU_resfinder[,match]
-all(colnames(OTU_resfinder) == rownames(metadata))
-
-# Tax_table (Cluster names created using cd-hit and 90 % identity and added manually to the tax table in excel)
-clusters_tax_table_resfinder <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table.txt", header=FALSE, sep=";")
-colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
-# Reorder columns
-col_order <- c("Class", "Cluster_name", "Gene")
-clusters_tax_table_resfinder <- clusters_tax_table_resfinder[, col_order]
-
-# Reorder tax_table to match OTU_resfinder
-match <- match(rownames(OTU_resfinder), clusters_tax_table_resfinder$Gene)
-clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
-all(rownames(OTU_resfinder) == clusters_tax_table_resfinder$Gene)
-
-# Normalization with rpoB counts
-OTU_resfinder_rpoB_norm <- t(t(OTU_resfinder)/metadata$rpoB_counts)
-all(rownames(metadata) == colnames(OTU_resfinder_rpoB_norm))
-all(rownames(OTU_resfinder_rpoB_norm) == clusters_tax_table_resfinder$Gene)
-
-# Reload to get new row numbers
-write.table(OTU_resfinder_rpoB_norm, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_rpoB_norm.txt", 
-            row.names=T, sep = "\t", col.names = T)
-OTU_resfinder_rpoB_norm <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/OTU_resfinder_rpoB_norm.txt", row.names=NULL)
-OTU_resfinder_rpoB_norm$row.names<-NULL
-
-# Reload to get new row numbers
-write.table(clusters_tax_table_resfinder, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=F, sep = "\t", col.names = T)
-clusters_tax_table_resfinder <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table_resfinder.txt", row.names=NULL)
-
-# Combine to phyloseq object
-resfinder_rpob_PHY <- phyloseq(otu_table(OTU_resfinder_rpoB_norm, taxa_are_rows = TRUE), sample_data(metadata), 
-    tax_table(as.matrix(clusters_tax_table_resfinder)))
-
-# Create phyloseq object with all samples
-# Exclude samples with low sequencing quality (BFH24_S142, BH63_S118, FH10_S171)
-resfinder_rpob_PHY = subset_samples(resfinder_rpob_PHY, alias != "BFH24" & alias != "BH63" & alias != "FH10")
-# Exclude samples from UK hospital whose sample collection does not match with other samples
-resfinder_rpob_PHY <- subset_samples(resfinder_rpob_PHY, country != "UK")
-## Exclude biological / technical replicates
-resfinder_rpob_PHY <- subset_samples(resfinder_rpob_PHY, alias != "BH31" & alias != "BH33" & alias != "BH34B" & alias != "BH10"
-                                     & alias != "BFH38B" & alias != "FH8" & alias != "BH45" & alias != "BH59" & alias != "BH62")
-
-# Create phyloseq object with only hospital WW samples sequenced here
-resfinder_rpob_PHY_stat <- subset_samples(resfinder_rpob_PHY, category == "WA hospital effluent" | category == "North Eu hospital effluent")
-
-# Create phyloseq object with equal group for the statistical analysis
-## Include 8 samples per country
-# Sample set 3
-resfinder_rpob_PHY_stat_equal <- subset_samples(resfinder_rpob_PHY, alias == "BFH1" | 	alias == "BFH19" | 	alias == "BFH25" | 	alias == "BFH31" | alias == "BFH6" | 	alias == "BFH15" | 	alias == "BFH39" |  	alias == "BFH10" | alias == "BH02" | 	alias == "BH09" | 	alias == "BH27" |  	alias == "BH34A" | alias == "BH44" | 	alias == "BH58" | 	alias == "BH61" | 	alias == "BH47" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Sample set 2
-#resfinder_rpob_PHY_stat_equal <- subset_samples(resfinder_rpob_PHY, alias == "BFH34" | 	alias == "BFH35" | 	alias == "BFH18" | 	alias == "BFH32" | alias == "BFH14" | 	alias == "BFH41" | 	alias == "BFH22" |  	alias == "BFH23" |  alias == "BH48" | 	alias == "BH61" | 	alias == "BH30" |  	alias == "BH47" | alias == "BH46" | 	alias == "BH60" | 	alias == "BH39" | 	alias == "BH44" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" |  alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Sample set 3
-#resfinder_rpob_PHY_stat_equal <- subset_samples(resfinder_rpob_PHY, alias == "BFH20" | 	alias == "BFH8" | 	alias == "BFH30" | 	alias == "BFH16" | alias == "BFH33" | 	alias == "BFH25" | 	alias == "BFH10" |  	alias == "BFH37" |  alias == "BH49" | 	alias == "BH60" | 	alias == "BH36" |  	alias == "BH46" |  alias == "BH02" | 	alias == "BH30" | 	alias == "BH61" | 	alias == "BH37" | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
-
-# Create phyloseq object with only West African samples
-resfinder_rpob_PHY_WA_stat <- subset_samples(resfinder_rpob_PHY, continent == "West Africa")
-
-# Create phyloseq object with only West African wastewaters
-resfinder_rpob_PHY_WA_WW_stat <- subset_samples(resfinder_rpob_PHY_WA_stat, category == "WA hospital effluent")
+resfinder_PHY_stat_equal3 <- subset_samples(resfinder_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## Load CARD results for the samples sequenced here
 ```{r}
