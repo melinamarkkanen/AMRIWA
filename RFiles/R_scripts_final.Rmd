@@ -35,7 +35,7 @@ library(ggpubr)
 #library(ggpubr)
 #library(DESeq2)
 #library(plyr)
-#library(multcomp)
+library(multcomp)
 #library(randomForest)
 #library(corrplot)
 library(ggrepel)
@@ -61,7 +61,7 @@ library(maps)
 metadata <-read.table("metadata.txt", sep="\t", header = T, row.names = 1, fill = 1, dec = ".", na.strings = "NA")
 
 metadata$DNA_ng_µl <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$DNA_ng_µl)))
-metadata$A260_380 <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$A260_380)))
+metadata$A260_280 <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$A260_280)))
 metadata$M_Seqs_trimmed <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$M_Seqs_trimmed)))
 metadata$lat <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$lat)))
 metadata$long <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$long)))
@@ -335,7 +335,6 @@ MGE_PHY_qac <- subset_taxa(MGE_PHY_qac, Class == "qacEdelta")
 ##### Modelling ARG abundance #####
 ## Data exploration
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
-
 df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                intI1_SUM=sample_sums(MGE_PHY_int_stat),
                MGE_SUM=sample_sums(MGE_PHY_stat),
@@ -347,7 +346,7 @@ df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
                long=as.factor(sample_data(resfinder_PHY_stat)$long),
                lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
-               A260_380=as.numeric(sample_data(resfinder_PHY_stat)$A260_280),
+               A260_280=as.numeric(sample_data(resfinder_PHY_stat)$A260_280),
                DNA_ng_µl=as.numeric(sample_data(resfinder_PHY_stat)$DNA_ng_µl),
                M_Seqs_trimmed=as.numeric(sample_data(resfinder_PHY_stat)$M_Seqs_trimmed))
               
@@ -452,32 +451,25 @@ Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ```
 
 ```{r}
-# Outliers
+# View possible outliers
 MyVar <- c("SSU_counts", "ARG_SUM", "intI1_SUM", "M_Seqs_trimmed")
 Mydotplot(df[,MyVar])
 
-# Identify outliers
-par(mfrow = c(1, 1))
-plot(x = df$country, 
- 	   y = df$SSU_counts)
-identify(x = df$country,
-	      y = df$SSU_counts)
-
 # Collinearity
-MySel <- c("ARG_SUM", "intI1_SUM", "country", "hospital", "hospital_section", "SSU_counts", "rpoB_counts", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
+MySel <- c("ARG_SUM", "intI1_SUM", "country", "hospital", "hospital_section", 
+           "SSU_counts", "rpoB_counts", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
 Mypairs(df[,MySel])
 
-#par(mfrow = c(1, 2))
 boxplot(ARG_SUM ~ country, data = df, main = "ARGs")
 boxplot(intI1_SUM ~ country, data = df, main = "intI1")
 
 # Numer of zeros in the response variable
-#100 * sum(df$ARG_SUM == 0) / nrow(df)
+100 * sum(df$ARG_SUM == 0) / nrow(df)
 
-#number of observations per level of a categorical covariate
+# Number of observations per level of a categorical covariate
 table(df$country)
 table(df$hospital)
-# Unequal number of hospitals. Let's not include that as a covariate.
+# Only < 3 samples in some hospital groups. Let's not include that as a covariate.
 
 # Conditional boxplots to study the collinearity of the covariates
 par(mfrow = c(2, 2))
@@ -485,10 +477,10 @@ boxplot(SSU_counts ~ country,
         xlab = "country",
         data = df, 
         main = "SSU_counts")
-#boxplot(R1_rpoB_counts ~ country, 
-#        xlab = "country",
-#        data = df, 
-#        main = "rpoB counts")
+boxplot(rpoB_counts ~ country, 
+        xlab = "country",
+        data = df, 
+        main = "rpoB counts")
 boxplot(M_Seqs_trimmed ~ country, 
         xlab = "country",
         data = df, 
@@ -498,11 +490,8 @@ boxplot(DNA_ng_µl ~ country,
         data = df, 
         main = "DNA_ng_µl")
 
-# There seems to be variation in the SSU_counts
-# between hospital WW collected in different countries.
-# Although the SSU and rpoB counts seemed to be collinear, 
-# it seems that the SSU_counts have a greater variance.
-# Let's pick that among these two.
+# There seems to be more variation in the SSU_counts between HWWs collected from different countries.
+# As the SSU and rpoB counts seemed to be collinear, we should pick only one of them, let's choose SSU.
 
 # Interactions
 # SSU counts and ARG abundances by country
@@ -515,9 +504,6 @@ p <- p + theme(text = element_text(size=15))
 p <- p + geom_smooth(method = "glm")
 p <- p + facet_grid(~country)
 p 
-# There seems to be some kind of interaction defined by country, 
-# since the smoothers are poistive/negative/with different slopes
-# among different countries.
 
 p <- ggplot(data = df,
             aes(x = SSU_counts, 
@@ -525,10 +511,13 @@ p <- ggplot(data = df,
 p <- p + geom_point()
 p <- p + xlab("SSU_counts") + ylab("IntI1")
 p <- p + theme(text = element_text(size=15))
-p <- p + geom_smooth(method = "glm") #You can also do glm
+p <- p + geom_smooth(method = "glm")
 p <- p + facet_grid(~country)
 p
-# There seems to be some kind of interaction defined by country.
+
+# There seems to be some kind of interaction defined by country, 
+# since the smoothers are poistive/negative/with different slopes
+# among different countries. 
 # However, the quality of the data (e.g. only few observations in Finland)
 # is too low to be able to include this interaction to the model.
 # Maybe it is good not to include this interaction to the model due to the low quality data.
@@ -550,7 +539,8 @@ p <- p + facet_grid(. ~ country)
 p
 # In Finland the steeper correlation relies solely on one datapoint
 # Thus it is difficult to say whether this is real. 
-# Due to the low quality of this data, this interactions should not be included in the model.
+# Due to the low quality of this data (e.g. only few observations in Finland), 
+# this interaction should not be included in the model.
 # We can however build a model and test whether it is significant.
 
 # Does the hospital section have a role?
@@ -565,52 +555,20 @@ boxplot(intI1_SUM ~ hospital_section,
         main = "hospital_section")
 # No.
 
-# ANALYSIS
-# The model:
-#Call:  glm(formula = ARG_SUM ~ country + SSU_counts + intI1_SUM + country:intI1_SUM, 
-#    family = Gamma(link = "log"), data = df)
-# would have been ideal, but was discarded due to the fact that the interactions were not 
-# based on high quality data and relied on single influental data points.
-
 # MODEL SELECTION
 # Let's fit a model with Gamma distribution with a log link.
+# Full model
 Mall <- glm(ARG_SUM ~ country + SSU_counts, + intI1_SUM,
            data = df, family="Gamma"(link="log"))
 summary(Mall)
 
+# Simpler model
 M1 <- glm(ARG_SUM ~ country,
            data = df, family="Gamma"(link="log"))
 summary(M1)
 step(M1, direction = "both", scope=formula(Mall))
 
-# We are left with:
-#Call:  glm(formula = ARG_SUM ~ country + intI1_SUM + SSU_counts, family = Gamma(link = "log"), 
-#    data = df)
-# Let us build the new selected model
-M1 <- glm(ARG_SUM ~ country + intI1_SUM + SSU_counts,
-           data = df, family="Gamma"(link="log"))
-summary(M1)
-#                      Estimate Std. Error t value Pr(>|t|)    
-#(Intercept)         -7.639e-01  1.502e-01  -5.085 3.65e-06 ***
-#countryBurkina Faso -3.405e-01  1.021e-01  -3.335 0.001443 ** 
-#countryFinland      -6.439e-01  1.637e-01  -3.935 0.000213 ***
-#intI1_SUM            1.878e+00  2.570e-01   7.308 6.28e-10 ***
-#SSU_counts           7.411e-06  2.196e-06   3.375 0.001278 ** 
-
-# Generalized R^2:
-(21.8860 - 7.9953) / 21.8860
-# R^2 = 0.6346843
-
-# Let's save also the simpliest model
-M0 <- glm(ARG_SUM ~ country + SSU_counts, data = df, family= "Gamma"(link="log"))
-summary(M0)
-
-# Generalized R^2:
-(21.886 - 14.580) / 21.886
-# R^2 = 0.3338207
-
 # MODEL VALIDATION
-
 # Homogeneity
 # Plot residuals vs fitted values
 F1 <- fitted(M1)
@@ -623,14 +581,17 @@ plot(x = F1,
 abline(h = 0, lty = 2)
 # No patterns, we are good.
 
+boxplot(E1 ~ country, 
+        data = df,
+        ylab = "Residuals")
+abline(h = 0)
+# Looks good.
+
 # Influential observations
 par(mfrow = c(1, 1))
 plot(cooks.distance(M1), type = "h", ylim = c(0, 1))
 abline(h = 1)
 # There are no influental observations
-#cooksd <- data.frame(cooks.distance(M1))
-#rownames(cooksd) <- rownames(M1[["data"]])
-#cooksd[cooksd$cooks.distance.M1. > 1,]
 
 # Normality
 par(cex.lab = 1.5, mar = c(5,5,2,2))
@@ -638,8 +599,8 @@ E1 <- resid(M1)
 hist(E1, breaks = 15, xlab = "Residuals", main = "")
 
 # Independence due to model misfit
-df$E1 <- E1   #Put E1 inside the df
-MySel <- c("SSU_counts", "intI1_SUM", "country", "M_Seqs_trimmed")
+df$E1 <- E1
+MySel <- c("SSU_counts", "intI1_SUM", "country")
 MyMultipanel.ggp2(Z = df, 
                   varx = MySel, 
                   vary = "E1", 
@@ -649,113 +610,18 @@ MyMultipanel.ggp2(Z = df,
                   addHorizontalLine = TRUE) 
 # Some / No clear non-linear patterns in these graphs.
 
-boxplot(E1 ~ country, 
-        data = df,
-        ylab = "Residuals")
-abline(h = 0)
-# Looks good.
-
 # Check for spatial dependency
-# Spatial patterns in the residuals?
 MyCex <- 3 * abs(E1) / max(E1)
 MyCol <- ifelse(E1 > 0, "red", "blue")
-
 xyplot(long ~ lat, data = df, cex = MyCex, col = MyCol)
-
-xyplot(long ~ lat, data = df_Benin, cex = MyCex, col = MyCol)
-
-xyplot(long ~ lat, data = df_BF, cex = MyCex, col = MyCol)
-
-xyplot(long ~ lat, data = df_Finland, cex = MyCex, col = MyCol)
-# In general, some spatial dependency can be detected. 
-# However, the number of samples in different locations is quite low.
-
-# MODEL INTERPRETATION
-M1 <- glm(ARG_SUM ~ country + SSU_counts + intI1_SUM,
-           data = df, family="Gamma"(link="log"))
-summary(M1)
-
-M0 <- glm(ARG_SUM ~ country,
-           data = df, family="Gamma"(link="log"))
-summary(M0)
-
-# Fit model
-# Predictions
-glht.M1 <- glht(M1, mcp(country = "Tukey"))
-summary(glht(glht.M1))
-
-pvalues <- tibble::tribble(
-  ~group1, ~group2, ~p,
-      "Burkina Faso",     "Finland", 0.07249,
-      "Benin",     "Burkina Faso", 0.00214,
-      "Benin",     "Finland", 0.001,
-  )
-pvalues
-
-cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
-
-# Plot
-dfA <- cbind(df, Mean = predict(M1, newdata = df, type = "response"), SE = predict(M1, 
-    newdata = df, type = "response", se.fit = T)$se.fit)
-
-resfinder_M1 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
-  geom_line() + 
-  geom_jitter(data = dfA, aes(x = country, y = ARG_SUM, color = country), size = 12, alpha = 1, width = 0.3) + 
-#  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + geom_point(size = 0.9) + 
-  theme_linedraw() + 
-  theme(axis.text.x = element_text(angle = 0, size = 32, family = "Times", face = "bold"), 
-        axis.title.x = element_blank(),
-        axis.text.y = element_text(size = 28, family = "Times"),
-        axis.title.y = element_text(size = 36, family = "Times"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 28, family = "Times"),
-        plot.title = element_text(size = 40, family = "Times")) +
-  labs(y = "ARGs normalized to 16S rRNA", x = "") + 
-  guides(color = FALSE, alpha = FALSE) + 
-  labs(title = "Sum relative abundance of ARGs (ResFinder)")
-resfinder_M1 + stat_pvalue_manual(pvalues, label = "p", y.position = 4, step.increase = 0.05, tip.length = 0.01, size = 9)
-
-#ggsave(filename = "resfinder_sum_M1_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-
-# OR
-MyData <- ddply(df, 
-                .(country), 
-                summarise,
-                intI1_SUM = seq(min(intI1_SUM), 
-                                    max(intI1_SUM), 
-                                    length = 25),
-                SSU_counts = seq(min(SSU_counts), 
-                                   max(SSU_counts), 
-                                   length = 25))
-head(MyData)
-
-P1 <- predict(M1, newdata = MyData, se = TRUE, type = "response")
-
-MyData$Pred <- P1$fit                    #Predicted values
-MyData$selo <- P1$fit - 1.96 * P1$se.fit #lower bound
-MyData$seup <- P1$fit + 1.96 * P1$se.fit #lower bound
-head(MyData)
-
-# Plot
-#cols <- get_palette(c("#B2182B", "#44AA99", "#2166AC"), 3)
-
-#p <- ggplot()
-#p <- p + geom_point(data = df, aes(y = ARG_SUM, x = intI1_SUM, col = country), shape = 16, size = 3)
-#p <- p + xlab("intI1_SUM") + ylab("ARG_SUM")
-#p <- p + theme(text = element_text(size=15)) 
-#p <- p + geom_line(data = MyData, aes(x = intI1_SUM, y = Pred, col = country, group = country))
-#p <- p + geom_ribbon(data = MyData, aes(x = intI1_SUM, ymax = seup, ymin = selo, group = country,col = country, fill = country),
-#                     alpha = 0.5) + scale_color_manual(values=cols) + theme_minimal()
-#ggsave(filename = "predict_M1_new.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+# In general, that no sig. spatial dependency can be detected.
 ```
-## Simple model
+## Plot model
 ```{r}
 cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
-glht.M0 <- glht(M0, mcp(country = "Tukey"))
-summary(glht(glht.M0))
+glht.M1 <- glht(M1, mcp(country = "Tukey"))
+summary(glht(glht.M1))
 
 pvalues <- tibble::tribble(
   ~group1, ~group2, ~p,
@@ -765,10 +631,10 @@ pvalues <- tibble::tribble(
   )
 pvalues
 
-dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predict(M0, 
+dfA <- cbind(df, Mean = predict(M1, newdata = df, type = "response"), SE = predict(M1, 
     newdata = df, type = "response", se.fit = T)$se.fit)
 
-resfinder_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
+resfinder_M1 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
   geom_line() + 
   geom_jitter(data = dfA, aes(x = country, y = ARG_SUM, color = country), size = 7.5, alpha = 1, width = 0.3) + 
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + geom_point(size = 0.9) + 
@@ -780,13 +646,14 @@ resfinder_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(val
         legend.position = "none",
         plot.title = element_text(size = 18, family = "Times", face = "bold")) +
   labs(y = "Normalized to 16S rRNA", x = "") + 
-  guides(color = FALSE, alpha = FALSE) + 
+  guides(color = "none", alpha = "none") + 
   labs(title = "Relative sum abundance of ARGs")
-ARG_sum <- resfinder_M0 + stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.increase = 0.05, tip.length = 0.01, size = 5)
+ARG_sum <- resfinder_M1 + 
+  stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.increase = 0.05, tip.length = 0.01, size = 5)
 ARG_sum
 
-ggsave(filename = "resfinder_sum_M0_new.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "resfinder_sum_M1.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Hospitals / hospital sections
 ```{r}
@@ -868,33 +735,6 @@ summary(glht(glht.M0))
 ```
 ##### Modelling MGE abundance #####
 ```{r}
-## Data exploration
-df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
-               intI1_SUM=sample_sums(MGE_PHY_int_stat),
-               MGE_SUM=sample_sums(MGE_PHY_stat),
-               hospital_section=as.factor(sample_data(resfinder_PHY_stat)$hospital_section),
-               SSU_counts=as.factor(sample_data(resfinder_PHY_stat)$SSU_counts),
-               hospital=as.factor(sample_data(resfinder_PHY_stat)$hospital),
-               country=as.factor(sample_data(resfinder_PHY_stat)$country),
-               #R1_rpoB_counts=as.factor(sample_data(resfinder_PHY_stat)$R1_rpoB_counts),
-               no_of_beds=as.factor(sample_data(resfinder_PHY_stat)$no_of_beds),
-               long=as.factor(sample_data(resfinder_PHY_stat)$long),
-               lat=as.factor(sample_data(resfinder_PHY_stat)$lat),
-               A260_380=as.numeric(sample_data(resfinder_PHY_stat)$A260_380),
-               DNA_ng_µl=as.numeric(sample_data(resfinder_PHY_stat)$DNA_ng_µl),
-               M_Seqs_trimmed=as.numeric(sample_data(resfinder_PHY_stat)$M_Seqs_trimmed))
-              
-df$SSU_counts <- as.character(df$SSU_counts)
-df$SSU_counts <- as.numeric(df$SSU_counts)
-df$R1_rpoB_counts <- as.character(df$R1_rpoB_counts)
-df$R1_rpoB_counts <- as.numeric(df$R1_rpoB_counts)
-df$no_of_beds <- as.character(df$no_of_beds)
-df$no_of_beds <- as.numeric(df$no_of_beds)
-
-df$long <- as.numeric(gsub(",", ".", gsub("\\.", "", df$long)))
-df$lat <- as.numeric(gsub(",", ".", gsub("\\.", "", df$lat)))                   
-#str(df)
-
 # Simple model
 M0 <- glm(MGE_SUM ~ country,
            data = df, family="Gamma"(link="log"))
