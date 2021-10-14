@@ -29,8 +29,6 @@ library(cowplot)
 library(DESeq2)
 library(multcomp)
 library(ggrepel)
-library(Hmisc)
-source("HighstatLibV13.R")
 library(ggcorrplot)
 library(dplyr)
 library(VennDiagram)
@@ -439,15 +437,6 @@ Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ```
 
 ```{r}
-# View possible outliers
-MyVar <- c("SSU_counts", "ARG_SUM", "intI1_SUM", "M_Seqs_trimmed")
-Mydotplot(df[,MyVar])
-
-# Collinearity
-MySel <- c("ARG_SUM", "intI1_SUM", "country", "hospital", "hospital_section", 
-           "SSU_counts", "rpoB_counts", "A260_280", "DNA_ng_µl", "M_Seqs_trimmed")
-Mypairs(df[,MySel])
-
 boxplot(ARG_SUM ~ country, data = df, main = "ARGs")
 boxplot(intI1_SUM ~ country, data = df, main = "intI1")
 
