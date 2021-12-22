@@ -727,11 +727,11 @@ as_ggplot(leg_ord)
 #resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 #adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-#resfinder_temp <- subset_samples(resfinder_PHY_stat_equal2, (country == "Benin" | country == "Burkina Faso"))
+#resfinder_temp <- subset_samples(resfinder_PHY_stat_equal1, (country == "Benin" | country == "Burkina Faso"))
 #resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 #adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 
-#resfinder_temp <- subset_samples(resfinder_PHY_stat_equal3, (country == "Burkina Faso" | country == "Finland"))
+#resfinder_temp <- subset_samples(resfinder_PHY_stat_equal1, (country == "Burkina Faso" | country == "Finland"))
 #resfinder_dist <- vegdist(t(otu_table(resfinder_temp)), dist = "horn")
 #adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 ```
@@ -767,11 +767,11 @@ metaphlan.p_ord
 #metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 #adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-#metaphlan_temp <- subset_samples(metaphlan_PHY_stat_equal2, (country == "Benin" | country == "Burkina Faso"))
+#metaphlan_temp <- subset_samples(metaphlan_PHY_stat_equal1, (country == "Benin" | country == "Burkina Faso"))
 #metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 #adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 
-#metaphlan_temp <- subset_samples(metaphlan_PHY_stat_equal3, (country == "Burkina Faso" | country == "Finland"))
+#metaphlan_temp <- subset_samples(metaphlan_PHY_stat_equal1, (country == "Burkina Faso" | country == "Finland"))
 #metaphlan_dist <- vegdist(t(otu_table(metaphlan_temp)), dist = "horn")
 #adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 ```
@@ -805,11 +805,11 @@ MGE.p_ord
 #MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
 #adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
 
-#MGE_temp <- subset_samples(MGE_PHY_stat_equal2, (country == "Benin" | country == "Burkina Faso"))
+#MGE_temp <- subset_samples(MGE_PHY_stat_equal1, (country == "Benin" | country == "Burkina Faso"))
 #MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
 #adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
 
-#MGE_temp <- subset_samples(MGE_PHY_stat_equal3, (country == "Burkina Faso" | country == "Finland"))
+#MGE_temp <- subset_samples(MGE_PHY_stat_equal1, (country == "Burkina Faso" | country == "Finland"))
 #MGE_dist <- vegdist(t(otu_table(MGE_temp)), dist = "horn")
 #adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
 ```
