@@ -41,6 +41,7 @@ library(rnaturalearthdata)
 library(ggspatial)
 library(rgeos)
 library(maps)
+library(Hmisc)
 ```
 ## Load metadata
 ```{r, warning=F}
@@ -315,8 +316,8 @@ MGE_PHY_int <- subset_taxa(MGE_PHY_int, Class == "intI1")
 MGE_PHY_int_stat <- tax_glom(MGE_PHY_stat, taxrank = "Class")
 MGE_PHY_int_stat <- subset_taxa(MGE_PHY_int_stat, Class == "intI1")
 
-MGE_PHY_qac <- tax_glom(MGE_PHY_stat, taxrank = "Class")
-MGE_PHY_qac <- subset_taxa(MGE_PHY_qac, Class == "qacEdelta")
+MGE_PHY_qac_stat <- tax_glom(MGE_PHY_stat, taxrank = "Class")
+MGE_PHY_qac_stat <- subset_taxa(MGE_PHY_qac_stat, Class == "qacEdelta")
 ```
 # Modelling ARG abundance
 ## Data exploration
@@ -1837,11 +1838,167 @@ neg <- cor_data_filt[which(cor_data_filt$r < 0), ]
 #write.table(neg, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/neg_qac.txt", 
 #            row.names=F, sep = "\t", col.names = T)
 ```
+## Correlation of intI & qacEdelta and all ARGs, * with all ARGs *
+```{r}
+# intI1
+tax <- data.frame(clusters_tax_table_resfinder)
+tax$n <- rownames(tax)
+tax$sp <- rep("sp", times = 3104)
+rownames(tax) <- paste(tax$sp, tax$n, sep="")
+tax <- tax[c(-4, -5)]
+
+args <- resfinder_PHY_stat
+int <- MGE_PHY_int_stat
+
+arg_matrix <- as.data.frame(otu_table(args))
+arg_matrix$n <- rownames(arg_matrix)
+arg_matrix$sp <- rep("sp", times = 3104)
+rownames(arg_matrix) <- paste(arg_matrix$sp, arg_matrix$n, sep="")
+arg_matrix <- arg_matrix[c(-68, -69)]
+
+arg_matrix <- arg_matrix[which(rowSums(arg_matrix) > 0), ]
+
+match <- match(rownames(arg_matrix), rownames(tax))
+arg_tax <- tax[match,]
+
+rownames(arg_matrix) <- arg_tax$Gene
+
+int_matrix <- data.frame(sample_sums(otu_table(int)))
+arg_matrix <- t(arg_matrix)
+
+correl<-corr.test(arg_matrix, int_matrix, use="pairwise", method="pearson",
+                            adjust="fdr",alpha=.05,ci=TRUE)
+
+r <- data.frame(correl$r)
+p <- data.frame(correl$p)
+p.ad <- data.frame(correl$p.adj)
+
+cor_data <- data.frame(r, p, p.ad)
+cor_data$Gene <- rownames(cor_data)
+colnames(cor_data) <- c("r", "p", "p.ad", "Gene")
+
+cor_data_filt <- cor_data[which(cor_data$p < 0.05), ]
+
+pos_all <- cor_data_filt[which(cor_data_filt$r > 0), ]
+neg_all <- cor_data_filt[which(cor_data_filt$r < 0), ]
+
+
+write.table(pos_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/pos_all.txt", 
+            row.names=F, sep = "\t", col.names = T)
+
+write.table(neg_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/neg_all.txt", 
+            row.names=F, sep = "\t", col.names = T)
+
+# qacEdelta
+tax <- data.frame(clusters_tax_table_resfinder)
+tax$n <- rownames(tax)
+tax$sp <- rep("sp", times = 3104)
+rownames(tax) <- paste(tax$sp, tax$n, sep="")
+tax <- tax[c(-4, -5)]
+
+args <- resfinder_PHY_stat
+qac <- MGE_PHY_qac_stat
+
+arg_matrix <- as.data.frame(otu_table(args))
+arg_matrix$n <- rownames(arg_matrix)
+arg_matrix$sp <- rep("sp", times = 3104)
+rownames(arg_matrix) <- paste(arg_matrix$sp, arg_matrix$n, sep="")
+arg_matrix <- arg_matrix[c(-68, -69)]
+
+arg_matrix <- arg_matrix[which(rowSums(arg_matrix) > 0), ]
+
+match <- match(rownames(arg_matrix), rownames(tax))
+arg_tax <- tax[match,]
+
+rownames(arg_matrix) <- arg_tax$Gene
+
+qac_matrix <- data.frame(sample_sums(otu_table(qac)))
+arg_matrix <- t(arg_matrix)
+
+correl<-corr.test(arg_matrix, qac_matrix, use="pairwise", method="pearson",
+                            adjust="fdr",alpha=.05,ci=TRUE)
+
+r <- data.frame(correl$r)
+p <- data.frame(correl$p)
+p.ad <- data.frame(correl$p.adj)
+
+cor_data <- data.frame(r, p, p.ad)
+cor_data$Gene <- rownames(cor_data)
+colnames(cor_data) <- c("r", "p", "p.ad", "Gene")
+
+cor_data_filt <- cor_data[which(cor_data$p < 0.05), ]
+
+pos_all <- cor_data_filt[which(cor_data_filt$r > 0), ]
+neg_all <- cor_data_filt[which(cor_data_filt$r < 0), ]
+
+
+write.table(pos_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/pos_all.txt", 
+            row.names=F, sep = "\t", col.names = T)
+
+write.table(neg_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/neg_all.txt", 
+            row.names=F, sep = "\t", col.names = T)
+```
+
+# Alternative figure for IntI1 & ARGs
+```{r}
+# Ben-Fin
+benfin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Benin")
+top_20 <- subset_taxa(benfin, Gene == "lnu(F)_3_AJ561197" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC5_1_JN408080" | Gene == "aac(6')-IIc_1_NC_012555" | Gene == "blaCARB-2_1_M69058" | Gene == "ant(2'')-Ia_6_AJ871915" | Gene == "blaOXA-129_1_FJWZ01000025" | Gene == "dfrA22_4_AJ628423" | Gene ==  "blaVEB-1_3_DQ393569" | Gene == "blaAER-1_1_U14748" | Gene == "ant(2'')-Ia_10_HM367617" | Gene == "aph(2'')-Id_1_AF016483" | Gene == "blaVEB-1_1_HM370393" | Gene == "catQ_1_M55620" | Gene == "blaVEB-5_1_EF420108" | Gene == "blaCARB-11_1_AY008290" | Gene == "blaCARB-1_1_AF313471" | Gene == "sul3_2_AJ459418" | Gene == "dfrA15_2_AF221900" | Gene == "cmlA1_1_M64556" | Gene == "blaOXA-211_1_JN861779" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-334_1_KF203108" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-309_1_HF947514" | Gene == "blaOXA-427_1_KX827604" | Gene == "dfrA3_1_J03306" | Gene == "VanHOX_1_KF478993" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-280_1_APPZ01000001" | Gene == "cphA1_1_AY261379" | Gene == "VanHAX_2_M97297" | Gene == "cphA2_6_AHU60294" | Gene == "blaMOX-3_1_EU515248" | Gene == "VanHBX_1_AF192329" | Gene == "tet(39)_1_KT346360")
+
+data <- otu_table(top_20)
+
+match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
+names <- clusters_tax_table_resfinder[match,]
+all(rownames(data) == rownames(names))
+
+rownames(data) <- paste(names$Gene)
+
+# Annotations
+match <- match(rownames(data), rownames(cor_data))
+corr <- cor_data[match,]
+
+mod <- within(corr, r[p >= 0.05] <- 0)
+r <- data.frame(mod$r)
+
+cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey")
+cor_annotation
+ggsave(filename = "cor_annotation.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 25)
+
+# BF_Fin
+bffin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Burkina Faso")
+top_20 <- subset_taxa(bffin, Gene == "dfrB5_1_AY943084" | Gene == "blaCMY-4_1_LNHZ01000079" | Gene == "sul4_1_MG649393" | Gene == "dfrA15_2_AF221900" | Gene == "blaOXA-46_1_AF317511" | Gene == "blaOXA-101_1_AM412777" | Gene == "dfrA15_1_AF156486" |  Gene == "blaOXA-7_1_X75562" | Gene == "qnrVC1_1_EU436855" | Gene == "lnu(F)_3_AJ561197" | Gene == "nimA_1_X71444" | Gene == "blaVIM-5_1_DQ023222" | Gene == "dfrA15_4_AJ867237" | Gene == "blaOXA-56_1_AY445080" | Gene == "catQ_1_M55620" | Gene == "blaVIM-38_1_KC469971" | Gene == "blaCMY-130_1_KP207589" | Gene == "blaCMY-59_1_NG_048854" | Gene == "qnrVC4_1_GQ891757" | Gene == "blaVIM-25_1_HM750249" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-334_1_KF203108" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-211_1_JN861779" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-309_1_HF947514" | Gene == "VanHOX_1_KF478993" | Gene == "VanHAX_2_M97297" | Gene == "VanHBX_1_AF192329" | Gene == "blaOXA-275_1_APPJ01000001" | Gene == "aadA11_2_AJ567827" | Gene == "VanHAX_1_FJ866609" | Gene == "qnrB21_1_FJ611948" | Gene == "VanC4XY_1_EU151752" | Gene == "mef(A)_3_AF227520" | Gene == "cphA2_6_AHU60294")
+
+data <- otu_table(top_20)
+
+match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
+names <- clusters_tax_table_resfinder[match,]
+all(rownames(data) == rownames(names))
+
+rownames(data) <- paste(names$Gene)
+
+# Annotations
+match <- match(rownames(data), rownames(cor_data))
+corr <- cor_data[match,]
+
+mod <- within(corr, r[p >= 0.05] <- 0)
+r <- data.frame(mod$r)
+
+cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey")
+cor_annotation
+ggsave(filename = "cor_annotation.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 34)
+```
+
 ## Figures for correlation matrix for ARGs & intI1/qacEdelta
 ```{r}
 intI1 <- data.frame(sample_sums(MGE_PHY_int_stat))
 colnames(intI1) <- c("intI1")
-qacEdelta <- data.frame(sample_sums(MGE_PHY_qac))
+qacEdelta <- data.frame(sample_sums(MGE_PHY_qac_stat))
 colnames(qacEdelta) <- c("qacEdelta")
 
 # DESeq2: Fin-Ben
@@ -1857,6 +2014,7 @@ all(rownames(arg_data) == BenFin20$Row.names)
 rownames(arg_data) <- BenFin20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1866,7 +2024,9 @@ cor <- rcorr(as.matrix(df))
 M <- cor$r
 p_mat <- cor$P
 M1 <- M[ , -c(1:20)]
+M1 <- M1[-c(21:22),] 
 p_mat1 <- p_mat[ , -c(1:20)]
+p_mat1 <- p_mat1[-c(21:22),]
 
 # Finland
 FinBen20 <- Fin_Ben[1:20,]
@@ -1879,6 +2039,7 @@ all(rownames(arg_data) == FinBen20$Row.names)
 rownames(arg_data) <- FinBen20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1888,7 +2049,9 @@ cor <- rcorr(as.matrix(df))
 M <- cor$r
 p_mat <- cor$P
 M2 <- M[ , -c(1:20)]
+M2 <- M2[-c(21:22),] 
 p_mat2 <- p_mat[ , -c(1:20)]
+p_mat2 <- p_mat2[-c(21:22),]
 
 # DESeq2: Fin-BF
 # BF
@@ -1903,6 +2066,7 @@ all(rownames(arg_data) == BFFin20$Row.names)
 rownames(arg_data) <- BFFin20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1911,7 +2075,9 @@ cor <- rcorr(as.matrix(df))
 M <- cor$r
 p_mat <- cor$P
 M3 <- M[ , -c(1:20)]
+M3 <- M3[-c(21:22),] 
 p_mat3 <- p_mat[ , -c(1:20)]
+p_mat3 <- p_mat3[-c(21:22),]
 
 # Finland
 FinBF20 <- Fin_BF[1:20,]
@@ -1924,6 +2090,7 @@ all(rownames(arg_data) == FinBF20$Row.names)
 rownames(arg_data) <- FinBF20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1932,7 +2099,9 @@ cor <- rcorr(as.matrix(df))
 M <- cor$r
 p_mat <- cor$P
 M4<- M[ , -c(1:20)]
+M4 <- M4[-c(21:22),] 
 p_mat4 <- p_mat[ , -c(1:20)]
+p_mat4 <- p_mat4[-c(21:22),]
 
 # Plot with ggcorrplot
 # For the legend
