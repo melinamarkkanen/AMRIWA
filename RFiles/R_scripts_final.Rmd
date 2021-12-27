@@ -934,7 +934,7 @@ cor <- ggplot(mge_res, aes(x=ARGs, y=MGEs)) +
         plot.title = element_text(size = 36, family = "Times"),
         plot.subtitle = element_text(size = 28, family = "Times")) +
  xlab("ARG") + ylab("MGEs") +
-  labs(title= "Correlation of relative sums of ARGs and MGEs", subtitle = "Hospital WWs in Benin (25), BF (34) and Finland (8)")
+  labs(title= "Correlation of relative sums of ARGs and MGEs",)
 cor2 <- cor + stat_cor(method = "pearson", label.x = 2, label.y = 1.5)
 cor2
 
