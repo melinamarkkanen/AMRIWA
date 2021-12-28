@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 setwd("~/Desktop/Git/AMRIWA/RFiles")
 ```
 ## Load required libraries
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE}
 library(phyloseq)
 library(stringr)
 library(vegan)
@@ -44,7 +44,7 @@ library(Hmisc)
 ```
 # Load data
 ## metadata
-```{r, warning=F}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 metadata <-read.table("metadata.txt", sep="\t", header = T, row.names = 1, fill = 1, dec = ".", na.strings = "NA")
 
 metadata$DNA_ng_µl <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$DNA_ng_µl)))
@@ -54,7 +54,7 @@ metadata$lat <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$lat)))
 metadata$long <- as.numeric(gsub(",", ".", gsub("\\.", "", metadata$long)))
 ```
 ## Metaxa2 results
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 metaxa_genus <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaxa_genus.txt")
 
 # Create OTU table
@@ -123,7 +123,7 @@ metaxa_PHY_stat_equal2 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_3
 metaxa_PHY_stat_equal3 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## rpoB
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 HMM_RESULT_TABLE <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/HMM_RESULT_TABLE.txt", row.names=1)
 HMM_RESULT_TABLE$SUM = rowSums(HMM_RESULT_TABLE[,c(2,3)])
 
@@ -140,7 +140,7 @@ R1_rpoB_counts <- HMM_RESULT_TABLE[match,]
 metadata$R1_rpoB_counts <- rpoB_counts$R1
 ```
 ## Metaphlan3 results
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_metaphlan <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
 
 # Match sample order
@@ -185,7 +185,7 @@ metaphlan_PHY_stat_equal2 <- subset_samples(metaphlan_PHY, alias == paste(random
 metaphlan_PHY_stat_equal3 <- subset_samples(metaphlan_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## ResFinder results
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -247,7 +247,7 @@ resfinder_PHY_stat_equal2 <- subset_samples(resfinder_PHY, alias == paste(random
 resfinder_PHY_stat_equal3 <- subset_samples(resfinder_PHY, alias == paste(random_BFH_3$sample[1]) | 	alias == paste(random_BFH_3$sample[2]) | 	alias == paste(random_BFH_3$sample[3]) | 	alias == paste(random_BFH_3$sample[4]) | alias == paste(random_BFH_3$sample[5]) | 	alias == paste(random_BFH_3$sample[6]) | 	alias == paste(random_BFH_3$sample[7]) |  	alias == paste(random_BFH_3$sample[8]) | alias == paste(random_BH_3$sample[1]) | 	alias == paste(random_BH_3$sample[2]) | 	alias == paste(random_BH_3$sample[3]) |  	alias == paste(random_BH_3$sample[4]) | alias == paste(random_BH_3$sample[5]) | 	alias == paste(random_BH_3$sample[6]) | 	alias == paste(random_BH_3$sample[7]) | 	alias == paste(random_BH_3$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 	alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 ```
 ## MGE results
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_MGE <-as.matrix(read.table("cp_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -318,7 +318,7 @@ MGE_PHY_qac_stat <- tax_glom(MGE_PHY_stat, taxrank = "Class")
 MGE_PHY_qac_stat <- subset_taxa(MGE_PHY_qac_stat, Class == "qacEdelta")
 ```
 # Correlation between SSU & rpoB counts
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 SSU_counts <- data.frame(sample_data(resfinder_PHY_stat)$SSU_counts)
 R1_rpoB_counts <- data.frame(sample_data(resfinder_PHY_stat)$R1_rpoB_counts)
 bacterial_counts <- cbind(SSU_counts, R1_rpoB_counts)
@@ -335,7 +335,6 @@ p <- ggplot(bacterial_counts, aes(x=SSU_counts, y=R1_rpoB_counts)) +
  xlab("16s rRNA counts") + ylab("R1 rpoB counts") +
   labs(title= "Correlation of 16s rRNA and rpoB counts", subtitle = "Hospital WWs in Benin (25), BF (34) and Finland (8)")
 cor <- p + stat_cor(method = "pearson", label.x = 100000, label.y = 1000, )
-cor
 
 correl<-corr.test(SSU_counts, R1_rpoB_counts, use="pairwise", method="pearson",
                             adjust="fdr",alpha=.05,ci=TRUE)
@@ -348,7 +347,7 @@ p.ad <- data.frame(correl$p.adj)
 ```
 # Modelling ARG abundance
 ## Gather data into data frame
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat),
                intI1_SUM=sample_sums(MGE_PHY_int_stat),
                MGE_SUM=sample_sums(MGE_PHY_stat),
@@ -372,7 +371,7 @@ df$no_of_beds <- as.character(df$no_of_beds)
 df$no_of_beds <- as.numeric(df$no_of_beds)
 ```
 ## Draw maps
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Plot maps for sample sites in Benin and Burkina Faso
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
@@ -438,12 +437,12 @@ p_map3 <- p_map2 +
                    box.padding = 1.75)
 
 # Save with or without the city labels
-p_map2
-ggsave(filename = "p_map_notext.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-p_map3
-ggsave(filename = "p_map.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#p_map2
+#ggsave(filename = "p_map_notext.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#p_map3
+#ggsave(filename = "p_map.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 # Plot maps for sample sites in Finland
 gps <- metadata[!duplicated(metadata[,c('lat','long')]),]
@@ -463,11 +462,8 @@ Fin_map <- ggplot(data = world) +
 
 Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ```
-## Data exploration
-```{r, include=FALSE}
-boxplot(ARG_SUM ~ country, data = df, main = "ARGs")
-boxplot(intI1_SUM ~ country, data = df, main = "intI1")
-
+## Data exploration using library HighstatLabv13
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Number of zeros in the response variable
 100 * sum(df$ARG_SUM == 0) / nrow(df)
 
@@ -479,58 +475,52 @@ table(df$hospital)
 # Let's fit a model with Gamma distribution with a log link.
 M0 <- glm(ARG_SUM ~ country,
            data = df, family="Gamma"(link="log"))
-summary(M0)
 
 # MODEL VALIDATION
 # Homogeneity
 # Plot residuals vs fitted values
-F1 <- fitted(M0)
-E1 <- resid(M0, type = "pearson")
-par(mfrow = c(1,1), cex.lab = 1.5, mar = c(5,5,2,2))
-plot(x = F1, 
-     y = E1,
-     xlab = "Fitted values",
-     ylab = "Pearson residuals")
-abline(h = 0, lty = 2)
+#F1 <- fitted(M0)
+#E1 <- resid(M0, type = "pearson")
+#par(mfrow = c(1,1), cex.lab = 1.5, mar = c(5,5,2,2))
+#plot(x = F1,      y = E1,     xlab = "Fitted values",     ylab = "Pearson residuals")
+#abline(h = 0, lty = 2)
 # No patterns, we are good.
 
-boxplot(E1 ~ country, 
-        data = df,
-        ylab = "Residuals")
-abline(h = 0)
+#boxplot(E1 ~ country, data = df,  ylab = "Residuals")
+#abline(h = 0)
 # Looks good.
 
 # Influential observations
-par(mfrow = c(1, 1))
-plot(cooks.distance(M0), type = "h", ylim = c(0, 1))
-abline(h = 1)
+#par(mfrow = c(1, 1))
+#plot(cooks.distance(M0), type = "h", ylim = c(0, 1))
+#abline(h = 1)
 # There are no influental observations
 
 # Normality
-par(cex.lab = 1.5, mar = c(5,5,2,2))
-E1 <- resid(M0)
-hist(E1, breaks = 15, xlab = "Residuals", main = "")
+#par(cex.lab = 1.5, mar = c(5,5,2,2))
+#E1 <- resid(M0)
+#hist(E1, breaks = 15, xlab = "Residuals", main = "")
 
 # Independence due to model misfit
-df$E1 <- E1
-MySel <- c("SSU_counts", "intI1_SUM", "country")
-MyMultipanel.ggp2(Z = df, 
-                  varx = MySel, 
-                  vary = "E1", 
-                  ylab = "Residuals",
-                  addSmoother = TRUE,
-                  addRegressionLine = FALSE,
-                  addHorizontalLine = TRUE) 
+#df$E1 <- E1
+#MySel <- c("SSU_counts", "intI1_SUM", "country")
+#MyMultipanel.ggp2(Z = df, 
+#                  varx = MySel, 
+#                  vary = "E1", 
+#                  ylab = "Residuals",
+#                  addSmoother = TRUE,
+#                  addRegressionLine = FALSE,
+#                  addHorizontalLine = TRUE) 
 # Some / No clear non-linear patterns in these graphs.
 
 # Check for spatial dependency
-MyCex <- 3 * abs(E1) / max(E1)
-MyCol <- ifelse(E1 > 0, "red", "blue")
-xyplot(long ~ lat, data = df, cex = MyCex, col = MyCol)
+#MyCex <- 3 * abs(E1) / max(E1)
+#MyCol <- ifelse(E1 > 0, "red", "blue")
+#xyplot(long ~ lat, data = df, cex = MyCex, col = MyCol)
 # In general, that no sig. spatial dependency can be detected.
 ```
 ## Plot model (ARGs)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 M0 <- glm(ARG_SUM ~ country,
            data = df, family="Gamma"(link="log"))
 summary(M0)
@@ -568,13 +558,13 @@ resfinder_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(val
   labs(title = "Relative sum abundance of ARGs")
 ARG_sum <- resfinder_M0 + 
   stat_pvalue_manual(pvalues, label = "p", y.position = 2.3, step.increase = 0.05, tip.length = 0.01, size = 5)
-ARG_sum
+#ARG_sum
 
 #ggsave(filename = "resfinder_sum_M0.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Plot model (MGEs)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 M1 <- glm(MGE_SUM ~ country,
            data = df, family="Gamma"(link="log"))
 summary(M1)
@@ -612,13 +602,13 @@ MGE_M1 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=co
   labs(title = "Relative sum abundance of MGEs")
 MGE_sum <- MGE_M1 + 
   stat_pvalue_manual(pvalues, label = "p", y.position = 7, step.increase = 0.05, tip.length = 0.01, size = 5)
-MGE_sum
+#MGE_sum
 
 #ggsave(filename = "MGE_sum_M1_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Plot model (intI1)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 M2 <- glm(intI1_SUM ~ country,
            data = df, family="Gamma"(link="log"))
 summary(M2)
@@ -656,26 +646,26 @@ intI1_M2 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=
   labs(title = "Relative sum abundance of intI1")
 intI1_sum <- intI1_M2 + 
   stat_pvalue_manual(pvalues, label = "p", y.position = 1.05, step.increase = 0.05, tip.length = 0.01, size = 5)
-intI1_sum
+#intI1_sum
 
 #ggsave(filename = "intI1_sum_M2_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 # Plot figures in grids
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 design <-"
 ###
 ABC
 ###
 "
-ARG_sum + MGE_sum + intI1_sum + plot_layout(design = design) + plot_annotation(tag_levels = c("A", "B", "C")) &
-  theme(plot.tag = element_text(size = 24, family = "Times"))
+#ARG_sum + MGE_sum + intI1_sum + plot_layout(design = design) + plot_annotation(tag_levels = c("A", "B", "C")) &
+#  theme(plot.tag = element_text(size = 24, family = "Times"))
 
 #ggsave(filename = "sums_grid.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Plot models by hospitals / hospital sections (ARGs)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Benin
 resfinder_PHY_stat_Ben <- subset_samples(resfinder_PHY_stat, country == "Benin")
 df<-data.frame(ARG_SUM=sample_sums(resfinder_PHY_stat_Ben),
@@ -729,7 +719,7 @@ summary(glht(glht.M4))
 ```
 # Ordinations
 ## ARGs (ResFinder)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 resfinder_PHY_ord <- ordinate(resfinder_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(resfinder_PHY_stat, resfinder_PHY_ord, color = "country")
 resfinder.p_ord <- p_ord + 
@@ -747,9 +737,8 @@ resfinder.p_ord <- p_ord +
           axis.text = element_text(size = 18, family = "Times")) +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-resfinder.p_ord
 
-leg_ord <- get_legend(resfinder.p_ord)
+#leg_ord <- get_legend(resfinder.p_ord)
 
 # Convert to a ggplot and print
 #as_ggplot(leg_ord)
@@ -772,7 +761,7 @@ leg_ord <- get_legend(resfinder.p_ord)
 #adonis(resfinder_dist ~ country, data = data.frame(sample_data(resfinder_temp), permutations = 9999))
 ```
 ## Taxa (Metaphlan3)
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 PHY = transform_sample_counts(metaphlan_PHY_stat, function(x) 1E6 * x/sum(x))
 
 metaphlan_PHY_ord <- ordinate(PHY, method = "PCoA", distance = "horn")
@@ -792,7 +781,6 @@ metaphlan.p_ord <- p_ord +
           axis.text = element_text(size = 18, family = "Times")) +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-metaphlan.p_ord
 
 # Save
 #ggsave(filename = "ord_metaphlan_new.png",
@@ -812,7 +800,7 @@ metaphlan.p_ord
 #adonis(metaphlan_dist ~ country, data = data.frame(sample_data(metaphlan_temp), permutations = 9999))
 ```
 ## MGEs
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 MGE_PHY_ord <- ordinate(MGE_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(MGE_PHY_stat, MGE_PHY_ord, color = "country")
 MGE.p_ord <- p_ord + 
@@ -830,7 +818,6 @@ MGE.p_ord <- p_ord +
           axis.text = element_text(size = 18, family = "Times")) +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-MGE.p_ord
 
 # Save
 #ggsave(filename = "ord_mge_new.png",
@@ -850,7 +837,7 @@ MGE.p_ord
 #adonis(MGE_dist ~ country, data = data.frame(sample_data(MGE_temp), permutations = 9999))
 ```
 # Plot ordinations in figure panel
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 resfinder_PHY_ord <- ordinate(resfinder_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(resfinder_PHY_stat, resfinder_PHY_ord, color = "country")
 arg <- p_ord + 
@@ -867,7 +854,6 @@ arg <- p_ord +
     coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-arg
 
 # Data into counts
 PHY = transform_sample_counts(metaphlan_PHY_stat, function(x) 1E6 * x/sum(x))
@@ -888,7 +874,6 @@ mp <- p_ord +
     coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-mp
 
 MGE_PHY_ord <- ordinate(MGE_PHY_stat, method = "PCoA", distance = "horn")
 p_ord <- plot_ordination(MGE_PHY_stat, MGE_PHY_ord, color = "country")
@@ -906,13 +891,12 @@ mge <- p_ord +
   coord_fixed() +
     guides(fill = guide_legend(override.aes = list(linetype = 0)),
          color = guide_legend(override.aes = list(linetype = 0, size=5)))
-mge
 
 p <- arg + mp + mge +
   plot_layout(nrow = 2) + plot_annotation(tag_levels = list(c("A", "B", "C"))) &
   theme(plot.tag = element_text(size = 24, family = "Times"), plot.tag.position = c(0, 1))
 
-p_leg <- p + inset_element(leg_ord, left = 1, bottom = 1, right = 1.7, top = 0)
+#p_leg <- p + inset_element(leg_ord, left = 1, bottom = 1, right = 1.7, top = 0)
 
 # Save
 #ggsave(filename = "ord_patch_supp.png",
@@ -921,7 +905,7 @@ p_leg <- p + inset_element(leg_ord, left = 1, bottom = 1, right = 1.7, top = 0)
 # DESeq2
 ## ARGs
 ### Fin-Ben
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -977,7 +961,7 @@ resfinder_deseq_stat <- subset_samples(resfinder_deseq, category == "WA hospital
 # Take pair wise comparisons
 deseq_PHY = subset_samples(resfinder_deseq_stat, country == "Benin" | country == "Finland")
 
-hist(log10(apply(otu_table(deseq_PHY), 1, var)), xlab = "log10(variance)")
+#hist(log10(apply(otu_table(deseq_PHY), 1, var)), xlab = "log10(variance)")
 
 # Let's set a threashold for the variance
 varianceThreshold = 50
@@ -1012,15 +996,15 @@ sorted_sigtab <- sigtab_resfinder[order(-sigtab_resfinder$log2FoldChange), ]
 Fin_Ben <- subset(sorted_sigtab,log2FoldChange>=0)
 Ben_Fin <- subset(sorted_sigtab,log2FoldChange<=0)
 Ben_Fin <- Ben_Fin[order(Ben_Fin$log2FoldChange), ]
-head(Fin_Ben)
-head(Ben_Fin)
+#head(Fin_Ben)
+#head(Ben_Fin)
 ```
 ### BF-Fin
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(resfinder_deseq_stat, country == "Burkina Faso" | country == "Finland")
 
-hist(log10(apply(otu_table(deseq_PHY), 1, var)), xlab = "log10(variance)")
+#hist(log10(apply(otu_table(deseq_PHY), 1, var)), xlab = "log10(variance)")
 
 # Let's set a threashold for the variance
 varianceThreshold = 50
@@ -1035,7 +1019,7 @@ dds$category <- relevel(dds$country, "Burkina Faso", "Finland")
 dds = DESeq(dds, fitType = "mean", test = "Wald", betaPrior = FALSE)
 
 res = results(dds, cooksCutoff = FALSE, alpha = 0.05)
-resultsNames(dds)
+#resultsNames(dds)
 
 res = res[order(res$padj, na.last=NA), ]
 
@@ -1061,12 +1045,12 @@ sorted_sigtab <- sigtab_resfinder[order(-sigtab_resfinder$log2FoldChange), ]
 Fin_BF <- subset(sorted_sigtab,log2FoldChange>=0)
 BF_Fin <- subset(sorted_sigtab,log2FoldChange<=0)
 BF_Fin <- BF_Fin[order(BF_Fin$log2FoldChange), ]
-head(Fin_BF)
-head(BF_Fin)
+#head(Fin_BF)
+#head(BF_Fin)
 ```
 ## Taxa (Metaphlan3), Species
 ### Benin-Finland
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_metaphlan <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
 
 # Match sample order
@@ -1117,7 +1101,7 @@ dds$category <- relevel(dds$country, "Benin", "Finland")
 dds = DESeq(dds, fitType = "mean", test = "Wald", betaPrior = FALSE)
 
 res = results(dds, cooksCutoff = FALSE, alpha = 0.05)
-resultsNames(dds)
+#resultsNames(dds)
 
 res = res[order(res$padj, na.last=NA), ]
 
@@ -1135,13 +1119,13 @@ n <- rowSums(otu_table(deseq_PHY))
 sigtab_metaphlan = merge(sigtab_metaphlan, as.data.frame(n), by = 0)
 
 sorted_sigtab <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
-head(sorted_sigtab)
+#head(sorted_sigtab)
 #write.table(sorted_sigtab, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_Ben_Fin_s.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
 ## Taxa (Metaphlan3), Genus
 ### Benin-Finland
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Benin" | country == "Finland")
 
@@ -1160,7 +1144,7 @@ dds$category <- relevel(dds$country, "Benin", "Finland")
 dds = DESeq(dds, fitType = "mean", test = "Wald", betaPrior = FALSE)
 
 res = results(dds, cooksCutoff = FALSE, alpha = 0.05)
-resultsNames(dds)
+#resultsNames(dds)
 
 res = res[order(res$padj, na.last=NA), ]
 
@@ -1178,13 +1162,13 @@ n <- rowSums(otu_table(deseq_PHY))
 sigtab_metaphlan = merge(sigtab_metaphlan, as.data.frame(n), by = 0)
 
 sorted_metaphlan_sigtable <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
-head(sorted_metaphlan_sigtable)
+#head(sorted_metaphlan_sigtable)
 #write.table(sorted_metaphlan_sigtable, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_Ben_Fin_g.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
 ## Taxa (Metaphlan3), Species
 ### BF-Finland
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Burkina Faso" | country == "Finland")
 
@@ -1200,7 +1184,7 @@ dds$category <- relevel(dds$country, "Burkina Faso", "Finland")
 dds = DESeq(dds, fitType = "mean", test = "Wald", betaPrior = FALSE)
 
 res = results(dds, cooksCutoff = FALSE, alpha = 0.05)
-resultsNames(dds)
+#resultsNames(dds)
 
 res = res[order(res$padj, na.last=NA), ]
 
@@ -1218,13 +1202,13 @@ n <- rowSums(otu_table(deseq_PHY))
 sigtab_metaphlan = merge(sigtab_metaphlan, as.data.frame(n), by = 0)
 
 sorted_sigtab <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
-head(sorted_sigtab)
+#head(sorted_sigtab)
 #write.table(sorted_sigtab, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_BF_Fin_s.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
 ## Taxa (Metaphlan3), Genus
 ### BF-Finland
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Burkina Faso" | country == "Finland")
 
@@ -1243,7 +1227,7 @@ dds$category <- relevel(dds$country, "Burkina Faso", "Finland")
 dds = DESeq(dds, fitType = "mean", test = "Wald", betaPrior = FALSE)
 
 res = results(dds, cooksCutoff = FALSE, alpha = 0.05)
-resultsNames(dds)
+#resultsNames(dds)
 
 res = res[order(res$padj, na.last=NA), ]
 
@@ -1261,12 +1245,12 @@ n <- rowSums(otu_table(deseq_PHY))
 sigtab_metaphlan = merge(sigtab_metaphlan, as.data.frame(n), by = 0)
 
 sorted_metaphlan_sigtable <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
-head(sorted_metaphlan_sigtable)
+#head(sorted_metaphlan_sigtable)
 #write.table(sorted_metaphlan_sigtable, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_Genus_DESeq2_BF_Fin_g.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
 # Heatmap for clinically relevant taxa
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 metaphlan_PHY_Species <- tax_glom(metaphlan_PHY_stat, taxrank = "Species")
 
 # ESKAPEEc and other relevant taxa
@@ -1334,25 +1318,23 @@ newnames <- lapply(
   rownames(new_df),
   function(x) bquote(italic(.(x))))
 
-heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
-                        border_color = "grey",
-                        colorRampPalette(brewer.pal(9, "Blues"))(100), 
-                        main = "Relative abundance of clinically relevant species\n (Metaphlan3, square root transformed)", 
-                        angle_col = 90, legend = TRUE, fontsize_row = 11,
-                        labels_row = as.expression(newnames),
-                        filename = "eskape_heat.png",
-                        annotation_col = country,
-                        clustering_distance_cols = "euclidean",
-                        show_colnames = T,
-                 cellwidth = 13,
-                 cellheight = 26,
-                 gaps_row = rep(c(12)),
-                 annotation_colors = ann_colors
-                        )
-heat
+#heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
+#                border_color = "grey",
+#                colorRampPalette(brewer.pal(9, "Blues"))(100), 
+#                main = "Relative abundance of clinically relevant species\n (Metaphlan3, square root transformed)", 
+#                angle_col = 90, legend = TRUE, fontsize_row = 11,
+#                labels_row = as.expression(newnames),
+#                filename = "eskape_heat.png",
+#                annotation_col = country,
+#                clustering_distance_cols = "euclidean",
+#                show_colnames = T,
+#                cellwidth = 13,
+#                cellheight = 26,
+#                gaps_row = rep(c(12)),
+#                annotation_colors = ann_colors)
 ```
 # 15 most abundant ARGs in HWWs from each country
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Benin
 resfinder_PHY_stat_Ben <- subset_samples(resfinder_PHY_stat, country == "Benin")
 resfinder_PHY_stat_Ben_abun <- tax_glom(resfinder_PHY_stat_Ben, taxrank = "Gene")
@@ -1385,7 +1367,7 @@ Finland <- data.frame(resfinder_PHY_stat_Fin_abun@tax_table)$Gene
 top_ARGs <- data.frame(Benin, BF, Finland)
 ```
 ## Most abundant ARGs in other than HWW samples
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 ## Sample sums
 # feces
 resfinder_PHY_feces <- subset_samples(resfinder_PHY, alias == "BH20" | alias == "BH22" | alias == "BH24" | alias == "BH25")
@@ -1426,7 +1408,7 @@ resfinder_PHY_BF_other_abun@tax_table
 ```
 # Interesting ARGs
 ## MCR
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Save sums
 resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_stat, Class == "Polymyxin")
 resfinder_PHY_mcr <- tax_glom(resfinder_PHY_mcr, taxrank = "Cluster_name")
@@ -1456,7 +1438,7 @@ resfinder_PHY_mcr_10 <- subset_taxa(resfinder_PHY_mcr, Cluster_name == "mcr-10_1
 mcr$"mcr-10_1" <- data.frame(sample_sums(resfinder_PHY_mcr_10))
 ```
 ## Carbapenemases
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 resfinder_PHY_Cluster_1 <- subset_taxa(resfinder_PHY_stat, Cluster_name == "blaKPC-34_1_clust"| Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaVIM-48_1_clust" | Cluster_name == "blaIMP-1_1_clust" | Cluster_name == "blaOXA-397_1_clust")
 
 resfinder_PHY_Cluster_3 <- subset_taxa(resfinder_PHY_stat, Gene == "blaGES-2_1_AF326355" | Gene == "blaGES-4_1_AB116723" 
@@ -1658,13 +1640,12 @@ p <- rfc_plot + rfc_plot1 + rfc_plot2 + rfc_plot3 + rfc_plot4 +
   theme(plot.tag = element_text(size = 24, family = "Times"))
 
 p_leg <- p + inset_element(leg, left = 1.65, bottom = 1, right = 1, top = 0)
-p_leg
 
 #ggsave(filename = "carbapenemases_grid.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 # 15 most abundant taxa
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # 15 most abundant taxa in hospital WW in each country
 metaphlan_PHY_Ben <- subset_samples(metaphlan_PHY_stat, country == "Benin")
 metaphlan_PHY_BF <- subset_samples(metaphlan_PHY_stat, country == "Burkina Faso")
@@ -1699,7 +1680,7 @@ metaphlan_PHY_Species_abund <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_Spe
 ```
 # Correlation between MGE/intI1 & all ARGs
 ## Basic plot
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 ARG_relative_sum <- data.frame(sample_sums(resfinder_PHY_stat))
 MGE_relative_sum <- data.frame(sample_sums(MGE_PHY_stat))
 intI1_relative_sum <- data.frame(sample_sums(MGE_PHY_int_stat))
@@ -1723,7 +1704,6 @@ cor <- ggplot(mge_res, aes(x=ARGs, y=MGEs)) +
  xlab("ARG") + ylab("MGEs") +
   labs(title= "Correlation of relative sums of ARGs and MGEs",)
 cor2 <- cor + stat_cor(method = "pearson", label.x = 2, label.y = 1.5)
-cor2
 
 #ggsave(filename = "ARG_MGE_cor_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
@@ -1745,13 +1725,12 @@ cor <- ggplot(intl_res, aes(x=ARGs, y=intI1)) +
  xlab("ARG") + ylab("intI1") +
   labs(title= "Correlation of relative sums of ARGs and Int1", subtitle = "Hospital WWs in Benin, Burkina Faso and Finland")
 cor2 <- cor + stat_cor(method = "pearson", label.x = 1, label.y = 1.5)
-cor2
 
 #ggsave(filename = "ARG_intl1_cor_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Save correlation data for intI & qacEdelta and all ARGs
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # intI1
 tax <- data.frame(clusters_tax_table_resfinder)
 tax$n <- rownames(tax)
@@ -1795,11 +1774,11 @@ pos_all <- cor_data_filt[which(cor_data_filt$r > 0), ]
 neg_all <- cor_data_filt[which(cor_data_filt$r < 0), ]
 
 
-write.table(pos_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/pos_all.txt", 
-            row.names=F, sep = "\t", col.names = T)
+#write.table(pos_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/pos_all.txt", 
+#            row.names=F, sep = "\t", col.names = T)
 
-write.table(neg_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/neg_all.txt", 
-            row.names=F, sep = "\t", col.names = T)
+#write.table(neg_all, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/neg_all.txt", 
+#            row.names=F, sep = "\t", col.names = T)
 
 # qacEdelta
 tax <- data.frame(clusters_tax_table_resfinder)
@@ -1851,7 +1830,7 @@ neg_all <- cor_data_filt[which(cor_data_filt$r < 0), ]
 #            row.names=F, sep = "\t", col.names = T)
 ```
 ## Figures for correlations for differentially abundant ARGs across countries (from DESeq2) & intI1/qacEdelta
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 intI1 <- data.frame(sample_sums(MGE_PHY_int_stat))
 colnames(intI1) <- c("intI1")
 qacEdelta <- data.frame(sample_sums(MGE_PHY_qac_stat))
@@ -2012,19 +1991,18 @@ m4 <- ggcorrplot(M4, p.mat = p_mat4, type = "full", insig = "blank", method = "s
                          plot.title = element_text(size=26, face="bold", family = "Times"))) + ggtitle("Finland")
 
 # Extract the legend from one of the plots
-legend <- get_legend(m0)
+#legend <- get_legend(m0)
 
 # Some inception with cowplot...
 A <- plot_grid(title1, m1,m2, NULL, ncol = 1, rel_heights = c(0.5, 1, 1, 0.1))
 B <- plot_grid(NULL, title2, m3,m4, ncol = 1,  rel_heights = c(0.1, 0.5, 1, 1))
 AB <- plot_grid(A, B, ncol = 1)
-AB
 
 #ggsave(filename = "ARGs_corr_deseq.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Alternative figure for IntI1 & ARGs
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Ben-Fin
 benfin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Benin")
 top_20 <- subset_taxa(benfin, Gene == "lnu(F)_3_AJ561197" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC5_1_JN408080" | Gene == "aac(6')-IIc_1_NC_012555" | Gene == "blaCARB-2_1_M69058" | Gene == "ant(2'')-Ia_6_AJ871915" | Gene == "blaOXA-129_1_FJWZ01000025" | Gene == "dfrA22_4_AJ628423" | Gene ==  "blaVEB-1_3_DQ393569" | Gene == "blaAER-1_1_U14748" | Gene == "ant(2'')-Ia_10_HM367617" | Gene == "aph(2'')-Id_1_AF016483" | Gene == "blaVEB-1_1_HM370393" | Gene == "catQ_1_M55620" | Gene == "blaVEB-5_1_EF420108" | Gene == "blaCARB-11_1_AY008290" | Gene == "blaCARB-1_1_AF313471" | Gene == "sul3_2_AJ459418" | Gene == "dfrA15_2_AF221900" | Gene == "cmlA1_1_M64556" | Gene == "blaOXA-211_1_JN861779" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-334_1_KF203108" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-309_1_HF947514" | Gene == "blaOXA-427_1_KX827604" | Gene == "dfrA3_1_J03306" | Gene == "VanHOX_1_KF478993" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-280_1_APPZ01000001" | Gene == "cphA1_1_AY261379" | Gene == "VanHAX_2_M97297" | Gene == "cphA2_6_AHU60294" | Gene == "blaMOX-3_1_EU515248" | Gene == "VanHBX_1_AF192329" | Gene == "tet(39)_1_KT346360")
@@ -2048,11 +2026,11 @@ mod <- within(corr, r[p >= 0.05] <- 0)
 r <- data.frame(mod$r)
 
 cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey", legend.title = "intI1")
-cor_annotation
+
 #ggsave(filename = "cor_annotation.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
-pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 25)
+#pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 25)
 
 # BF_Fin
 bffin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Burkina Faso")
@@ -2077,14 +2055,14 @@ mod <- within(corr, r[p >= 0.05] <- 0)
 r <- data.frame(mod$r)
 
 cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey")
-cor_annotation
+
 #ggsave(filename = "cor_annotation.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
-pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 34)
+#pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 34)
 ```
 # "Core" resistome and unique ARGs
-```{r, include=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 Ben_temp <- otu_table(subset_samples(resfinder_PHY_stat, country %in%  c("Benin")))[rowSums(otu_table(subset_samples(resfinder_PHY_stat, country %in% c("Benin")))) > 0]
 nrow(Ben_temp) # 1738
 
@@ -2098,50 +2076,50 @@ length(intersect(row.names(Ben_temp), (row.names(BF_temp)))) # 1664
 length(intersect(row.names(BF_temp), (row.names(Fin_temp)))) # 1414
 length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))) # 1295
 
-grid.newpage()
-ven.p <- draw.triple.venn(area1 = nrow(Ben_temp), area2 = nrow(BF_temp), area3 = nrow(Fin_temp), 
-                 n12 = length(intersect(row.names(Ben_temp), (row.names(BF_temp)))), 
-                 n23 = length(intersect(row.names(BF_temp), (row.names(Fin_temp)))), 
-                 n13 = length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))), 
-                 n123 = length(intersect(intersect(row.names(Ben_temp), (row.names(BF_temp))), row.names(Fin_temp))), 
-    fontfamily = "Times", category = c("Benin", "Burkina Faso", "Finland"),
-    lty = "blank", fill = c("#B2182B", "#44AA99", "#2166AC"),
-    alpha = 0.75,  cex = 4.5, cat.cex = 6, rotation.degree = 0, label.col = "white", cat.dist = 0.05,
-    filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
-grid.draw(ven.p)
+#grid.newpage()
+#ven.p <- draw.triple.venn(area1 = nrow(Ben_temp), area2 = nrow(BF_temp), area3 = nrow(Fin_temp), 
+#                 n12 = length(intersect(row.names(Ben_temp), (row.names(BF_temp)))), 
+#                 n23 = length(intersect(row.names(BF_temp), (row.names(Fin_temp)))), 
+#                 n13 = length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))), 
+#                 n123 = length(intersect(intersect(row.names(Ben_temp), (row.names(BF_temp))), row.names(Fin_temp))), 
+#                 fontfamily = "Times", category = c("Benin", "Burkina Faso", "Finland"),
+#                 lty = "blank", fill = c("#B2182B", "#44AA99", "#2166AC"),
+#                 alpha = 0.75,  cex = 4.5, cat.cex = 6, rotation.degree = 0, label.col = "white", cat.dist = 0.05,
+#                 filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
+#grid.draw(ven.p)
 
 # Pairwise
-grid.newpage()
-p1 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(BF_temp), 
-                            cross.area = length(intersect(row.names(Ben_temp), (row.names(BF_temp)))),
-    fontfamily = "Times", category = c("Benin", "Burkina Faso"),
-    lty = "blank", fill = c("#B2182B", "#44AA99"),
-    alpha = 0.75,  cex = 5, cat.cex = 6, rotation.degree = 0, label.col = "white", 
-    cat.pos = c(300, 105), cat.dist = c(-0.07, -0.06),
-                                ext.pos = 10,
-                                ext.dist = -0.05,
-                                ext.length = 0.75,
-                                ext.line.lwd = 2,
-                                ext.line.lty = "dashed")
-grid.draw(p1)
+#grid.newpage()
+#p1 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(BF_temp), 
+#  cross.area = length(intersect(row.names(Ben_temp), (row.names(BF_temp)))),
+#  fontfamily = "Times", category = c("Benin", "Burkina Faso"),
+#  lty = "blank", fill = c("#B2182B", "#44AA99"),
+#  alpha = 0.75,  cex = 5, cat.cex = 6, rotation.degree = 0, label.col = "white", 
+#  cat.pos = c(300, 105), cat.dist = c(-0.07, -0.06),
+#                                ext.pos = 10,
+#                                ext.dist = -0.05,
+#                                ext.length = 0.75,
+#                                ext.line.lwd = 2,
+#                                ext.line.lty = "dashed")
+#grid.draw(p1)
 
-grid.newpage()
-p2 <- draw.pairwise.venn(area1 = nrow(Fin_temp), area2 = nrow(BF_temp), 
-                            cross.area = length(intersect(row.names(Fin_temp), (row.names(BF_temp)))),
-    fontfamily = "Times", category = c("Finland", "Burkina Faso"),
-    lty = "blank", fill = c("#2166AC", "#44AA99"),
-    alpha = 0.65,  cex = 4, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.02,
-    filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
-grid.draw(p2)
+#grid.newpage()
+#p2 <- draw.pairwise.venn(area1 = nrow(Fin_temp), area2 = nrow(BF_temp), 
+#  cross.area = length(intersect(row.names(Fin_temp), (row.names(BF_temp)))),
+#  fontfamily = "Times", category = c("Finland", "Burkina Faso"),
+#  lty = "blank", fill = c("#2166AC", "#44AA99"),
+#  alpha = 0.65,  cex = 4, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.02,
+#  filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
+#grid.draw(p2)
 
-grid.newpage()
-p3 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(Fin_temp), 
-                            cross.area = length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))),
-    fontfamily = "Times", category = c("Benin", "Finland"),
-    lty = "blank", fill = c("#B2182B", "#2166AC"),
-    alpha = 0.75,  cex = 6, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.03,
-    filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08, euler.d = TRUE, scaled = TRUE)
-grid.draw(p3)
+#grid.newpage()
+#p3 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(Fin_temp), 
+#  cross.area = length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))),
+#  fontfamily = "Times", category = c("Benin", "Finland"),
+#  lty = "blank", fill = c("#B2182B", "#2166AC"),
+#  alpha = 0.75,  cex = 6, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.03,
+#  filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08, euler.d = TRUE, scaled = TRUE)
+#grid.draw(p3)
 
 # And which ARGs are those?
 tax <- data.frame(clusters_tax_table_resfinder)
