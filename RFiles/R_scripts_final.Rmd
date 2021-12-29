@@ -1,7 +1,7 @@
 ---
 title: "R_scripts_final"
-output: html_document
-#output: rmarkdown::github_document
+#output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
