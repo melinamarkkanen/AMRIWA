@@ -1850,6 +1850,11 @@ rownames(arg_data) <- BenFin20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
+rownames(arg_data) <- c("lnu_F_3", "qnrVC4", "qnrVC5", "aac_6_IIc", "blaCARB_2", "ant_2_Ia_6", "blaOXA_129", "dfrA22", "blaVEB_1_3", "blaAER_1", "ant_2_Ia_10", "aph_2_Id", "blaVEB_1_1", "catQ_1", "blaVEB_5", "blaCARB_11", "blaCARB_1", "sul3_2", "dfrA15", "cmlA1")
+
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1875,6 +1880,11 @@ rownames(arg_data) <- FinBen20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
+rownames(arg_data) <- c("blaOXA_211", "blaOXA_299", "blaOXA_212", "blaOXA_334", "aac_6_Ig", "blaOXA_373", "blaOXA_296", "blaOXA_333", "blaOXA_309", "blaOXA_427", "dfrA3", "VanHOX_1", "blaOXA_281", "blaOXA_280", "cphA1", "VanHAX_1", "cphA2", "blaMOX_3", "VanHBX_1", "tet_39")
+
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1902,6 +1912,11 @@ rownames(arg_data) <- BFFin20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
+rownames(arg_data) <- c("dfrB5", "blaCMY_4", "sul4", "dfrA15_2", "blaOXA_46", "blaOXA_101", "dfrA15_1", "blaOXA_7", "qnrVC1", "lnu_F_3", "nimA_1", "blaVIM_5", "dfrA15_4", "blaOXA_56", "catQ_1", "blaVIM_38", "blaCMY_130", "blaCMY_59", "qnrVC4", "blaVIM_25")
+
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1926,6 +1941,11 @@ rownames(arg_data) <- FinBF20$Gene
 # shorten gene names
 rownames(arg_data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
+rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
+rownames(arg_data) <- c("blaOXA_299", "blaOXA_334", "blaOXA_296", "blaOXA_333", "blaOXA_211", "aac_6_Ig", "blaOXA_281", "blaOXA_373", "blaOXA_212", "blaOXA_309", "VanHOX_1", "VanHAX_2", "VanHBX_1", "blaOXA_275", "aadA11", "VanHAX_1", "qnrB21", "VanC4XY_1", "mef_A_3", "cphA2")
+
 arg_data = t(arg_data)
 
 df <- data.frame(arg_data, intI1, qacEdelta)
@@ -1953,10 +1973,10 @@ m0 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "s
                          legend.text = element_text(family = "Times", size = 20),
                          legend.key.size = unit(1.4, "cm")))
 
-title1 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs in Benin vs. Finland",
-    fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 26)
-title2 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs in Burkina Faso vs. Finland",
-    fontface = 'bold', x = 0.35, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 26)
+title1 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs from Benin vs. Finland",
+    fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 24)
+title2 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs from Burkina Faso vs. Finland",
+    fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 24)
 
 m1 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "square",
                  ggtheme = ggplot2::theme_classic() +
@@ -1964,7 +1984,7 @@ m1 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "s
                          legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
                          axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
                          axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=26, face="bold", family = "Times"))) + ggtitle("Benin")
+                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Benin")
 
 m2 <- ggcorrplot(M2, p.mat = p_mat2, type = "full", insig = "blank", method = "square",
                  ggtheme = ggplot2::theme_classic() +
@@ -1972,7 +1992,7 @@ m2 <- ggcorrplot(M2, p.mat = p_mat2, type = "full", insig = "blank", method = "s
                          legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
                          axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
                          axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=26, face="bold", family = "Times"))) + ggtitle("Finland")
+                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
 
 m3 <- ggcorrplot(M3, p.mat = p_mat3, type = "full", insig = "blank", method = "square",
                  ggtheme = ggplot2::theme_classic() +
@@ -1980,7 +2000,7 @@ m3 <- ggcorrplot(M3, p.mat = p_mat3, type = "full", insig = "blank", method = "s
                          legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
                          axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
                          axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=26, face="bold", family = "Times"))) + ggtitle("Burkina Faso")
+                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Burkina Faso")
 
 m4 <- ggcorrplot(M4, p.mat = p_mat4, type = "full", insig = "blank", method = "square",
                  ggtheme = ggplot2::theme_classic() +
@@ -1988,7 +2008,7 @@ m4 <- ggcorrplot(M4, p.mat = p_mat4, type = "full", insig = "blank", method = "s
                           legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
                          axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
                          axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=26, face="bold", family = "Times"))) + ggtitle("Finland")
+                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
 
 # Extract the legend from one of the plots
 #legend <- get_legend(m0)
@@ -1998,8 +2018,8 @@ A <- plot_grid(title1, m1,m2, NULL, ncol = 1, rel_heights = c(0.5, 1, 1, 0.1))
 B <- plot_grid(NULL, title2, m3,m4, ncol = 1,  rel_heights = c(0.1, 0.5, 1, 1))
 AB <- plot_grid(A, B, ncol = 1)
 
-#ggsave(filename = "ARGs_corr_deseq.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "ARGs_corr_deseq.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Alternative figure for IntI1 & ARGs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
@@ -2015,8 +2035,41 @@ all(rownames(data) == rownames(names))
 
 rownames(data) <- paste(names$Gene)
 
+# Annotations
+match <- match(rownames(data), rownames(cor_data))
+corr <- cor_data[match,]
+
+mod <- within(corr, r[p >= 0.05] <- 0)
+r <- data.frame(mod$r)
+
+cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey", legend.title = "intI1")
+
+ggsave(filename = "cor_annotation.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+
+colnames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", colnames(data))
 rownames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(data))
 rownames(data) <- gsub(pattern = "-", replacement = "_", rownames(data))
+
+## Plot
+newnames <- lapply(
+  rownames(data),
+  function(x) bquote(italic(.(x))))
+
+pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, 
+         filename = "pheat.png", gaps_col = 25, labels_row = as.expression(newnames))
+
+# BF_Fin
+bffin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Burkina Faso")
+top_20 <- subset_taxa(bffin, Gene == "dfrB5_1_AY943084" | Gene == "blaCMY-4_1_LNHZ01000079" | Gene == "sul4_1_MG649393" | Gene == "dfrA15_2_AF221900" | Gene == "blaOXA-46_1_AF317511" | Gene == "blaOXA-101_1_AM412777" | Gene == "dfrA15_1_AF156486" |  Gene == "blaOXA-7_1_X75562" | Gene == "qnrVC1_1_EU436855" | Gene == "lnu(F)_3_AJ561197" | Gene == "nimA_1_X71444" | Gene == "blaVIM-5_1_DQ023222" | Gene == "dfrA15_4_AJ867237" | Gene == "blaOXA-56_1_AY445080" | Gene == "catQ_1_M55620" | Gene == "blaVIM-38_1_KC469971" | Gene == "blaCMY-130_1_KP207589" | Gene == "blaCMY-59_1_NG_048854"| Gene == "qnrVC4_1_GQ891757" | Gene == "blaVIM-25_1_HM750249" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-334_1_KF203108" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-211_1_JN861779" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-309_1_HF947514" | Gene == "VanHOX_1_KF478993" | Gene == "VanHAX_2_M97297" | Gene == "VanHBX_1_AF192329" | Gene == "blaOXA-275_1_APPJ01000001" | Gene == "aadA11_2_AJ567827" | Gene == "VanHAX_1_FJ866609" | Gene == "qnrB21_1_FJ611948" | Gene == "VanC4XY_1_EU151752" | Gene == "mef(A)_3_AF227520" | Gene == "cphA2_6_AHU60294")
+
+data <- otu_table(top_20)
+
+match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
+names <- clusters_tax_table_resfinder[match,]
+all(rownames(data) == rownames(names))
+
+rownames(data) <- paste(names$Gene)
 
 # Annotations
 match <- match(rownames(data), rownames(cor_data))
@@ -2027,39 +2080,20 @@ r <- data.frame(mod$r)
 
 cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey", legend.title = "intI1")
 
-#ggsave(filename = "cor_annotation.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+ggsave(filename = "cor_annotation.png",
+       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
-#pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 25)
-
-# BF_Fin
-bffin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Burkina Faso")
-top_20 <- subset_taxa(bffin, Gene == "dfrB5_1_AY943084" | Gene == "blaCMY-4_1_LNHZ01000079" | Gene == "sul4_1_MG649393" | Gene == "dfrA15_2_AF221900" | Gene == "blaOXA-46_1_AF317511" | Gene == "blaOXA-101_1_AM412777" | Gene == "dfrA15_1_AF156486" |  Gene == "blaOXA-7_1_X75562" | Gene == "qnrVC1_1_EU436855" | Gene == "lnu(F)_3_AJ561197" | Gene == "nimA_1_X71444" | Gene == "blaVIM-5_1_DQ023222" | Gene == "dfrA15_4_AJ867237" | Gene == "blaOXA-56_1_AY445080" | Gene == "catQ_1_M55620" | Gene == "blaVIM-38_1_KC469971" | Gene == "blaCMY-130_1_KP207589" | Gene == "blaCMY-59_1_NG_048854" | Gene == "qnrVC4_1_GQ891757" | Gene == "blaVIM-25_1_HM750249" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-334_1_KF203108" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-211_1_JN861779" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-309_1_HF947514" | Gene == "VanHOX_1_KF478993" | Gene == "VanHAX_2_M97297" | Gene == "VanHBX_1_AF192329" | Gene == "blaOXA-275_1_APPJ01000001" | Gene == "aadA11_2_AJ567827" | Gene == "VanHAX_1_FJ866609" | Gene == "qnrB21_1_FJ611948" | Gene == "VanC4XY_1_EU151752" | Gene == "mef(A)_3_AF227520" | Gene == "cphA2_6_AHU60294")
-
-data <- otu_table(top_20)
-
-match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
-names <- clusters_tax_table_resfinder[match,]
-all(rownames(data) == rownames(names))
-
-rownames(data) <- paste(names$Gene)
-
+colnames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", colnames(data))
 rownames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(data))
 rownames(data) <- gsub(pattern = "-", replacement = "_", rownames(data))
 
-# Annotations
-match <- match(rownames(data), rownames(cor_data))
-corr <- cor_data[match,]
+## Plot
+newnames <- lapply(
+  rownames(data),
+  function(x) bquote(italic(.(x))))
 
-mod <- within(corr, r[p >= 0.05] <- 0)
-r <- data.frame(mod$r)
-
-cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey")
-
-#ggsave(filename = "cor_annotation.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-
-#pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, filename = "pheat.png", gaps_col = 34)
+pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, 
+         filename = "pheat.png", gaps_col = 34, labels_row = as.expression(newnames))
 ```
 # "Core" resistome and unique ARGs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
