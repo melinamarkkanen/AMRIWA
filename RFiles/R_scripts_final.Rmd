@@ -213,7 +213,7 @@ OTU_resfinder_length_norm <- OTU_resfinder/resfinder_lengths[, 2]
 # Normalization with Metaxa2 SSU counts
 OTU_resfinder_length_SSU_norm <- t(t(OTU_resfinder_length_norm)/metadata$SSU_counts) * 1540
 all(rownames(metadata) == colnames(OTU_resfinder_length_SSU_norm))
-identical(OTU_resfinder_length_norm[2025, 5]/metadata$SSU_counts[5], OTU_resfinder_length_SSU_norm[2025, 5])
+identical((OTU_resfinder_length_norm[3, 5]/metadata$SSU_counts[5]) * 1540, OTU_resfinder_length_SSU_norm[3, 5])
 all(rownames(OTU_resfinder_length_norm) == clusters_tax_table_resfinder$Gene)
 
 # Hide rownames
