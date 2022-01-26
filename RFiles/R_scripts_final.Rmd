@@ -3,7 +3,7 @@ title: "R_scripts_final"
 output:
   pdf_document:
     toc: true
-output: rmarkdown::github_document
+#output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
