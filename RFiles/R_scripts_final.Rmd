@@ -3,7 +3,7 @@ title: "R_scripts_AMRIWA_metagenomes"
 author: Melina Markkanen
 date: 27/1/2022
 output:
-  pdf_document:
+  html_document:
     latex_engine: xelatex
     toc: true
 fontsize: 10pt
@@ -138,15 +138,15 @@ metaxa_PHY_stat_equal1 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_1
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-metaxa_PHY_stat_equal2 <- subset_samples(metaxa_PHY, alias == paste(random_bfh_2$sample[1]) | 	
-    alias == paste(random_bfh_2$sample[2]) | 	alias == paste(random_bfh_2$sample[3]) | 	
-    alias == paste(random_bfh_2$sample[4]) | alias == paste(random_bfh_2$sample[5]) | 	
-    alias == paste(random_bfh_2$sample[6]) | 	alias == paste(random_bfh_2$sample[7]) |  	
-    alias == paste(random_bfh_2$sample[8]) | alias == paste(random_bh_2$sample[1]) | 	
-    alias == paste(random_bh_2$sample[2]) | 	alias == paste(random_bh_2$sample[3]) |  	
-    alias == paste(random_bh_2$sample[4]) | alias == paste(random_bh_2$sample[5]) | 	
-    alias == paste(random_bh_2$sample[6]) | 	alias == paste(random_bh_2$sample[7]) | 	
-    alias == paste(random_bh_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
+metaxa_PHY_stat_equal2 <- subset_samples(metaxa_PHY, alias == paste(random_BFH_2$sample[1]) | 	
+    alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	
+    alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	
+    alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	
+    alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	
+    alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	
+    alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	
+    alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	
+    alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
@@ -230,15 +230,15 @@ metaphlan_PHY_stat_equal1 <- subset_samples(metaphlan_PHY, alias == paste(random
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-metaphlan_PHY_stat_equal2 <- subset_samples(metaphlan_PHY, alias == paste(random_bfh_2$sample[1]) | 	
-    alias == paste(random_bfh_2$sample[2]) | 	alias == paste(random_bfh_2$sample[3]) | 	
-    alias == paste(random_bfh_2$sample[4]) | alias == paste(random_bfh_2$sample[5]) | 	
-    alias == paste(random_bfh_2$sample[6]) | 	alias == paste(random_bfh_2$sample[7]) |  	
-    alias == paste(random_bfh_2$sample[8]) | alias == paste(random_bh_2$sample[1]) | 	
-    alias == paste(random_bh_2$sample[2]) | 	alias == paste(random_bh_2$sample[3]) |  	
-    alias == paste(random_bh_2$sample[4]) | alias == paste(random_bh_2$sample[5]) | 	
-    alias == paste(random_bh_2$sample[6]) | 	alias == paste(random_bh_2$sample[7]) | 	
-    alias == paste(random_bh_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
+metaphlan_PHY_stat_equal2 <- subset_samples(metaphlan_PHY, alias == paste(random_BFH_2$sample[1]) | 	
+    alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	
+    alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	
+    alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	
+    alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	
+    alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	
+    alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	
+    alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	
+    alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
@@ -324,15 +324,15 @@ resfinder_PHY_stat_equal1 <- subset_samples(resfinder_PHY, alias == paste(random
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-resfinder_PHY_stat_equal2 <- subset_samples(resfinder_PHY, alias == paste(random_bfh_2$sample[1]) | 	
-    alias == paste(random_bfh_2$sample[2]) | 	alias == paste(random_bfh_2$sample[3]) | 	
-    alias == paste(random_bfh_2$sample[4]) | alias == paste(random_bfh_2$sample[5]) | 	
-    alias == paste(random_bfh_2$sample[6]) | 	alias == paste(random_bfh_2$sample[7]) |  	
-    alias == paste(random_bfh_2$sample[8]) | alias == paste(random_bh_2$sample[1]) | 	
-    alias == paste(random_bh_2$sample[2]) | 	alias == paste(random_bh_2$sample[3]) |  	
-    alias == paste(random_bh_2$sample[4]) | alias == paste(random_bh_2$sample[5]) | 	
-    alias == paste(random_bh_2$sample[6]) | 	alias == paste(random_bh_2$sample[7]) | 	
-    alias == paste(random_bh_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
+resfinder_PHY_stat_equal2 <- subset_samples(resfinder_PHY, alias == paste(random_BFH_2$sample[1]) | 	
+    alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	
+    alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	
+    alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	
+    alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	
+    alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	
+    alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	
+    alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	
+    alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
@@ -413,15 +413,15 @@ MGE_PHY_stat_equal1 <- subset_samples(MGE_PHY, alias == paste(random_BFH_1$sampl
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 2
-MGE_PHY_stat_equal2 <- subset_samples(MGE_PHY, alias == paste(random_bfh_2$sample[1]) | 	
-    alias == paste(random_bfh_2$sample[2]) | 	alias == paste(random_bfh_2$sample[3]) | 	
-    alias == paste(random_bfh_2$sample[4]) | alias == paste(random_bfh_2$sample[5]) | 	
-    alias == paste(random_bfh_2$sample[6]) | 	alias == paste(random_bfh_2$sample[7]) |  	
-    alias == paste(random_bfh_2$sample[8]) | alias == paste(random_bh_2$sample[1]) | 	
-    alias == paste(random_bh_2$sample[2]) | 	alias == paste(random_bh_2$sample[3]) |  	
-    alias == paste(random_bh_2$sample[4]) | alias == paste(random_bh_2$sample[5]) | 	
-    alias == paste(random_bh_2$sample[6]) | 	alias == paste(random_bh_2$sample[7]) | 	
-    alias == paste(random_bh_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
+MGE_PHY_stat_equal2 <- subset_samples(MGE_PHY, alias == paste(random_BFH_2$sample[1]) | 	
+    alias == paste(random_BFH_2$sample[2]) | 	alias == paste(random_BFH_2$sample[3]) | 	
+    alias == paste(random_BFH_2$sample[4]) | alias == paste(random_BFH_2$sample[5]) | 	
+    alias == paste(random_BFH_2$sample[6]) | 	alias == paste(random_BFH_2$sample[7]) |  	
+    alias == paste(random_BFH_2$sample[8]) | alias == paste(random_BH_2$sample[1]) | 	
+    alias == paste(random_BH_2$sample[2]) | 	alias == paste(random_BH_2$sample[3]) |  	
+    alias == paste(random_BH_2$sample[4]) | alias == paste(random_BH_2$sample[5]) | 	
+    alias == paste(random_BH_2$sample[6]) | 	alias == paste(random_BH_2$sample[7]) | 	
+    alias == paste(random_BH_2$sample[8]) | alias == "FH1" | 	alias == "FH2" | 	alias == "FH3" | 
     alias == "FH4" | alias == "FH5" | 	alias == "FH6" | 	alias == "FH7" | 	alias == "FH9")
 
 # Sample set 3
