@@ -1,9 +1,10 @@
 ---
-title: "R_scripts_final"
+title: "R_scripts_AMRIWA_metagenomes"
+author: Melina Markkanen
+date: 27/1/2022
 output:
   pdf_document:
     toc: true
-#output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -467,16 +468,16 @@ Fin_map <- Fin_map + theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"))
 ## Data exploration using library HighstatLabv13
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Number of zeros in the response variable
-100 * sum(df$ARG_SUM == 0) / nrow(df)
+#100 * sum(df$ARG_SUM == 0) / nrow(df)
 
 # Number of observations per level of a categorical covariate
-table(df$country)
-table(df$hospital)
+#table(df$country)
+#table(df$hospital)
 # Only < 3 samples in some hospital groups. Let's not include that as a covariate.
 
 # Let's fit a model with Gamma distribution with a log link.
-M0 <- glm(ARG_SUM ~ country,
-           data = df, family="Gamma"(link="log"))
+#M0 <- glm(ARG_SUM ~ country,
+#           data = df, family="Gamma"(link="log"))
 
 # MODEL VALIDATION
 # Homogeneity
@@ -653,7 +654,7 @@ intI1_sum <- intI1_M2 +
 #ggsave(filename = "intI1_sum_M2_new.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
-# Plot figures in grids
+## Plot figures in grids
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 design <-"
 ###
@@ -906,7 +907,7 @@ p <- arg + mp + mge +
 ```
 # DESeq2
 ## ARGs
-### Fin-Ben
+### Finland-Benin
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 
@@ -998,10 +999,8 @@ sorted_sigtab <- sigtab_resfinder[order(-sigtab_resfinder$log2FoldChange), ]
 Fin_Ben <- subset(sorted_sigtab,log2FoldChange>=0)
 Ben_Fin <- subset(sorted_sigtab,log2FoldChange<=0)
 Ben_Fin <- Ben_Fin[order(Ben_Fin$log2FoldChange), ]
-#head(Fin_Ben)
-#head(Ben_Fin)
 ```
-### BF-Fin
+### Burina Faso-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(resfinder_deseq_stat, country == "Burkina Faso" | country == "Finland")
@@ -1050,8 +1049,7 @@ BF_Fin <- BF_Fin[order(BF_Fin$log2FoldChange), ]
 #head(Fin_BF)
 #head(BF_Fin)
 ```
-## Taxa (Metaphlan3), Species
-### Benin-Finland
+## Taxa (Metaphlan3), Species, Benin-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_metaphlan <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
 
@@ -1125,8 +1123,7 @@ sorted_sigtab <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
 #write.table(sorted_sigtab, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_Ben_Fin_s.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
-## Taxa (Metaphlan3), Genus
-### Benin-Finland
+## Taxa (Metaphlan3), Genus, Benin-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Benin" | country == "Finland")
@@ -1168,8 +1165,7 @@ sorted_metaphlan_sigtable <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldCh
 #write.table(sorted_metaphlan_sigtable, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_Ben_Fin_g.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
-## Taxa (Metaphlan3), Species
-### BF-Finland
+## Taxa (Metaphlan3), Species, Burkina Faso-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Burkina Faso" | country == "Finland")
@@ -1208,8 +1204,7 @@ sorted_sigtab <- sigtab_metaphlan[order(-sigtab_metaphlan$log2FoldChange), ]
 #write.table(sorted_sigtab, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/metaphlan3_DESeq2_BF_Fin_s.txt", 
 #            row.names=T, sep = "\t", col.names = T)
 ```
-## Taxa (Metaphlan3), Genus
-### BF-Finland
+## Taxa (Metaphlan3), Genus, Burkina Faso-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
 deseq_PHY = subset_samples(metaphlan_deseq_stat, country == "Burkina Faso" | country == "Finland")
@@ -1320,6 +1315,7 @@ newnames <- lapply(
   rownames(new_df),
   function(x) bquote(italic(.(x))))
 
+# Plot
 #heat <- pheatmap(sqrt(new_df), cluster_rows = F, cluster_cols = T, 
 #                border_color = "grey",
 #                colorRampPalette(brewer.pal(9, "Blues"))(100), 
@@ -1368,7 +1364,7 @@ Finland <- data.frame(resfinder_PHY_stat_Fin_abun@tax_table)$Gene
 
 top_ARGs <- data.frame(Benin, BF, Finland)
 ```
-## Most abundant ARGs in other than HWW samples
+# Most abundant ARGs in other than HWW samples
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 ## Sample sums
 # feces
@@ -1681,7 +1677,6 @@ metaphlan_PHY_Species_abund <- prune_taxa(names(sort(taxa_sums(metaphlan_PHY_Spe
 #tax_table(metaphlan_PHY_Species_abund)
 ```
 # Correlation between MGE/intI1 & all ARGs
-## Basic plot
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 ARG_relative_sum <- data.frame(sample_sums(resfinder_PHY_stat))
 MGE_relative_sum <- data.frame(sample_sums(MGE_PHY_stat))
@@ -2020,82 +2015,8 @@ A <- plot_grid(title1, m1,m2, NULL, ncol = 1, rel_heights = c(0.5, 1, 1, 0.1))
 B <- plot_grid(NULL, title2, m3,m4, ncol = 1,  rel_heights = c(0.1, 0.5, 1, 1))
 AB <- plot_grid(A, B, ncol = 1)
 
-ggsave(filename = "ARGs_corr_deseq.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-```
-## Alternative figure for IntI1 & ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
-# Ben-Fin
-benfin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Benin")
-top_20 <- subset_taxa(benfin, Gene == "lnu(F)_3_AJ561197" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC4_1_GQ891757" | Gene == "qnrVC5_1_JN408080" | Gene == "aac(6')-IIc_1_NC_012555" | Gene == "blaCARB-2_1_M69058" | Gene == "ant(2'')-Ia_6_AJ871915" | Gene == "blaOXA-129_1_FJWZ01000025" | Gene == "dfrA22_4_AJ628423" | Gene ==  "blaVEB-1_3_DQ393569" | Gene == "blaAER-1_1_U14748" | Gene == "ant(2'')-Ia_10_HM367617" | Gene == "aph(2'')-Id_1_AF016483" | Gene == "blaVEB-1_1_HM370393" | Gene == "catQ_1_M55620" | Gene == "blaVEB-5_1_EF420108" | Gene == "blaCARB-11_1_AY008290" | Gene == "blaCARB-1_1_AF313471" | Gene == "sul3_2_AJ459418" | Gene == "dfrA15_2_AF221900" | Gene == "cmlA1_1_M64556" | Gene == "blaOXA-211_1_JN861779" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-334_1_KF203108" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-309_1_HF947514" | Gene == "blaOXA-427_1_KX827604" | Gene == "dfrA3_1_J03306" | Gene == "VanHOX_1_KF478993" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-280_1_APPZ01000001" | Gene == "cphA1_1_AY261379" | Gene == "VanHAX_2_M97297" | Gene == "cphA2_6_AHU60294" | Gene == "blaMOX-3_1_EU515248" | Gene == "VanHBX_1_AF192329" | Gene == "tet(39)_1_KT346360")
-
-data <- otu_table(top_20)
-
-match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
-names <- clusters_tax_table_resfinder[match,]
-all(rownames(data) == rownames(names))
-
-rownames(data) <- paste(names$Gene)
-
-# Annotations
-match <- match(rownames(data), rownames(cor_data))
-corr <- cor_data[match,]
-
-mod <- within(corr, r[p >= 0.05] <- 0)
-r <- data.frame(mod$r)
-
-cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey", legend.title = "intI1")
-
-ggsave(filename = "cor_annotation.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-
-colnames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", colnames(data))
-rownames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(data))
-rownames(data) <- gsub(pattern = "-", replacement = "_", rownames(data))
-
-## Plot
-newnames <- lapply(
-  rownames(data),
-  function(x) bquote(italic(.(x))))
-
-pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, 
-         filename = "pheat.png", gaps_col = 25, labels_row = as.expression(newnames))
-
-# BF_Fin
-bffin <- subset_samples(resfinder_PHY_stat, country == "Finland" | country == "Burkina Faso")
-top_20 <- subset_taxa(bffin, Gene == "dfrB5_1_AY943084" | Gene == "blaCMY-4_1_LNHZ01000079" | Gene == "sul4_1_MG649393" | Gene == "dfrA15_2_AF221900" | Gene == "blaOXA-46_1_AF317511" | Gene == "blaOXA-101_1_AM412777" | Gene == "dfrA15_1_AF156486" |  Gene == "blaOXA-7_1_X75562" | Gene == "qnrVC1_1_EU436855" | Gene == "lnu(F)_3_AJ561197" | Gene == "nimA_1_X71444" | Gene == "blaVIM-5_1_DQ023222" | Gene == "dfrA15_4_AJ867237" | Gene == "blaOXA-56_1_AY445080" | Gene == "catQ_1_M55620" | Gene == "blaVIM-38_1_KC469971" | Gene == "blaCMY-130_1_KP207589" | Gene == "blaCMY-59_1_NG_048854"| Gene == "qnrVC4_1_GQ891757" | Gene == "blaVIM-25_1_HM750249" | Gene == "blaOXA-299_1_APQD01000016" | Gene == "blaOXA-334_1_KF203108" | Gene == "blaOXA-296_1_APOH01000009" | Gene == "blaOXA-333_1_KF203107" | Gene == "blaOXA-211_1_JN861779" | Gene == "aac(6')-Ig_1_L09246" | Gene == "blaOXA-281_1_APON01000041" | Gene == "blaOXA-373_1_HG931732" | Gene == "blaOXA-212_1_JN861780" | Gene == "blaOXA-309_1_HF947514" | Gene == "VanHOX_1_KF478993" | Gene == "VanHAX_2_M97297" | Gene == "VanHBX_1_AF192329" | Gene == "blaOXA-275_1_APPJ01000001" | Gene == "aadA11_2_AJ567827" | Gene == "VanHAX_1_FJ866609" | Gene == "qnrB21_1_FJ611948" | Gene == "VanC4XY_1_EU151752" | Gene == "mef(A)_3_AF227520" | Gene == "cphA2_6_AHU60294")
-
-data <- otu_table(top_20)
-
-match <- match(rownames(data), rownames(clusters_tax_table_resfinder))
-names <- clusters_tax_table_resfinder[match,]
-all(rownames(data) == rownames(names))
-
-rownames(data) <- paste(names$Gene)
-
-# Annotations
-match <- match(rownames(data), rownames(cor_data))
-corr <- cor_data[match,]
-
-mod <- within(corr, r[p >= 0.05] <- 0)
-r <- data.frame(mod$r)
-
-cor_annotation <- ggcorrplot(r, method = "square", outline.col = "grey", legend.title = "intI1")
-
-ggsave(filename = "cor_annotation.png",
-       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-
-colnames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", colnames(data))
-rownames(data) <- gsub(pattern = "_[A-Z].*", replacement = "", rownames(data))
-rownames(data) <- gsub(pattern = "-", replacement = "_", rownames(data))
-
-## Plot
-newnames <- lapply(
-  rownames(data),
-  function(x) bquote(italic(.(x))))
-
-pheatmap(data, cellheight = 8, cluster_cols = F, cex = 0.75, cluster_rows = F, 
-         filename = "pheat.png", gaps_col = 34, labels_row = as.expression(newnames))
+#ggsave(filename = "ARGs_corr_deseq.png",
+#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 # "Core" resistome and unique ARGs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
@@ -2123,39 +2044,6 @@ length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))) # 1295
 #                 alpha = 0.75,  cex = 4.5, cat.cex = 6, rotation.degree = 0, label.col = "white", cat.dist = 0.05,
 #                 filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
 #grid.draw(ven.p)
-
-# Pairwise
-#grid.newpage()
-#p1 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(BF_temp), 
-#  cross.area = length(intersect(row.names(Ben_temp), (row.names(BF_temp)))),
-#  fontfamily = "Times", category = c("Benin", "Burkina Faso"),
-#  lty = "blank", fill = c("#B2182B", "#44AA99"),
-#  alpha = 0.75,  cex = 5, cat.cex = 6, rotation.degree = 0, label.col = "white", 
-#  cat.pos = c(300, 105), cat.dist = c(-0.07, -0.06),
-#                                ext.pos = 10,
-#                                ext.dist = -0.05,
-#                                ext.length = 0.75,
-#                                ext.line.lwd = 2,
-#                                ext.line.lty = "dashed")
-#grid.draw(p1)
-
-#grid.newpage()
-#p2 <- draw.pairwise.venn(area1 = nrow(Fin_temp), area2 = nrow(BF_temp), 
-#  cross.area = length(intersect(row.names(Fin_temp), (row.names(BF_temp)))),
-#  fontfamily = "Times", category = c("Finland", "Burkina Faso"),
-#  lty = "blank", fill = c("#2166AC", "#44AA99"),
-#  alpha = 0.65,  cex = 4, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.02,
-#  filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08)
-#grid.draw(p2)
-
-#grid.newpage()
-#p3 <- draw.pairwise.venn(area1 = nrow(Ben_temp), area2 = nrow(Fin_temp), 
-#  cross.area = length(intersect(row.names(Ben_temp), (row.names(Fin_temp)))),
-#  fontfamily = "Times", category = c("Benin", "Finland"),
-#  lty = "blank", fill = c("#B2182B", "#2166AC"),
-#  alpha = 0.75,  cex = 6, cat.cex = 4, rotation.degree = 0, label.col = "white", cat.dist = 0.03,
-#  filename = "Venn_diagram.png", output=TRUE, imagetype="png", margin = 0.08, euler.d = TRUE, scaled = TRUE)
-#grid.draw(p3)
 
 # And which ARGs are those?
 tax <- data.frame(clusters_tax_table_resfinder)
@@ -2212,7 +2100,7 @@ unique_Ben <- tax[match,]
 
 #write.table(unique_Ben, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/unique_Ben.txt",  row.names=F, sep = "\t", col.names = T)
 
-# BF
+# Unique for Burkina Faso
 temp1 <- intersect(row.names(BF_temp), row.names(Fin_temp))
 temp2 <- intersect(row.names(BF_temp), row.names(Ben_temp))
 temp <- c(temp1, temp2)
@@ -2228,7 +2116,7 @@ unique_BF <- tax[match,]
 
 #write.table(unique_BF, "~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/unique_BF.txt", row.names=F, sep = "\t", col.names = T)
 
-# Finland
+# Unique for Finland
 temp1 <- intersect(row.names(Fin_temp), row.names(BF_temp))
 temp2 <- intersect(row.names(Fin_temp), row.names(Ben_temp))
 temp <- c(temp1, temp2)
