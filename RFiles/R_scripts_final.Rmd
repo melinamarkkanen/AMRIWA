@@ -3,8 +3,8 @@ title: "R_scripts_AMRIWA_metagenomes"
 author: Melina Markkanen
 date: 27/1/2022
 output:
-  html_document:
-    latex_engine: xelatex
+  pdf_document:
+    latex_engine: pdflatex
     toc: true
 fontsize: 10pt
 geometry: margin=0.5in
@@ -676,7 +676,8 @@ dfA <- cbind(df, Mean = predict(M0, newdata = df, type = "response"), SE = predi
 
 resfinder_M0 <- ggplot(dfA, aes(x = country, y = Mean)) + scale_color_manual(values=cols) + 
   geom_line() + 
-  geom_jitter(data = dfA, aes(x = country, y = ARG_SUM, color = country), size = 7.5, alpha = 1, width = 0.3) + 
+  geom_jitter(data = dfA, aes(x = country, y = ARG_SUM, color = country), 
+        size = 7.5, alpha = 1, width = 0.3) + 
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + 
   geom_point(size = 0.9) + theme_linedraw() + 
   theme(axis.text.x = element_text(angle = 0, size = 18, family = "Times", face = "bold"), 
@@ -718,7 +719,8 @@ cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 
 MGE_M1 <- ggplot(dfA, aes(x = country, y = Mean)) + 
   scale_color_manual(values=cols) + geom_line() + 
-  geom_jitter(data = dfA, aes(x = country, y = MGE_SUM, color = country), size = 7.5, alpha = 1, width = 0.3) + 
+  geom_jitter(data = dfA, aes(x = country, y = MGE_SUM, color = country), 
+        size = 7.5, alpha = 1, width = 0.3) + 
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + 
   geom_point(size = 0.9) + theme_linedraw() + 
   theme(axis.text.x = element_text(angle = 0, size = 18, family = "Times", face = "bold"), 
@@ -761,7 +763,8 @@ cols <- get_palette(c("#B2182B", "#44AA99", "#2585E7"), 3)
 intI1_M2 <- ggplot(dfA, aes(x = country, y = Mean)) + 
   scale_color_manual(values=cols) + 
   geom_line() + 
-  geom_jitter(data = dfA, aes(x = country, y = intI1_SUM, color = country), size = 7.5, alpha = 1, width = 0.3) + 
+  geom_jitter(data = dfA, aes(x = country, y = intI1_SUM, color = country), 
+        size = 7.5, alpha = 1, width = 0.3) + 
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.5, lwd = 0.75) + 
   geom_point(size = 0.9) + theme_linedraw() + 
   theme(axis.text.x = element_text(angle = 0, size = 18, family = "Times", face = "bold"), 
@@ -899,9 +902,10 @@ metaphlan.p_ord <- p_ord +
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-  geom_text_repel(mapping = aes(label = alias), size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
+  geom_text_repel(mapping = aes(label = alias), 
+        size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
   theme_minimal() + labs(title= "Taxonomical composition", 
-                         subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
+        subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
   theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
         plot.subtitle = element_text(size = 20, family = "Times"),
         legend.text = element_text(size = 50, family = "Times"),
@@ -936,9 +940,10 @@ MGE.p_ord <- p_ord +
   scale_color_manual(values = c("#B2182B", "#72D39D", "#2585E7")) +
   geom_point(size = 3.5) + 
   stat_ellipse(level = 0.90, linetype = 1) +
-  geom_text_repel(mapping = aes(label = alias), size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
+  geom_text_repel(mapping = aes(label = alias), 
+       size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
   theme_minimal() + labs(title= "Mobilome", 
-                         subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
+        subtitle = "Hospital WWs in Benin, Burkina Faso and Finland") + 
   theme(plot.title = element_text(size = 36, family = "Times", face = "bold"),
         plot.subtitle = element_text(size = 20, family = "Times"),
         legend.text = element_text(size = 50, family = "Times"),
@@ -1044,7 +1049,8 @@ OTU_resfinder <- OTU_resfinder[,match]
 all(colnames(OTU_resfinder) == rownames(metadata))
 
 # Tax_table
-clusters_tax_table_resfinder <- read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table.txt", 
+clusters_tax_table_resfinder <- 
+  read.csv("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/clusters_tax_table.txt", 
                                          header=FALSE, sep=";")
 colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
 # Reorder columns
@@ -1057,7 +1063,8 @@ clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
 all(rownames(OTU_resfinder) == clusters_tax_table_resfinder$Gene)
 
 # Divide by ARG gene lengths
-resfinder_lengths <- read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/resfinder_lengths.txt", 
+resfinder_lengths <- 
+  read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/resfinder_lengths.txt", 
                                 header=FALSE, comment.char="#")
 all(rownames(clusters_tax_table_resfinder$Gene) == resfinder_lengths$V1)
 OTU_resfinder_length_norm <- OTU_resfinder/resfinder_lengths[, 2]
@@ -1079,7 +1086,7 @@ dim(clusters_tax_table_resfinder)
 rownames(clusters_tax_table_resfinder) <- c(1:3104)
 
 resfinder_deseq <- phyloseq(otu_table(deseq_OTU, taxa_are_rows = T), 
-                            sample_data(metadata), tax_table(as.matrix(clusters_tax_table_resfinder)))
+  sample_data(metadata), tax_table(as.matrix(clusters_tax_table_resfinder)))
 
 ## Exclude biological / technical replicates
 resfinder_deseq <- subset_samples(resfinder_deseq, alias != "BH31" & alias != "BH33" & alias != "BH34B" & 
@@ -1132,7 +1139,8 @@ Ben_Fin <- Ben_Fin[order(Ben_Fin$log2FoldChange), ]
 ### Burkina Faso-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 # Take pair wise comparisons
-deseq_PHY = subset_samples(resfinder_deseq_stat, country == "Burkina Faso" | country == "Finland")
+deseq_PHY = subset_samples(resfinder_deseq_stat, 
+      country == "Burkina Faso" | country == "Finland")
 
 #hist(log10(apply(otu_table(deseq_PHY), 1, var)), xlab = "log10(variance)")
 
@@ -1181,11 +1189,13 @@ BF_Fin <- BF_Fin[order(BF_Fin$log2FoldChange), ]
 ## Taxa (Metaphlan3), Species, Benin-Finland
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 OTU_metaphlan <- 
-  read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", header=T)
+  read.delim("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/mod_merged_abundance_table_species.txt", 
+  header=T)
 
 # Match sample order
 tax_table_metaphlan <- 
-  read.table("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", quote="\"", comment.char="")
+  read.table("~/Documents/Metagenomes_AMRIWA/R/AMRIWA/RFiles/tax_table_metaphlan", 
+  quote="\"", comment.char="")
 identical(tax_table_metaphlan$V1, OTU_metaphlan$clade_name)
 
 tax_table_metaphlan <- 
@@ -1407,8 +1417,10 @@ selected <- subset_taxa(metaphlan_PHY_Species,  Species == "Acinetobacter_bauman
                         | Species == "Acinetobacter_bereziniae" 
                         | Species == "Acinetobacter_kyonggiensis" 
                         | Species == "Enterobacter_cloacae_complex" 
-                        | Species == "Enterococcus_faecium" | Species == "Klebsiella_pneumoniae" 
-                        | Species == "Staphylococcus_aureus" | Species == "Pseudomonas_aeruginosa_group" 
+                        | Species == "Enterococcus_faecium" 
+                        | Species == "Klebsiella_pneumoniae" 
+                        | Species == "Staphylococcus_aureus" 
+                        | Species == "Pseudomonas_aeruginosa_group" 
                         | Species == "Escherichia_coli")
 
 # Filter out low abundance taxa
@@ -1477,24 +1489,24 @@ resfinder_PHY_stat_Ben <- subset_samples(resfinder_PHY_stat, country == "Benin")
 resfinder_PHY_stat_Ben_abun <- tax_glom(resfinder_PHY_stat_Ben, taxrank = "Gene")
 
 # Take 15 most abundant
-resfinder_PHY_stat_Ben_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_Ben_abun), TRUE)[1:15]), 
-    resfinder_PHY_stat_Ben_abun)
+resfinder_PHY_stat_Ben_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_Ben_abun), 
+    TRUE)[1:15]), resfinder_PHY_stat_Ben_abun)
 
-# BF
+# Burkina Faso
 resfinder_PHY_stat_BF <- subset_samples(resfinder_PHY_stat, country == "Burkina Faso")
 resfinder_PHY_stat_BF_abun <- tax_glom(resfinder_PHY_stat_BF, taxrank = "Gene")
 
 # Take 15 most abundant
-resfinder_PHY_stat_BF_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_BF_abun), TRUE)[1:15]), 
-    resfinder_PHY_stat_BF_abun)
+resfinder_PHY_stat_BF_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_BF_abun), 
+    TRUE)[1:15]), resfinder_PHY_stat_BF_abun)
 
 # Finland
 resfinder_PHY_stat_Fin <- subset_samples(resfinder_PHY_stat, country == "Finland")
 resfinder_PHY_stat_Fin_abun <- tax_glom(resfinder_PHY_stat_Fin, taxrank = "Gene")
 
 # Take 15 most abundant
-resfinder_PHY_stat_Fin_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_Fin_abun), TRUE)[1:15]), 
-    resfinder_PHY_stat_Fin_abun)
+resfinder_PHY_stat_Fin_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_stat_Fin_abun), 
+    TRUE)[1:15]), resfinder_PHY_stat_Fin_abun)
 
 # Create dataframe
 Benin <- data.frame(resfinder_PHY_stat_Ben_abun@tax_table)$Gene
@@ -1511,8 +1523,8 @@ resfinder_PHY_feces <- subset_samples(resfinder_PHY,
                                       alias == "BH20" | alias == "BH22" | alias == "BH24" | alias == "BH25")
 resfinder_PHY_feces <- tax_glom(resfinder_PHY_feces, taxrank = "Gene")
 # Take 15 most abundant
-resfinder_PHY_feces_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_feces), TRUE)[1:15]), 
-    resfinder_PHY_feces)
+resfinder_PHY_feces_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_feces), 
+    TRUE)[1:15]), resfinder_PHY_feces)
 resfinder_PHY_feces_abun@tax_table
 
 # drinking
@@ -1522,8 +1534,8 @@ resfinder_PHY_ben_drink <- subset_samples(resfinder_PHY,
 resfinder_PHY_ben_drink <- subset_taxa(resfinder_PHY_ben_drink, taxa_sums(resfinder_PHY_ben_drink) != 0)
 resfinder_PHY_ben_drink <- tax_glom(resfinder_PHY_ben_drink, taxrank = "Gene")
 # Take 15 most abundant
-resfinder_PHY_ben_drink_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_drink), TRUE)[1:15]), 
-    resfinder_PHY_ben_drink)
+resfinder_PHY_ben_drink_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_drink), 
+    TRUE)[1:15]), resfinder_PHY_ben_drink)
 resfinder_PHY_ben_drink_abun@tax_table
 
 # other, Benin
@@ -1533,8 +1545,8 @@ resfinder_PHY_ben_other <- subset_samples(resfinder_PHY,
 resfinder_PHY_ben_other <- subset_taxa(resfinder_PHY_ben_other, taxa_sums(resfinder_PHY_ben_other) != 0)
 resfinder_PHY_ben_other <- tax_glom(resfinder_PHY_ben_other, taxrank = "Gene")
 # Take 15 most abundant
-resfinder_PHY_ben_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_other), TRUE)[1:15]), 
-    resfinder_PHY_ben_other)
+resfinder_PHY_ben_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_ben_other), 
+    TRUE)[1:15]), resfinder_PHY_ben_other)
 resfinder_PHY_ben_other_abun@tax_table
 
 # other, BF
@@ -1543,8 +1555,8 @@ resfinder_PHY_BF_other <- subset_samples(resfinder_PHY,
 resfinder_PHY_BF_other <- subset_taxa(resfinder_PHY_BF_other, taxa_sums(resfinder_PHY_BF_other) != 0)
 resfinder_PHY_BF_other <- tax_glom(resfinder_PHY_BF_other, taxrank = "Gene")
 # Take 15 most abundant
-resfinder_PHY_BF_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_BF_other), TRUE)[1:15]), 
-    resfinder_PHY_BF_other)
+resfinder_PHY_BF_other_abun <- prune_taxa(names(sort(taxa_sums(resfinder_PHY_BF_other), 
+    TRUE)[1:15]), resfinder_PHY_BF_other)
 resfinder_PHY_BF_other_abun@tax_table
 ```
 # Interesting ARGs
@@ -1699,7 +1711,8 @@ rfc_plot2 <- rfc + geom_bar(stat="identity", color = NA, size = 0) +
     labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) + 
   labs(y = expression(atop(bold("ARGs/16S rRNA")))) + ggtitle("Benin") + 
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_drink)))), 
-    labels=names, expression(bar("x"))) + theme_minimal() + theme(axis.text.x = element_text(size = 20, 
+    labels=names, expression(bar("x"))) + theme_minimal() + 
+  theme(axis.text.x = element_text(size = 20, 
     family = "Times", angle = 0, face = "bold"),
     axis.text.y = element_text(size = 16, family = "Times", angle = 0),
     axis.title.x = element_blank(), axis.title.y = element_blank(),
@@ -1708,49 +1721,58 @@ rfc_plot2 <- rfc + geom_bar(stat="identity", color = NA, size = 0) +
     plot.title = element_text(size = 16, family = "Times", face = "bold")) + 
   scale_y_continuous(limits = c(0, 0.002), labels = scales::number_format(accuracy = 0.001), 
     breaks = seq(0, 0.002, by = 0.001)) + facet_grid(~plot_name, scales = "free", space = "free", 
-    labeller = label_wrap_gen(width = 20, multi_line = TRUE)) + theme(strip.text.x= element_text(size = 14, 
-    family = "Times", hjust = 0, vjust = 0.5, angle = 0),strip.background = element_rect(colour = "white")) + 
+    labeller = label_wrap_gen(width = 20, multi_line = TRUE)) + 
+  theme(strip.text.x= element_text(size = 14, 
+    family = "Times", hjust = 0, vjust = 0.5, angle = 0), 
+    strip.background = element_rect(colour = "white")) + 
   guides(fill=guide_legend(ncol=1))
 
 # other
 resfinder_PHY_ben_other <- subset_samples(resfinder_PHY_Cluster, 
-                                          alias ==  "BH13" | alias == "BH14"| alias == "BH32" | alias == "BH52")
+  alias ==  "BH13" | alias == "BH14"| alias == "BH32" | alias == "BH52")
 df <- sample_sums(resfinder_PHY_ben_other)
 
 names <- paste(resfinder_PHY_ben_other@sam_data$alias)
 
 rfc <- plot_bar(resfinder_PHY_ben_other, fill = "Cluster_name") 
-rfc_plot3 <- rfc + geom_bar(stat="identity", color = NA, size = 0) + scale_fill_manual(values = cols, 
+rfc_plot3 <- rfc + geom_bar(stat="identity", color = NA, size = 0) + 
+  scale_fill_manual(values = cols, 
   labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) + 
   labs(y = expression(atop(bold("ARGs/16S rRNA")))) + ggtitle("Benin") + 
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_ben_other)))), 
-    labels=names, expression(bar("x"))) + theme_minimal() + theme(axis.text.x = element_text(size = 20, 
+    labels=names, expression(bar("x"))) + theme_minimal() + 
+  theme(axis.text.x = element_text(size = 20, 
     family = "Times", angle = 0, face = "bold"),
     axis.text.y = element_text(size = 16, family = "Times", angle = 0),
     axis.title.y = element_blank(), axis.title.x = element_blank(),
     legend.position = "none", panel.background = element_rect(fill = "#FFFDF9"),
     panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
     plot.title = element_text(size = 16, family = "Times", face = "bold")) + 
-  scale_y_continuous(limits = c(0, 0.01), labels = scales::number_format(accuracy = 0.001), 
-    breaks = seq(0, 0.01, by = 0.005)) + facet_grid(~plot_name, scales = "free", space = "free", 
+  scale_y_continuous(limits = c(0, 0.01), 
+    labels = scales::number_format(accuracy = 0.001), 
+    breaks = seq(0, 0.01, by = 0.005)) + 
+  facet_grid(~plot_name, scales = "free", space = "free", 
     labeller = label_wrap_gen(width = 20, multi_line = TRUE)) +
   theme(strip.text.x= element_text(size = 14, family = "Times", hjust = 0, vjust = 0.5, angle = 0),
-    strip.background = element_rect(colour = "white")) + guides(fill=guide_legend(ncol=1))
+    strip.background = element_rect(colour = "white")) + 
+  guides(fill=guide_legend(ncol=1))
 
 ## Burkina Faso
 # other
 resfinder_PHY_BF_other <- subset_samples(resfinder_PHY_Cluster, 
-                                         alias == "BFH27" | alias ==  "BFH42" | alias == "BFH26")
+  alias == "BFH27" | alias ==  "BFH42" | alias == "BFH26")
 df <- sample_sums(resfinder_PHY_BF_other)
 
 names <- paste(resfinder_PHY_BF_other@sam_data$alias)
 
 rfc <- plot_bar(resfinder_PHY_BF_other, fill = "Cluster_name") 
-rfc_plot4 <- rfc + geom_bar(stat="identity", size = 0, color = NA) + scale_fill_manual(values = cols, 
+rfc_plot4 <- rfc + geom_bar(stat="identity", size = 0, color = NA) + 
+  scale_fill_manual(values = cols, 
   labels = c("blaGES", "blaIMP", "blaKPC", "blaNDM", "blaOXA-48", "blaOXA-58", "blaVIM")) + 
   labs(y = expression(atop(bold("ARGs/16S rRNA")))) + ggtitle("Burkina Faso") + 
   scale_x_discrete(breaks=levels(factor(rownames(sample_data(resfinder_PHY_BF_other)))), 
-    labels=names, expression(bar("x"))) + theme_minimal() + theme(axis.text.x = element_text(size = 20, 
+    labels=names, expression(bar("x"))) + theme_minimal() + 
+  theme(axis.text.x = element_text(size = 20, 
     family = "Times", angle = 0, face = "bold"),
     axis.text.y = element_text(size = 16, family = "Times", angle = 0),
     axis.title.y = element_blank(), axis.title.x = element_blank(),
@@ -1758,9 +1780,12 @@ rfc_plot4 <- rfc + geom_bar(stat="identity", size = 0, color = NA) + scale_fill_
     panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
     plot.title = element_text(size = 16, family = "Times", face = "bold")) + 
   scale_y_continuous(labels = scales::number_format(accuracy = 0.01), 
-    breaks=seq(0, 0.02, 0.01)) + facet_grid(~plot_name, scales = "free", space = "free", 
-    labeller = label_wrap_gen(width = 25, multi_line = TRUE)) + theme(strip.text.x= element_text(size = 11, 
-    family = "Times", hjust = 0, vjust = 0.5, angle = 0), strip.background = element_rect(colour = "white")) + 
+    breaks=seq(0, 0.02, 0.01)) + 
+  facet_grid(~plot_name, scales = "free", space = "free", 
+    labeller = label_wrap_gen(width = 25, multi_line = TRUE)) + 
+  theme(strip.text.x= element_text(size = 11, 
+    family = "Times", hjust = 0, vjust = 0.5, angle = 0), 
+    strip.background = element_rect(colour = "white")) + 
   guides(fill=guide_legend(ncol=1))
 
 layout <- "
@@ -1836,8 +1861,9 @@ colnames(mge_res) <- c("ARGs", "MGEs")
 # Plot
 cor <- ggplot(mge_res, aes(x=ARGs, y=MGEs)) +
   geom_point(size=7, shape=19, color = "#3110D2") +
-  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, level=0.95, color = "#FB2A38", fill = "#8A91F8") +
-    theme_bw() +
+  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, 
+        level=0.95, color = "#FB2A38", fill = "#8A91F8") +
+  theme_bw() +
   theme(axis.title = element_text(size = 30, family = "Times"),
         axis.text = element_text(size = 28, family = "Times"),
         plot.title = element_text(size = 36, family = "Times"),
@@ -1857,8 +1883,9 @@ colnames(intl_res) <- c("ARGs", "intI1")
 # Plot
 cor <- ggplot(intl_res, aes(x=ARGs, y=intI1)) +
   geom_point(size=7, shape=19, color = "#3110D2") +
-  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, level=0.95, color = "#FB2A38", fill = "#8A91F8") +
-    theme_bw() +
+  geom_smooth(method="lm", se=TRUE, fullrange=FALSE, 
+        level=0.95, color = "#FB2A38", fill = "#8A91F8") +
+  theme_bw() +
   theme(axis.title = element_text(size = 30, family = "Times"),
         axis.text = element_text(size = 28, family = "Times"),
         plot.title = element_text(size = 36, family = "Times"),
@@ -1995,10 +2022,11 @@ rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
-rownames(arg_data) <- c("lnu_F_3", "qnrVC4", "qnrVC5", "aac_6_IIc", "blaCARB_2", 
-                        "ant_2_Ia_6", "blaOXA_129", "dfrA22", "blaVEB_1_3", "blaAER_1", 
-                        "ant_2_Ia_10", "aph_2_Id", "blaVEB_1_1", "catQ_1", "blaVEB_5", 
-                        "blaCARB_11", "blaCARB_1", "sul3_2", "dfrA15", "cmlA1")
+rownames(arg_data) <- 
+  c("lnu_F_3", "qnrVC4", "qnrVC5", "aac_6_IIc", "blaCARB_2", 
+    "ant_2_Ia_6", "blaOXA_129", "dfrA22", "blaVEB_1_3", "blaAER_1", 
+    "ant_2_Ia_10", "aph_2_Id", "blaVEB_1_1", "catQ_1", "blaVEB_5", 
+    "blaCARB_11", "blaCARB_1", "sul3_2", "dfrA15", "cmlA1")
 
 arg_data = t(arg_data)
 
@@ -2028,10 +2056,11 @@ rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
-rownames(arg_data) <- c("blaOXA_211", "blaOXA_299", "blaOXA_212", "blaOXA_334", 
-                        "aac_6_Ig", "blaOXA_373", "blaOXA_296", "blaOXA_333", "blaOXA_309", 
-                        "blaOXA_427", "dfrA3", "VanHOX_1", "blaOXA_281", "blaOXA_280", "cphA1", 
-                        "VanHAX_1", "cphA2", "blaMOX_3", "VanHBX_1", "tet_39")
+rownames(arg_data) <- 
+  c("blaOXA_211", "blaOXA_299", "blaOXA_212", "blaOXA_334",
+    "aac_6_Ig", "blaOXA_373", "blaOXA_296", "blaOXA_333", "blaOXA_309", 
+    "blaOXA_427", "dfrA3", "VanHOX_1", "blaOXA_281", "blaOXA_280", "cphA1",
+    "VanHAX_1", "cphA2", "blaMOX_3", "VanHBX_1", "tet_39")
 
 arg_data = t(arg_data)
 
@@ -2063,9 +2092,10 @@ rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
-rownames(arg_data) <- c("dfrB5", "blaCMY_4", "sul4", "dfrA15_2", "blaOXA_46", "blaOXA_101", 
-                        "dfrA15_1", "blaOXA_7", "qnrVC1", "lnu_F_3", "nimA_1", "blaVIM_5", "dfrA15_4", 
-                        "blaOXA_56", "catQ_1", "blaVIM_38", "blaCMY_130", "blaCMY_59", "qnrVC4", "blaVIM_25")
+rownames(arg_data) <- 
+  c("dfrB5", "blaCMY_4", "sul4", "dfrA15_2", "blaOXA_46", "blaOXA_101",
+    "dfrA15_1", "blaOXA_7", "qnrVC1", "lnu_F_3", "nimA_1", "blaVIM_5", "dfrA15_4",
+    "blaOXA_56", "catQ_1", "blaVIM_38", "blaCMY_130", "blaCMY_59", "qnrVC4", "blaVIM_25")
 
 arg_data = t(arg_data)
 
@@ -2094,9 +2124,10 @@ rownames(arg_data) <- gsub(pattern = "-", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\(", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\)", replacement = "_", rownames(arg_data))
 rownames(arg_data) <- gsub(pattern = "\\'", replacement = "", rownames(arg_data))
-rownames(arg_data) <- c("blaOXA_299", "blaOXA_334", "blaOXA_296", "blaOXA_333", "blaOXA_211", "aac_6_Ig", 
-                        "blaOXA_281", "blaOXA_373", "blaOXA_212", "blaOXA_309", "VanHOX_1", "VanHAX_2", 
-                        "VanHBX_1", "blaOXA_275", "aadA11", "VanHAX_1", "qnrB21", "VanC4XY_1", "mef_A_3", "cphA2")
+rownames(arg_data) <- 
+  c("blaOXA_299", "blaOXA_334", "blaOXA_296", "blaOXA_333", "blaOXA_211", "aac_6_Ig",
+    "blaOXA_281", "blaOXA_373", "blaOXA_212", "blaOXA_309", "VanHOX_1", "VanHAX_2", 
+    "VanHBX_1", "blaOXA_275", "aadA11", "VanHAX_1", "qnrB21", "VanC4XY_1", "mef_A_3", "cphA2")
 
 arg_data = t(arg_data)
 
@@ -2118,49 +2149,51 @@ p_mat3[is.na(p_mat3)] = 0
 p_mat4[is.na(p_mat4)] = 0
 
 m0 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "square",
-                         ggtheme = ggplot2::theme_classic() +
-                         theme(axis.text = element_text(face = "italic", family = "Times", size = 9, angle = 20),
-                         plot.title = element_text(size=9, face="bold", family = "Times"),
-                         legend.title = element_blank(),
-                         legend.text = element_text(family = "Times", size = 20),
-                         legend.key.size = unit(1.4, "cm")))
+  ggtheme = ggplot2::theme_classic() +
+  theme(axis.text = element_text(face = "italic", family = "Times", size = 9, angle = 20),
+  plot.title = element_text(size=9, face="bold", family = "Times"),
+  legend.title = element_blank(),
+  legend.text = element_text(family = "Times", size = 20),
+  legend.key.size = unit(1.4, "cm")))
 
-title1 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs from Benin vs. Finland",
+title1 <- ggdraw() + 
+  draw_label("Differentially abundant ARGs in HWWs from Benin vs. Finland",
     fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 24)
-title2 <- ggdraw() + draw_label("Differentially abundant ARGs in HWWs from Burkina Faso vs. Finland",
+title2 <- ggdraw() + 
+  draw_label("Differentially abundant ARGs in HWWs from Burkina Faso vs. Finland",
     fontface = 'bold', x = 0.32, hjust = 0.1, y = 0.35, fontfamily = "Times", size = 24)
 
 m1 <- ggcorrplot(M1, p.mat = p_mat1, type = "full", insig = "blank", method = "square",
-                 ggtheme = ggplot2::theme_classic() +
-                   theme(axis.text = element_text(face = "italic", family = "Times"),
-                         legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
-                         axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
-                         axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Benin")
+  ggtheme = ggplot2::theme_classic() +
+  theme(axis.text = element_text(face = "italic", family = "Times"),
+  legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
+  axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
+  axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
+  plot.title = element_text(size=24, family = "Times"))) + ggtitle("Benin")
 
 m2 <- ggcorrplot(M2, p.mat = p_mat2, type = "full", insig = "blank", method = "square",
-                 ggtheme = ggplot2::theme_classic() +
-                   theme(axis.text = element_text(face = "italic", family = "Times"),
-                         legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
-                         axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
-                         axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
+  ggtheme = ggplot2::theme_classic() +
+  theme(axis.text = element_text(face = "italic", family = "Times"),
+  legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
+  axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
+  axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
+  plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
 
 m3 <- ggcorrplot(M3, p.mat = p_mat3, type = "full", insig = "blank", method = "square",
-                 ggtheme = ggplot2::theme_classic() +
-                   theme(axis.text = element_text(face = "italic", family = "Times"),
-                         legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
-                         axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
-                         axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Burkina Faso")
+  ggtheme = ggplot2::theme_classic() +
+  theme(axis.text = element_text(face = "italic", family = "Times"),
+  legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
+  axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
+  axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
+  plot.title = element_text(size=24, family = "Times"))) + ggtitle("Burkina Faso")
 
 m4 <- ggcorrplot(M4, p.mat = p_mat4, type = "full", insig = "blank", method = "square",
-                 ggtheme = ggplot2::theme_classic() +
-                   theme(axis.text = element_text(face = "italic", family = "Times"),
-                          legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
-                         axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
-                         axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
-                         plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
+  ggtheme = ggplot2::theme_classic() +
+  theme(axis.text = element_text(face = "italic", family = "Times"),
+  legend.position = "none", plot.margin = unit(c(0, 0, 0, 0), "cm"),
+  axis.text.y.left = element_text(angle = 0, face = "bold.italic", size = 20),
+  axis.text.x.bottom = element_text(size = 16, angle = 35, face = "italic"),
+  plot.title = element_text(size=24, family = "Times"))) + ggtitle("Finland")
 
 # Extract the legend from one of the plots
 #legend <- get_legend(m0)
