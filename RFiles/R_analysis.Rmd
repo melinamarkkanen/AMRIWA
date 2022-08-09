@@ -4,7 +4,7 @@ output: html_document
 date: '2022-05-03'
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # Install
@@ -43,17 +43,18 @@ library(maps)
 ```
 # Load data
 ## metadata
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 ## metadata
 metadata <- read.delim2("metadata.txt", row.names=1)
 ```
 ## rpoB
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 HMM_RESULT_TABLE <- read.delim("HMM_RESULT_TABLE.txt", row.names=1)
 HMM_RESULT_TABLE$SUM = rowSums(HMM_RESULT_TABLE[,c(2,3)])
 
 # Sum of counts for R1 and R1 reads
-# Reorder samples to match metadata and add to metadata
+# Reorder samples to match metadata and add to metadatals
+
 match <- match(rownames(metadata), rownames(HMM_RESULT_TABLE))
 rpoB_counts <- HMM_RESULT_TABLE[match,]
 metadata$rpoB_counts <- rpoB_counts$SUM
@@ -65,7 +66,7 @@ R1_rpoB_counts <- HMM_RESULT_TABLE[match,]
 metadata$R1_rpoB_counts <- rpoB_counts$R1
 ```
 ## Metaxa2 results
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 metaxa_genus <- read.delim("metaxa_genus.txt")
 
 # Create OTU table
@@ -102,7 +103,7 @@ metaxa_PHY_uniq <- subset_samples(metaxa_PHY_uniq, sample_material == "water")
 metaxa_PHY_HWW <- subset_samples(metaxa_PHY_uniq, HWW == "YES")
 ```
 ## ARGs, counts
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 counts_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Tax_table
@@ -139,7 +140,7 @@ resfinder_PHY_counts_uniq <- subset_samples(resfinder_PHY_counts_uniq, sample_ma
 resfinder_PHY_counts_HWW <- subset_samples(resfinder_PHY_counts_uniq, HWW == "YES")
 ```
 ## ARGs, relative abundances
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 counts_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Tax_table
@@ -189,7 +190,7 @@ resfinder_PHY_rel_uniq <- subset_samples(resfinder_PHY_rel_uniq, sample_material
 resfinder_PHY_rel_HWW <- subset_samples(resfinder_PHY_rel_uniq, HWW == "YES")
 ```
 # Metaphlan3, counts
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 metaphlan3_counts_merged_abundance_table <- read.delim("merged_metaphlan_count_species.txt", header = T)
 mp_counts <- metaphlan3_counts_merged_abundance_table[ -c(2) ]
 
@@ -229,7 +230,7 @@ metaphlan_PHY_counts_genus_uniq <- subset_samples(metaphlan_PHY_counts_genus_uni
 metaphlan_PHY_counts_genus_HWW <- subset_samples(metaphlan_PHY_counts_genus_uniq, HWW == "YES")
 ```
 ## Metaphlan3, relative abundances
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 metaphlan3_merged_abundance_table <- read.delim("merged_metaphlan_rel_species.txt", header = T)
 mp_rel <- metaphlan3_merged_abundance_table[ -c(2) ]
 
@@ -269,7 +270,7 @@ metaphlan_PHY_rel_genus_uniq <- subset_samples(metaphlan_PHY_rel_genus_uniq, sam
 metaphlan_PHY_rel_genus_HWW <- subset_samples(metaphlan_PHY_rel_genus_uniq, HWW == "YES")
 ```
 ## MGEs, counts
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 counts_MGE <-as.matrix(read.table("cp_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -302,7 +303,7 @@ MGE_PHY_counts_uniq <- subset_samples(MGE_PHY_counts_uniq, sample_material == "w
 MGE_PHY_counts_HWW <- subset_samples(MGE_PHY_counts_uniq, HWW == "YES")
 ```
 ## MGEs, relative abundances
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 counts_MGE <-as.matrix(read.table("cp_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -355,7 +356,7 @@ MGE_rel_PHY_HWW <- subset_samples(MGE_rel_PHY_uniq, HWW == "YES")
 # Analyses
 ## Ordinations
 ### PCOA, resistome
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # resfinder_PHY_rel_uniq
 # resfinder_PHY_rel_HWW
 
@@ -411,7 +412,7 @@ a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PcoA, Bray-Curtis 
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ### PCOA, taxa
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 #metaphlan_PHY_rel_genus_HWW
 #metaphlan_PHY_counts_genus_HWW
 metaphlan_PHY_ord <- ordinate(metaphlan_PHY_rel_genus_HWW, method = "PCoA", distance = "bray")
@@ -466,7 +467,7 @@ b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PcoA, Bray-Curtis 
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ### PCOA, mobilome
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # PCoA
 MGE_PHY_ord <- ordinate(MGE_rel_PHY_HWW, method = "PCoA", distance = "bray")
 p_ord <- plot_ordination(MGE_rel_PHY_HWW, MGE_PHY_ord, color = "country")
@@ -539,7 +540,7 @@ c2
 ```
 ## Diversity metrics
 ### Diversity metrics, ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 d <- data.frame("shannon" = diversity(otu_table(resfinder_PHY_counts_HWW), index = "shannon", MARGIN = 2))
 div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(resfinder_PHY_counts_HWW), index = "invsimpson", MARGIN = 2)))
 
@@ -571,10 +572,10 @@ p3 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) +
 layout <- "
 ABC
 "
-p <- p1 + p2 + p3 + 
-  plot_layout(design = layout) + plot_annotation('Diversity of ARGs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
-pl <- p + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 25, face = "bold"))
-pl
+#p <- p1 + p2 + p3 + 
+#  plot_layout(design = layout) + plot_annotation('Diversity of ARGs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
+#pl <- p + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 25, face = "bold"))
+#pl
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
@@ -588,7 +589,7 @@ stat.test <- pairwise.wilcox.test(div$shannon, div$country,
 stat.test
 ```
 ### Diversity metrics, Taxa
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 d <- data.frame("shannon" = diversity(otu_table(metaphlan_PHY_counts_genus_HWW), index = "shannon", MARGIN = 2))
 div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(metaphlan_PHY_counts_genus_HWW), index = "invsimpson", MARGIN = 2)))
 
@@ -636,7 +637,7 @@ stat.test <- pairwise.wilcox.test(div$observed, div$country,
 stat.test
 ```
 ### Diversity metrics, mobilome
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 d <- data.frame("shannon" = diversity(otu_table(MGE_PHY_counts_HWW), index = "shannon", MARGIN = 2))
 div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(MGE_PHY_counts_HWW), index = "invsimpson", MARGIN = 2)))
 
@@ -685,7 +686,7 @@ stat.test
 ```
 ## Divergent ARGs
 ### DESeq2
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt",  header= T, check.names = F, row.names = 1))
 
 # Reorder to match metadata
@@ -771,7 +772,7 @@ Ben_Fin_deseq2 <- sigtab_resfinder[order(-sigtab_resfinder$log2FoldChange), ]
 #            row.names=F, sep = "\t", col.names = T)
 ```
 ### Aldex2, CLR, ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 resfinder_PHY_counts_HWW_Ben_Fin <- subset_samples(resfinder_PHY_counts_HWW, country == "Benin" | country == "Finland")
 
 conditions <- resfinder_PHY_counts_HWW_Ben_Fin@sam_data[['country']]
@@ -867,7 +868,7 @@ ref <- grep("^R1", rownames(df))
 x <- aldex.clr(df, conditions, denom=ref)
 x.e <- aldex.effect(x)
 
-aldex.plot(x.e, test='effect')
+#aldex.plot(x.e, test='effect')
 x@denom 
 x.tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
 aldex_out <- data.frame(x.tt, x.e)
@@ -902,7 +903,7 @@ Ben_Fin_aldex2_ALR_rpoB_filt <- subset(aldex2_ALR_rpoB, wi.eBH < 0.05 & (diff.bt
 #            row.names=F, sep = "\t", col.names = T)
 ```
 ### Aldex2, with ALR, SSU, ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 ## SSU_counts
 resfinder_PHY_counts_HWW_Ben_Fin <- subset_samples(resfinder_PHY_counts_HWW, country == "Benin" | country == "Burkina Faso")
 
@@ -938,7 +939,7 @@ x <- aldex.clr(df, conditions, denom=ref)
 
 x.e <- aldex.effect(x)
 
-aldex.plot(x.e, test='effect')
+#aldex.plot(x.e, test='effect')
 x@denom 
 
 ## OR ##
@@ -978,16 +979,16 @@ p3 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, labe
   scale_x_continuous(breaks = c(-8, -4, 0, 4, 8), limits = c(-9, 8)) + scale_y_continuous(limits = c(0, 8))
 p3
 
-patch <- 
-  p1 + theme(axis.title = element_text(size = 18)) +
-  p2 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
-  p3 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
-  plot_annotation(title = "Divergent ARGs (ALDEx2) in HWWs from different countries\n",
-                  tag_levels = "A") & 
-  theme(plot.title = element_text(size = 23, family = "Palatino", face = "bold"),
-        axis.text.x = element_text(size = 18),
-        plot.tag = element_text(face = "bold", size = 20))
-patch
+#patch <- 
+#  p1 + theme(axis.title = element_text(size = 18)) +
+#  p2 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
+#  p3 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
+#  plot_annotation(title = "Divergent ARGs (ALDEx2) in HWWs from different countries\n",
+#                  tag_levels = "A") & 
+#  theme(plot.title = element_text(size = 23, family = "Palatino", face = "bold"),
+#        axis.text.x = element_text(size = 18),
+#        plot.tag = element_text(face = "bold", size = 20))
+#patch
 
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
@@ -1018,7 +1019,7 @@ Ben_Fin_aldex2_ALR_SSU_filt <- subset(aldex2_ALR_SSU, wi.eBH < 0.05 & (diff.btw 
 #            row.names=F, sep = "\t", col.names = T)
 ```
 ### Correlation studying divergent ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # ALR SSU
 Ben_Fin_deseq2 <- read.delim("Ben_Fin_deseq2.txt", stringsAsFactors=TRUE)
 Ben_Fin_deseq2$gene <- gsub('_[0-9a-zA-Z-]{6,}', '', Ben_Fin_deseq2$gene)
@@ -1125,7 +1126,7 @@ df_all <- subset(df, ALDEx2_ALR_SSU != 0 & ALDEx2_ALR_rpoB != 0 & ALDEx2_CLR != 
 ```
 ## Relative abundances of functional genes
 ### Relative abundances, ARGs
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # First we can plot the data using boxplots, which plot the interquartile ranges and median
 df<-data.frame(RA=sample_sums(resfinder_PHY_rel_HWW),
                country=as.factor(sample_data(resfinder_PHY_rel_HWW)$country),
@@ -1142,7 +1143,7 @@ shapiro.test(df$RA)
 
 # Heterosedasticity?
 par(mfrow=c(2,2))
-plot(M)
+#plot(M)
 
 lmtest::bptest(M)  # Breusch-Pagan test
 car::ncvTest(M)  # Breusch-Pagan test
@@ -1208,7 +1209,7 @@ shapiro.test(df$RA)
 
 # Heterosedasticity?
 par(mfrow=c(2,2))
-plot(M)
+#plot(M)
 
 lmtest::bptest(M)  # Breusch-Pagan test
 car::ncvTest(M)  # Breusch-Pagan test
@@ -1239,10 +1240,9 @@ pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), out
 plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "BFH19_S137" & rownames(df) != "BFH25_S143" & rownames(df) != "BFH35_S153"), 
                          aes(x = country, y = RA, color = country), size = 7, alpha = 0.7, width = 0.15)
 MGE_plot <- plo + geom_text_repel(data = subset(df, RA >= 6 & country == "Burkina Faso"), aes(label = name), size = 4, family = "Palatino")
-MGE_plot
 ```
 ### Relative abundances, intI1s
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # First we can plot the data using boxplots, which plot the interquartile ranges and median
 intiI1_rel_PHY_HWW <- subset_taxa(MGE_rel_PHY_HWW, Class == "intI1")
 
@@ -1260,7 +1260,7 @@ shapiro.test(df$RA)
 
 # Heterosedasticity?
 par(mfrow=c(2,2))
-plot(M)
+#plot(M)
 
 lmtest::bptest(M)  # Breusch-Pagan test
 car::ncvTest(M)  # Breusch-Pagan test
@@ -1339,7 +1339,7 @@ patch
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ### Carbapenemases, five plots
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # Five separate plots into one
 resfinder_PHY_1 <- subset_taxa(resfinder_PHY_rel_uniq, Cluster_name == "blaKPC-34_1_clust"| 
           Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaVIM-48_1_clust" | 
@@ -1597,7 +1597,7 @@ patch
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ### MCR
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # Save sums
 resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_rel_uniq, Class == "Polymyxin")
 resfinder_PHY_mcr <- tax_glom(resfinder_PHY_mcr, taxrank = "Cluster_name")
@@ -1629,7 +1629,7 @@ mcr <- data.frame("mcr-1" = sample_sums(resfinder_PHY_mcr_1),
 ```
 ## Relative abundances of taxa
 ### Relative abundance of taxa (Metaphlan3)
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", 
                       "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 12)
 
@@ -1667,8 +1667,9 @@ p
 ```
 ## Divergent taxa
 ### Aldex2, taxa with CLR
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
-metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Benin" | country == "Burkina Faso")
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+library(ALDEx2)
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Benin" | country == "Finland")
 
 conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
 counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
@@ -1676,13 +1677,12 @@ counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
 tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
 rownames(counts_mp) <- tax$Genus
 
-x <- aldex.clr(counts_mp, conds = conditions,mc.samples = 128, denom = "all", verbose = FALSE)
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
 x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
 x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
 
 # combine all outputs 
 aldex_out <- data.frame(x_tt, x_effect)
-
 
 par(mfrow=c(1,2))
 aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
@@ -1693,15 +1693,81 @@ aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
 aldex_out$'Genus' <- rownames(aldex_out)
 rownames(aldex_out) <- c(1:nrow(aldex_out))
 
-aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Burkina Faso')
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
 
 aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
 rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
 aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
 
-#Ben_Fin_taxa_aldex2_CLR_filt <- subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
-#BF_Fin_taxa_aldex2_CLR_filt <- subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
-Ben_BF_taxa_aldex2_CLR_filt <- subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+Ben_Fin_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+
+
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Burkina Faso" | country == "Finland")
+
+conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
+counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
+
+tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
+rownames(counts_mp) <- tax$Genus
+
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
+x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
+
+# combine all outputs 
+aldex_out <- data.frame(x_tt, x_effect)
+
+par(mfrow=c(1,2))
+aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
+    ylab="Difference")
+aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
+    ylab="Difference")
+
+aldex_out$'Genus' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Burkina Faso',  'Finland')
+
+aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
+aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
+
+BF_Fin_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+
+
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Benin" | country == "Burkina Faso")
+
+conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
+counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
+
+tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
+rownames(counts_mp) <- tax$Genus
+
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
+x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
+
+# combine all outputs 
+aldex_out <- data.frame(x_tt, x_effect)
+
+par(mfrow=c(1,2))
+aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
+    ylab="Difference")
+aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
+    ylab="Difference")
+
+aldex_out$'Genus' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Burkina Faso',  'Benin')
+
+aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
+aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
+
+Ben_BF_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
 
 # Save
 #write.table(Ben_Fin_taxa_aldex2_CLR_filt, "Ben_Fin_taxa_aldex2_CLR_filt.txt", 
@@ -1724,9 +1790,7 @@ d2 <- subset(BF_Fin_taxa_aldex2_CLR_filt, (diff.btw >= 5 | diff.btw <= -5))
 d3 <- subset(Ben_BF_taxa_aldex2_CLR_filt, (diff.btw >= 5 | diff.btw <= -5))
 
 # Plot
-HighlightData <- d1[(d1$Genus == "Acinetobacter" | d1$Genus == "Comamonas" | d1$Genus == "Thauera" | d1$Genus == "Proteobacteria_unclassified" |
-                     d1$Genus ==  "Citrobacter" | d1$Genus == "Paracoccus" | d1$Genus == "Enhydrobacter" |  d1$Genus == "Moraxella" |
-                      d1$Genus == "Raoultella" | d1$Genus == "Delftia"),]
+HighlightData <- d1[(d1$Genus == "Acinetobacter" | d1$Genus == "Comamonas" | d1$Genus == "Thauera" | d1$Genus == "Proteobacteria_unclassified" | d1$Genus ==  "Citrobacter" | d1$Genus == "Paracoccus" | d1$Genus == "Enhydrobacter" |  d1$Genus == "Moraxella" | d1$Genus == "Raoultella" | d1$Genus == "Delftia"),]
 
 a <- ggplot(d1, aes(y = reorder(Genus, -diff.btw), x = diff.btw, fill = country)) +
   geom_bar(stat = "identity") + theme_light() + labs(x = "Benin              diff.btw          Finland") +
@@ -1787,7 +1851,7 @@ patch
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## Correlation between ARG & intI
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "intI1")
 MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "qacEdelta")
 MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "int2")
@@ -1824,15 +1888,15 @@ p5 <- ggscatter(df, x = "ARGs", y = "MGEs", add = "reg.line", conf.int = TRUE,
 l <- get_legend(p5)
 
 
-patch <- p1 + p2 + p3 + p4 + p5 + l +
-  plot_annotation(title = "Correlation between ARGs and MGEs in HWWs", tag_levels = list(c('A', 'B', 'C', 'D'))) +
-plot_layout(ncol = 2) &
-theme(text = element_text(family = "Palatino"),
-        legend.position = "none",
-        plot.title = element_text(face = "bold", size = 24, hjust = 0.5),
-        plot.tag = element_text(face = "bold", size = 20))
+#patch <- p1 + p2 + p3 + p4 + p5 + l +
+#  plot_annotation(title = "Correlation between ARGs and MGEs in HWWs", tag_levels = list(c('A', 'B', 'C', 'D'))) +
+#plot_layout(ncol = 2) &
+#theme(text = element_text(family = "Palatino"),
+#        legend.position = "none",
+#        plot.title = element_text(face = "bold", size = 24, hjust = 0.5),
+#        plot.tag = element_text(face = "bold", size = 20))
 #  plot_layout(design =  design, guides = 'collect') 
-patch
+#patch
 
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
@@ -1848,7 +1912,7 @@ patch
 # Fin: R2 = -0.017, p = 0.97
 ```
 ## Draw maps
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # Plot maps for sample sites in Benin and Burkina Faso
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
@@ -1920,7 +1984,7 @@ p_map3
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
 ## "Control" samples
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # Replicates as controls
 # BH34A_S98 BH34B_S99
 # BFH38A_S156 BFH38B_S157
