@@ -1,7 +1,7 @@
 ---
 title: "R_analysis"
 output: html_document
-date: '2022-05-03'
+date: '2022-10-12'
 ---
 
 ```{r setup}
@@ -34,12 +34,12 @@ library(ggrepel)
 library(RColorBrewer)
 library(cowplot)
 library(DESeq2)
-library(microViz)
 library(tidytext)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(ggspatial)
 library(maps)
+library(microViz)
 ```
 # Load data
 ## metadata
@@ -53,8 +53,7 @@ HMM_RESULT_TABLE <- read.delim("HMM_RESULT_TABLE.txt", row.names=1)
 HMM_RESULT_TABLE$SUM = rowSums(HMM_RESULT_TABLE[,c(2,3)])
 
 # Sum of counts for R1 and R1 reads
-# Reorder samples to match metadata and add to metadatals
-
+# Reorder samples to match metadata and add to metadata
 match <- match(rownames(metadata), rownames(HMM_RESULT_TABLE))
 rpoB_counts <- HMM_RESULT_TABLE[match,]
 metadata$rpoB_counts <- rpoB_counts$SUM
@@ -354,14 +353,15 @@ MGE_rel_PHY_HWW <- subset_samples(MGE_rel_PHY_uniq, HWW == "YES")
 
 ************
 # Analyses
-## Ordinations
-### PCOA, resistome
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
-# resfinder_PHY_rel_uniq
-# resfinder_PHY_rel_HWW
+## Ordinations, clr-transformation
+### Resistome
+```{r}
+resfinder_PHY_counts_HWW_trans = resfinder_PHY_counts_HWW
+transformed_OTU_ARGs <- microbiome::transform(resfinder_PHY_counts_HWW_trans, "clr")
+resfinder_PHY_counts_HWW_trans@otu_table <- otu_table(transformed_OTU_ARGs, taxa_are_rows = T)
 
-resfinder_PHY_ord <- ordinate(resfinder_PHY_rel_HWW, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(resfinder_PHY_rel_HWW, resfinder_PHY_ord, color = "country")
+resfinder_PHY_ord <- ordinate(resfinder_PHY_counts_HWW_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(resfinder_PHY_counts_HWW_trans, resfinder_PHY_ord, color = "country")
 a <- p_ord + geom_point(size = 4, alpha = 0.5) +
   labs(title = "ARGs") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
@@ -373,23 +373,19 @@ a <- p_ord + geom_point(size = 4, alpha = 0.5) +
     legend.position = c(0.15, 0.9),
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
-    axis.text = element_text(size = 15),
-    aspect.ratio = 1) +
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
   #geom_text_repel(mapping = aes(label = hospital), 
   #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
   stat_ellipse(level = 0.95) +
   scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
 
-tmp <- subset_samples(resfinder_PHY_rel_HWW, country == "Burkina Faso" | country == "Benin")
-dist <- vegdist(t(otu_table(tmp)), dist = "bray")
-vegan::adonis2(dist ~country, data = data.frame(sample_data(tmp), permutations = 9999))
-
-p <- c("0.001", "0.001", "0.001")
-p.adjust(p, method = "BH", n = length(p))
-
 # All samples
-resfinder_PHY_ord <- ordinate(resfinder_PHY_rel_uniq, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(resfinder_PHY_rel_uniq, resfinder_PHY_ord, color = "country")
+resfinder_PHY_counts_uniq_trans = resfinder_PHY_counts_uniq
+transformed_OTU_ARGs <- microbiome::transform(resfinder_PHY_counts_uniq_trans, "clr")
+resfinder_PHY_counts_uniq_trans@otu_table <- otu_table(transformed_OTU_ARGs, taxa_are_rows = T)
+
+resfinder_PHY_ord <- ordinate(resfinder_PHY_counts_uniq_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(resfinder_PHY_counts_uniq_trans, resfinder_PHY_ord, color = "country")
 a2 <- p_ord + geom_point(size = 4, alpha = 0.5,) +
   labs(title = "ARGs") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
@@ -404,47 +400,45 @@ a2_plot <- a2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$d
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PcoA, Bray-Curtis distance") & 
-  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
-    plot.tag = element_text(size = 25))
+#a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#    plot.tag = element_text(size = 25))
 
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
-### PCOA, taxa
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
-#metaphlan_PHY_rel_genus_HWW
-#metaphlan_PHY_counts_genus_HWW
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_rel_genus_HWW, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(metaphlan_PHY_rel_genus_HWW, metaphlan_PHY_ord, color = "country")
+### Taxa
+```{r}
+metaphlan_PHY_counts_genus_HWW_trans = metaphlan_PHY_counts_genus_HWW
+transformed_OTU_taxa <- microbiome::transform(metaphlan_PHY_counts_genus_HWW_trans, "clr")
+metaphlan_PHY_counts_genus_HWW_trans@otu_table <- otu_table(transformed_OTU_taxa, taxa_are_rows = T)
+
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY_counts_genus_HWW_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(metaphlan_PHY_counts_genus_HWW_trans, metaphlan_PHY_ord, color = "country")
 b <- p_ord + geom_point(size = 4, alpha = 0.5) +
   labs(title = "Taxa") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
-    axis.text = element_text(size = 15),
     legend.title = element_blank(),
     legend.text = element_text(size = 17),
     legend.key.size = unit(1, 'cm'),
     legend.position = c(0.15, 0.9),
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
-    aspect.ratio = 1) +
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
   #geom_text_repel(mapping = aes(label = hospital), 
   #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
   stat_ellipse(level = 0.95) +
   scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
 
-tmp <- subset_samples(metaphlan_PHY_rel_genus_HWW, country == "Benin" | country == "Burkina Faso")
-dist <- vegdist(t(otu_table(tmp)), dist = "bray")
-vegan::adonis2(dist ~country, data = data.frame(sample_data(tmp), permutations = 9999))
-
-p <- c("0.001", "0.041", "0.001")
-p.adjust(p, method = "BH", n = length(p))
-
 # All samples
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_rel_genus_uniq, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(metaphlan_PHY_rel_genus_uniq, metaphlan_PHY_ord, color = "country")
+metaphlan_PHY_counts_genus_uniq_trans = metaphlan_PHY_counts_genus_uniq
+transformed_OTU_taxa <- microbiome::transform(metaphlan_PHY_counts_genus_uniq_trans, "clr")
+metaphlan_PHY_counts_genus_uniq_trans@otu_table <- otu_table(transformed_OTU_taxa, taxa_are_rows = T)
+
+metaphlan_PHY_ord <- ordinate(metaphlan_PHY_counts_genus_uniq_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(metaphlan_PHY_counts_genus_uniq_trans, metaphlan_PHY_ord, color = "country")
 b2 <- p_ord + geom_point(size = 4, alpha = 0.5) +
   labs(title = "Taxa") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
@@ -459,31 +453,33 @@ b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$d
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PcoA, Bray-Curtis distance") & 
-  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
-    plot.tag = element_text(size = 25))
+#b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#    plot.tag = element_text(size = 25))
 
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
-### PCOA, mobilome
-```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
-# PCoA
-MGE_PHY_ord <- ordinate(MGE_rel_PHY_HWW, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(MGE_rel_PHY_HWW, MGE_PHY_ord, color = "country")
+### Mobilome
+```{r}
+MGE_PHY_counts_HWW_trans = MGE_PHY_counts_HWW
+transformed_OTU_mge <- microbiome::transform(MGE_PHY_counts_HWW_trans, "clr")
+MGE_PHY_counts_HWW_trans@otu_table <- otu_table(transformed_OTU_mge, taxa_are_rows = T)
+
+MGE_PHY_ord <- ordinate(MGE_PHY_counts_HWW_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(MGE_PHY_counts_HWW_trans, MGE_PHY_ord, color = "country")
 c <- p_ord + geom_point(size = 4, alpha = 0.5) +
   labs(title = "MGEs") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
-    axis.text = element_text(size = 15),
     legend.title = element_blank(),
     legend.text = element_text(size = 17),
     legend.key.size = unit(1, 'cm'),
     legend.position = c(0.15, 0.9),
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
-    aspect.ratio = 1) +
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
   #geom_text_repel(mapping = aes(label = hospital), 
   #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
   stat_ellipse(level = 0.95) +
@@ -491,28 +487,29 @@ c <- p_ord + geom_point(size = 4, alpha = 0.5) +
 
 legend <- get_legend(c)
 
-tmp <- subset_samples(MGE_rel_PHY_HWW, country == "Burkina Faso" | country == "Benin")
-dist <- vegdist(t(otu_table(tmp)), dist = "bray")
-vegan::adonis2(dist ~country, data = data.frame(sample_data(tmp), permutations = 9999))
-
 layout <- "
 ABC
 "
 patchwork0 <- a + b + c + plot_layout(design = layout) + 
-  plot_annotation(tag_levels = list(c('A', 'B', 'C')), title = "PcoA, Bray-Curtis distance") & 
+  plot_annotation(tag_levels = list(c('A', 'B', 'C')), 
+  title = "PCoA, clr-transformed, Euclidean distance") & 
   theme(legend.position = "bottom",
         plot.title = element_text(size = 30, family = "Palatino", face = "bold"),
         plot.tag = element_text(size = 25, face = "bold"))
 patchwork <- patchwork0 + plot_layout(guides = "collect")
-patchwork
+#patchwork
 
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 
 
 # All samples
-MGE_PHY_ord <- ordinate(MGE_PHY_counts_uniq, method = "PCoA", distance = "bray")
-p_ord <- plot_ordination(MGE_PHY_counts_uniq, MGE_PHY_ord, color = "country")
+MGE_PHY_counts_uniq_trans = MGE_PHY_counts_uniq
+transformed_OTU_mge <- microbiome::transform(MGE_PHY_counts_uniq_trans, "clr")
+MGE_PHY_counts_uniq_trans@otu_table <- otu_table(transformed_OTU_mge, taxa_are_rows = T)
+
+MGE_PHY_ord <- ordinate(MGE_PHY_counts_uniq_trans, method = "PCoA", distance = "euclidean")
+p_ord <- plot_ordination(MGE_PHY_counts_uniq_trans, MGE_PHY_ord, color = "country")
 c2 <- p_ord + geom_point(size = 4, alpha = 0.5) +
   labs(title = "MGEs") + theme_bw() + 
   theme(text = element_text(family = "Palatino"),
@@ -527,14 +524,10 @@ c2_plot <- c2 + geom_label_repel(mapping = aes(label = name), data = subset(c2$d
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-c2 <- c2_plot + plot_annotation(tag_levels = list(c("C")), title = "PcoA, Bray-Curtis distance") & 
-  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
-    plot.tag = element_text(size = 25))
+#c2_plot + plot_annotation(tag_levels = list(c("C")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#    plot.tag = element_text(size = 25))
 
-l <- plot(legend)
-l
-
-c2
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
@@ -684,7 +677,7 @@ stat.test <- pairwise.wilcox.test(div$observed, div$country,
                  p.adjust.method = "BH")
 stat.test
 ```
-## Divergent ARGs
+## Differentially abundant ARGs
 ### DESeq2
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 OTU_resfinder <-as.matrix(read.table("ARG_genemat.txt",  header= T, check.names = F, row.names = 1))
@@ -905,7 +898,7 @@ Ben_Fin_aldex2_ALR_rpoB_filt <- subset(aldex2_ALR_rpoB, wi.eBH < 0.05 & (diff.bt
 ### Aldex2, with ALR, SSU, ARGs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 ## SSU_counts
-resfinder_PHY_counts_HWW_Ben_Fin <- subset_samples(resfinder_PHY_counts_HWW, country == "Benin" | country == "Burkina Faso")
+resfinder_PHY_counts_HWW_Ben_Fin <- subset_samples(resfinder_PHY_counts_HWW, country == "Benin" | country == "Finland")
 
 conditions <- resfinder_PHY_counts_HWW_Ben_Fin@sam_data[['country']]
 ARG_counts <- resfinder_PHY_counts_HWW_Ben_Fin@otu_table
@@ -920,7 +913,7 @@ rownames(SSU_counts) <- SSU_counts$sample
 SSU_counts <- subset(SSU_counts, select = - c(sample)) 
 colnames(SSU_counts) <- "SSU"
 
-conditions <- factor(resfinder_PHY_counts_HWW_Ben_Fin@sam_data$country,levels=c("Benin", "Burkina Faso"))
+conditions <- factor(resfinder_PHY_counts_HWW_Ben_Fin@sam_data$country,levels=c("Benin", "Finland"))
 all(rownames(SSU_counts) ==  colnames(ARG_counts))
 
 SSU_counts_t <- t(SSU_counts)
@@ -940,12 +933,7 @@ x <- aldex.clr(df, conditions, denom=ref)
 x.e <- aldex.effect(x)
 
 #aldex.plot(x.e, test='effect')
-x@denom 
-
-## OR ##
-#conds<- factor(sample_data(resfinder_PHY_counts_HWW_Ben_Fin)$country,levels=c("Benin", "Burkina Faso"))
-#tt<- aldex(reads=ceiling(df),conditions=conds,denom=ref)
-## OR ##
+x@denom
 
 x.tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
 aldex_out <- data.frame(x.tt, x.e)
@@ -953,37 +941,36 @@ aldex_out <- data.frame(x.tt, x.e)
 aldex_out$'gene' <- rownames(aldex_out)
 rownames(aldex_out) <- c(1:nrow(aldex_out))
 
-aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Burkina Faso')
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
 
 #"#1C4731", "#910C28", "#1E88E5"
 #"#9FBDAE", "#DF7087", "#A7CAE9"
 
 # Plot with volcano plot with only SSU
-p3 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, label=gene)) +
+p1 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, label=gene)) +
         geom_point(alpha = 0.2) + 
         geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw < -1 & diff.btw < 0), color='#1C4731', size = 1.5) +
         geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw > 1 & diff.btw > 0), color='#910C28', size = 1.5) +
         theme_minimal() + 
         scale_color_manual(values=c("#1C4731", "#910C28")) +
-        geom_vline(xintercept=c(-1, 1), col="#2842E6", linetype = "longdash") +
+        #geom_vline(xintercept=c(-1, 1), col="#2842E6", linetype = "longdash") +
         geom_hline(yintercept=-log10(0.05), col="#2842E6", linetype = "longdash") + 
   theme(text = element_text(family = "Palatino"),
-    axis.title.x = element_blank(),
+    axis.title.x = element_text(size = 20, face = "bold", hjust = 0.53),
     axis.text = element_text(size = 20),
     legend.position = "none",
     aspect.ratio = 1,
     plot.subtitle = element_text(size = 20, hjust = 0.45)) + coord_fixed() +
-# labs(subtitle = bquote('            Benin     ' ~ bold('diff.btw')~'      Finland')) +
-# labs(subtitle = bquote('Burkina Faso ' ~bold('diff.btw')~' Finland')) +
- labs(subtitle = bquote('                   Benin  ' ~ bold('diff.btw')~' Burkina Faso')) + 
+ #labs(subtitle = '          Benin             Finland', axis = "diff.btw") +
+ labs(subtitle = '  Burkina Faso          Finland', axis = "diff.btw") +
+ #labs(subtitle = '             Benin            Burkina Faso', axis = "diff.btw") + 
   scale_x_continuous(breaks = c(-8, -4, 0, 4, 8), limits = c(-9, 8)) + scale_y_continuous(limits = c(0, 8))
-p3
 
 #patch <- 
 #  p1 + theme(axis.title = element_text(size = 18)) +
 #  p2 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
 #  p3 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
-#  plot_annotation(title = "Divergent ARGs (ALDEx2) in HWWs from different countries\n",
+#  plot_annotation(title = "Differentially abundant ARGs (ALDEx2) in HWW from different countries\n",
 #                  tag_levels = "A") & 
 #  theme(plot.title = element_text(size = 23, family = "Palatino", face = "bold"),
 #        axis.text.x = element_text(size = 18),
@@ -1018,7 +1005,7 @@ Ben_Fin_aldex2_ALR_SSU_filt <- subset(aldex2_ALR_SSU, wi.eBH < 0.05 & (diff.btw 
 #write.table(Ben_BF_aldex2_ALR_SSU_filt, "Ben_BF_aldex2_ALR_SSU_filt.txt", 
 #            row.names=F, sep = "\t", col.names = T)
 ```
-### Correlation studying divergent ARGs
+### Correlation studying differentially abundant ARGs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 # ALR SSU
 Ben_Fin_deseq2 <- read.delim("Ben_Fin_deseq2.txt", stringsAsFactors=TRUE)
@@ -1107,7 +1094,7 @@ design = "
 ABC
 "
 patch <- a + b + c + plot_annotation(
-  title = "Correlations between results using different approaches to study divergent ARGs", tag_levels = "A") & 
+  title = "Correlations between results using different approaches to study differentially abundant ARGs", tag_levels = "A") & 
   theme(text = element_text(family = "Palatino"),
         plot.title = element_text(size = 25, face = "bold"),
         plot.tag = element_text(size = 25, face = "bold"))
@@ -1627,8 +1614,7 @@ mcr <- data.frame("mcr-1" = sample_sums(resfinder_PHY_mcr_1),
                   "mcr-9" = sample_sums(resfinder_PHY_mcr_9),
                   "mcr-10" = sample_sums(resfinder_PHY_mcr_10))
 ```
-## Relative abundances of taxa
-### Relative abundance of taxa (Metaphlan3)
+## Relative abundance of taxa (Metaphlan3)
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", 
                       "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 12)
@@ -1665,7 +1651,7 @@ p
 #ggsave(filename = "plot.png",
 #       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
 ```
-## Divergent taxa
+## Differentially abundant taxa
 ### Aldex2, taxa with CLR
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 library(ALDEx2)
@@ -1842,7 +1828,7 @@ AAAAA#CCCCC
 "
 
 patch <- a + b + c + plot_layout(design = design) + 
-  plot_annotation(title = "Divergent taxa in HWWs (ALDEx2, clr-transformation)", tag_levels = 'A') & 
+  plot_annotation(title = "Differentially abundant taxa in HWWs (ALDEx2, clr-transformation)", tag_levels = 'A') & 
   theme(plot.title = element_text(face = "bold", size = 30, family = "Palatino"),
         plot.tag = element_text(face = "bold", size = 30, family = "Palatino"))
 patch
