@@ -17,3 +17,7 @@ snakemake --use-conda -np
 ```
 snakemake --use-conda -j $SLURM_CPUS_PER_TASK
 ```
+
+### Analysis run outside the Snakemake workflow are in the `bioinformatics` folder
+
+### The R analysis scripts and related data are in the `RFiles` folder
