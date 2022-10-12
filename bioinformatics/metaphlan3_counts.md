@@ -25,4 +25,4 @@ grep -E "g__" merged_metaphlan_counts_genus.txt > tax_table_count_metaphlan3_gen
 ```
 
 
-# Run similarly for the relative abundances with merge_metaphlan_tables.py program
+#### (Run similarly for the relative abundances with the `merge_metaphlan_tables.py` program)
