@@ -15,16 +15,12 @@ rule all:
 		expand("sorted_reads/{sample}.bam", sample=SAMPLES),
 		expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES),
 		"resfinder_out/ARG_genemat.txt",
-		"CARD/protein_fasta_protein_homolog_model.dmnd",
-		expand("CARD/{sample}_{read}_CARD.txt", sample=SAMPLES, read=["R1", "R2"]),
 		"MGE_db/MGE.1.bt2",
                 expand("mapped_reads_MGE/{sample}_unfiltered.bam", sample=SAMPLES),
                 expand("logs/MGE/{sample}.log", sample=SAMPLES),
                 expand("mapped_reads_MGE/{sample}.bam", sample=SAMPLES),
                 expand("sorted_reads_MGE/{sample}.bam.bai", sample=SAMPLES),
                 "MGE_out/MGE_genemat.txt",
-		"VFDB_db/VFDB_setB_pro.dmnd",
-		"VFDB_db/VFDB_out.txt",
                 "rpoB/RNA_pol_Rpb2_1",
                 expand("fasta/AA_renamed_{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
                 expand("rpoB/{sample}_{read}_hmm_out.txt", sample=SAMPLES, read=["R1", "R2"]),
@@ -191,11 +187,6 @@ rule resfinder_filtering:
                 else if (($7!="=" || $7=="=") && and($2, 0x40)) {{print}}}}' \
                 | samtools view -Shu - > {output}
                 """
-# The resulting reads correspond to the following samtools flags:
-#samtools view BFH19_S137.bam | awk '{print $2}' | sort | uniq
-# 101*, 113, 65, 69*, 73, 77*, 81, 83, 89, 97, 99 
-##(* will be excluded in the next step, since these are unmapped reads) 
-
 rule resfinder_sorting:
 	input:
 		"mapped_reads/{sample}.bam"
@@ -281,68 +272,6 @@ rule combine_results_4:
         shell:
                 "paste {input.gene_names} {input.counts} > {output}"
 
-rule fastq_to_fasta:
-	input:
-		"trimmed_data/{sample}_{read}_trimmed.fastq.gz"
-	output:
-		temp("fasta/{sample}_{read}.fasta.gz")
-	message:
-		"-- Converting fastq to FASTA --"
-	conda:
-		"envs/seqkit.yml"
-	threads:
-		1
-	shell:
-		"seqkit fq2fa {input} -o {output}"
-
-rule rename_headers:
-	input:
-		R1="fasta/{sample}_R1.fasta.gz",
-		R2="fasta/{sample}_R2.fasta.gz"
-	output:
-		R1="fasta/renamed_{sample}_R1.fasta.gz",
-		R2="fasta/renamed_{sample}_R2.fasta.gz"
-	message:
-		"-- Adding sample names to multifasta file headers --"
-	threads:
-		1
-	shell:
-		"""
-		zcat {input.R1} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R1}
-		zcat {input.R2} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R2}
-		"""
-
-rule diamond_db:
-	input:
-		"CARD/protein_fasta_protein_homolog_model.fasta"
-	output:
-		"CARD/protein_fasta_protein_homolog_model.dmnd"
-	message:
-		"-- Creating DIAMOND database --"
-	conda:
-		"envs/diamond.yml"
-	threads:
-		1
-	shell:
-		"diamond makedb --in {input} -d CARD/protein_fasta_protein_homolog_model"
-
-rule run_diamond:
-	input:
-		fasta= "fasta/renamed_{sample}_{read}.fasta.gz",
-		db= "CARD/protein_fasta_protein_homolog_model.dmnd"
-	output:
-		"CARD/{sample}_{read}_CARD.txt"
-	message:
-		"-- Running DIAMOND --"
-	conda:
-		"envs/diamond.yml"
-	threads:
-		10
-	shell:
-		"""
-                gunzip -c {input.fasta} | \
-                diamond blastx -d CARD/protein_fasta_protein_homolog_model -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
-                """
 rule MGE_db:
         input:
                 fasta= "MGE_db/MGE.fasta"
@@ -484,40 +413,40 @@ rule combine_MGE_results_4:
         shell:
                 "paste {input.gene_names} {input.counts} > {output}"
 
-rule diamond_db_VFDB:
-        input:
-                "VFDB_db/VFDB_setB_pro.fas"
-        output:
-                "VFDB_db/VFDB_setB_pro.dmnd"
-        message:
-                "-- Creating DIAMOND database for VFDB --"
-        conda:
-                "envs/diamond.yml"
-        threads:
-                6
-        shell:
-                "diamond makedb --in {input} -d VFDB_db/VFDB_setB_pro"
-
-rule run_diamond_VFDB:
-        input:
-                fasta= expand("fasta/renamed_{sample}_{read}.fasta.gz", sample=SAMPLES, read=["R1", "R2"]),
-                db= "VFDB_db/VFDB_setB_pro.dmnd"
-        output:
-                "VFDB_db/VFDB_out.txt"
-        message:
-                "-- Running DIAMOND for VFDB --"
-        conda:
-                "envs/diamond.yml"
-        threads:
-                10
-        shell:
-                """
-                gunzip -c {input.fasta} | \
-                diamond blastx -d VFDB_db/VFDB_setB_pro -q - --max-target-seqs 1 --out {output} --threads {threads} --outfmt 6 --evalue 1e-5
-                """
 #mkdir rpoB
 #cd rpoB
 #wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
+
+rule fastq_to_fasta:
+        input:
+                "trimmed_data/{sample}_{read}_trimmed.fastq.gz"
+        output:
+                temp("fasta/{sample}_{read}.fasta.gz")
+        message:
+                "-- Converting fastq to FASTA --"
+        conda:
+                "envs/seqkit.yml"
+        threads:
+                1
+        shell:
+                "seqkit fq2fa {input} -o {output}"
+
+rule rename_headers:
+        input:
+                R1="fasta/{sample}_R1.fasta.gz",
+                R2="fasta/{sample}_R2.fasta.gz"
+        output:
+                R1="fasta/renamed_{sample}_R1.fasta.gz",
+                R2="fasta/renamed_{sample}_R2.fasta.gz"
+        message:
+                "-- Adding sample names to multifasta file headers --"
+        threads:
+                1
+        shell:
+                """
+                zcat {input.R1} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R1}
+                zcat {input.R2} | sed 's/\(>\)/>{wildcards.sample}-/' | gzip > {output.R2}
+                """
 
 rule HMM_profile_1:
         input:
