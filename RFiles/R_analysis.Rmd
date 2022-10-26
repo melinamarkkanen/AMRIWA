@@ -356,14 +356,10 @@ MGE_rel_PHY_HWW <- subset_samples(MGE_rel_PHY_uniq, HWW == "YES")
 ## Ordinations, clr-transformation
 ### Resistome
 ```{r}
-resfinder_PHY_counts_HWW_trans = resfinder_PHY_counts_HWW
-transformed_OTU_ARGs <- microbiome::transform(resfinder_PHY_counts_HWW_trans, "clr")
-resfinder_PHY_counts_HWW_trans@otu_table <- otu_table(transformed_OTU_ARGs, taxa_are_rows = T)
-
-resfinder_PHY_ord <- ordinate(resfinder_PHY_counts_HWW_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(resfinder_PHY_counts_HWW_trans, resfinder_PHY_ord, color = "country")
-a <- p_ord + geom_point(size = 4, alpha = 0.5) +
-  labs(title = "ARGs") + theme_bw() + 
+a <- resfinder_PHY_counts_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
@@ -374,34 +370,35 @@ a <- p_ord + geom_point(size = 4, alpha = 0.5) +
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
     axis.text = element_text(size = 15), aspect.ratio = 1) +
-  #geom_text_repel(mapping = aes(label = hospital), 
-  #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
 
 # All samples
-resfinder_PHY_counts_uniq_trans = resfinder_PHY_counts_uniq
-transformed_OTU_ARGs <- microbiome::transform(resfinder_PHY_counts_uniq_trans, "clr")
-resfinder_PHY_counts_uniq_trans@otu_table <- otu_table(transformed_OTU_ARGs, taxa_are_rows = T)
-
-resfinder_PHY_ord <- ordinate(resfinder_PHY_counts_uniq_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(resfinder_PHY_counts_uniq_trans, resfinder_PHY_ord, color = "country")
-a2 <- p_ord + geom_point(size = 4, alpha = 0.5,) +
-  labs(title = "ARGs") + theme_bw() + 
+a2 <- resfinder_PHY_counts_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
-    axis.text = element_text(size = 15),
-    legend.position = "none",
-    aspect.ratio = 1) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
 a2_plot <- a2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$data, a2$data$HWW == "NO"),
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-#a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PCA, clr-transformed", 
+#                          subtitle = "ARGs") & 
 #  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
 #ggsave(filename = "plot.png",
@@ -409,14 +406,10 @@ a2_plot <- a2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$d
 ```
 ### Taxa
 ```{r}
-metaphlan_PHY_counts_genus_HWW_trans = metaphlan_PHY_counts_genus_HWW
-transformed_OTU_taxa <- microbiome::transform(metaphlan_PHY_counts_genus_HWW_trans, "clr")
-metaphlan_PHY_counts_genus_HWW_trans@otu_table <- otu_table(transformed_OTU_taxa, taxa_are_rows = T)
-
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_counts_genus_HWW_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(metaphlan_PHY_counts_genus_HWW_trans, metaphlan_PHY_ord, color = "country")
-b <- p_ord + geom_point(size = 4, alpha = 0.5) +
-  labs(title = "Taxa") + theme_bw() + 
+b <- metaphlan_PHY_counts_genus_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
@@ -427,34 +420,35 @@ b <- p_ord + geom_point(size = 4, alpha = 0.5) +
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
     axis.text = element_text(size = 15), aspect.ratio = 1) +
-  #geom_text_repel(mapping = aes(label = hospital), 
-  #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
 
 # All samples
-metaphlan_PHY_counts_genus_uniq_trans = metaphlan_PHY_counts_genus_uniq
-transformed_OTU_taxa <- microbiome::transform(metaphlan_PHY_counts_genus_uniq_trans, "clr")
-metaphlan_PHY_counts_genus_uniq_trans@otu_table <- otu_table(transformed_OTU_taxa, taxa_are_rows = T)
-
-metaphlan_PHY_ord <- ordinate(metaphlan_PHY_counts_genus_uniq_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(metaphlan_PHY_counts_genus_uniq_trans, metaphlan_PHY_ord, color = "country")
-b2 <- p_ord + geom_point(size = 4, alpha = 0.5) +
-  labs(title = "Taxa") + theme_bw() + 
+b2 <- metaphlan_PHY_counts_genus_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
-    axis.text = element_text(size = 15),
-    legend.position = "none",
-    aspect.ratio = 1) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
-b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$data, b2$data$HWW == "NO"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$data, a2$data$HWW == "NO"),
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-#b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PCA, clr-transformed", 
+#                          subtitle = "Taxa") & 
 #  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
 #ggsave(filename = "plot.png",
@@ -462,14 +456,10 @@ b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$d
 ```
 ### Mobilome
 ```{r}
-MGE_PHY_counts_HWW_trans = MGE_PHY_counts_HWW
-transformed_OTU_mge <- microbiome::transform(MGE_PHY_counts_HWW_trans, "clr")
-MGE_PHY_counts_HWW_trans@otu_table <- otu_table(transformed_OTU_mge, taxa_are_rows = T)
-
-MGE_PHY_ord <- ordinate(MGE_PHY_counts_HWW_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(MGE_PHY_counts_HWW_trans, MGE_PHY_ord, color = "country")
-c <- p_ord + geom_point(size = 4, alpha = 0.5) +
-  labs(title = "MGEs") + theme_bw() + 
+c <- MGE_PHY_counts_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
@@ -480,10 +470,8 @@ c <- p_ord + geom_point(size = 4, alpha = 0.5) +
     legend.background = element_rect(color = "#CECECE"),
     legend.direction = "horizontal",
     axis.text = element_text(size = 15), aspect.ratio = 1) +
-  #geom_text_repel(mapping = aes(label = hospital), 
-  #                size = 4, family = "Times", hjust = 1.2, vjust = 0.3) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
 
 legend <- get_legend(c)
 
@@ -492,7 +480,7 @@ ABC
 "
 patchwork0 <- a + b + c + plot_layout(design = layout) + 
   plot_annotation(tag_levels = list(c('A', 'B', 'C')), 
-  title = "PCoA, clr-transformed, Euclidean distance") & 
+  title = "PCA, clr-transformed") & 
   theme(legend.position = "bottom",
         plot.title = element_text(size = 30, family = "Palatino", face = "bold"),
         plot.tag = element_text(size = 25, face = "bold"))
@@ -504,28 +492,31 @@ patchwork <- patchwork0 + plot_layout(guides = "collect")
 
 
 # All samples
-MGE_PHY_counts_uniq_trans = MGE_PHY_counts_uniq
-transformed_OTU_mge <- microbiome::transform(MGE_PHY_counts_uniq_trans, "clr")
-MGE_PHY_counts_uniq_trans@otu_table <- otu_table(transformed_OTU_mge, taxa_are_rows = T)
-
-MGE_PHY_ord <- ordinate(MGE_PHY_counts_uniq_trans, method = "PCoA", distance = "euclidean")
-p_ord <- plot_ordination(MGE_PHY_counts_uniq_trans, MGE_PHY_ord, color = "country")
-c2 <- p_ord + geom_point(size = 4, alpha = 0.5) +
-  labs(title = "MGEs") + theme_bw() + 
+c2 <- MGE_PHY_counts_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
   theme(text = element_text(family = "Palatino"),
     plot.title = element_text(size = 17, hjust = 0.5),
     axis.title = element_text(size = 15, face = "bold"),
-    axis.text = element_text(size = 15),
-    legend.position = "none",
-    aspect.ratio = 1) +
-  stat_ellipse(level = 0.95) +
-  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5"))
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
 c2_plot <- c2 + geom_label_repel(mapping = aes(label = name), data = subset(c2$data, c2$data$HWW == "NO"),
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
-#c2_plot + plot_annotation(tag_levels = list(c("C")), title = "PCoA, clr-transformed, Euclidean distance") & 
+#c2_plot + plot_annotation(tag_levels = list(c("C")), title = "PCA, clr-transformed", 
+#                          subtitle = "MGEs") & 
 #  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
 #ggsave(filename = "plot.png",
