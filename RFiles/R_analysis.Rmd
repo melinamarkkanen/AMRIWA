@@ -441,7 +441,7 @@ b2 <- metaphlan_PHY_counts_genus_uniq %>%
   scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
   stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
 
-b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$data, a2$data$HWW == "NO"),
+b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$data, b2$data$HWW == "NO"),
                           size = 4, box.padding = 0.5, 
                           segment.color = "#CECECE", family = "Palatino")
 
