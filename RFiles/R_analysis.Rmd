@@ -401,8 +401,8 @@ a2_plot <- a2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$d
 #        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ### Taxa
 ```{r}
@@ -451,8 +451,8 @@ b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$d
 #        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ### Mobilome
 ```{r}
@@ -487,8 +487,8 @@ patchwork0 <- a + b + c + plot_layout(design = layout) +
 patchwork <- patchwork0 + plot_layout(guides = "collect")
 #patchwork
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 
 # All samples
@@ -519,8 +519,8 @@ c2_plot <- c2 + geom_label_repel(mapping = aes(label = name), data = subset(c2$d
 #        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
 #    plot.tag = element_text(size = 25))
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ## Diversity metrics
 ### Diversity metrics, ARGs
@@ -560,8 +560,8 @@ ABC
 #  plot_layout(design = layout) + plot_annotation('Diversity of ARGs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
 #pl <- p + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 25, face = "bold"))
 #pl
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 
 kruskal.test(observed ~ country, data = div)
@@ -591,7 +591,7 @@ p <- ggplot(div, aes(x=country, y=observed, fill = country)) +
 #"#1C4731", "#910C28", "#1E88E5"
 #"#9FBDAE", "#DF7087", "#A7CAE9"
 #"#64B98F", "#CD3857", "#61A6E3"
-p1 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) + 
+p3 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) + 
   scale_fill_manual(values=c("#64B98F", "#CD3857", "#61A6E3")) +
   theme_classic() + theme(text = element_text(family = "Palatino"),
     axis.title.y = element_text(size = 35),
@@ -609,8 +609,8 @@ ABC
 #  plot_layout(design = layout) + plot_annotation('Diversity of taxa') & theme(plot.title = element_text(size = 36, family = "Palatino"))
 #pl <- p + plot_annotation(tag_levels = list(c("D", "E", "F"))) & theme(plot.tag = element_text(size = 25, face = "bold"))
 #pl
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 kruskal.test(observed ~ country, data = div)
 # There are no sig. differences
@@ -657,8 +657,8 @@ ABC
 #  plot_layout(design = layout) + plot_annotation('Diversity of MGEs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
 #pl <- p + plot_annotation(tag_levels = list(c("G", "H", "I"))) & theme(plot.tag = element_text(size = 25, face = "bold"))
 #pl
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 kruskal.test(observed ~ country, data = div)
 # There are sig. differences
@@ -938,7 +938,7 @@ aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
 #"#9FBDAE", "#DF7087", "#A7CAE9"
 
 # Plot with volcano plot with only SSU
-p1 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, label=gene)) +
+p3 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, label=gene)) +
         geom_point(alpha = 0.2) + 
         geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw < -1 & diff.btw < 0), color='#1C4731', size = 1.5) +
         geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw > 1 & diff.btw > 0), color='#910C28', size = 1.5) +
@@ -953,8 +953,8 @@ p1 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, labe
     aspect.ratio = 1,
     plot.subtitle = element_text(size = 20, hjust = 0.45)) + coord_fixed() +
  #labs(subtitle = '          Benin             Finland', axis = "diff.btw") +
- labs(subtitle = '  Burkina Faso          Finland', axis = "diff.btw") +
- #labs(subtitle = '             Benin            Burkina Faso', axis = "diff.btw") + 
+ #labs(subtitle = '  Burkina Faso          Finland', axis = "diff.btw") +
+ labs(subtitle = '             Benin            Burkina Faso', axis = "diff.btw") + 
   scale_x_continuous(breaks = c(-8, -4, 0, 4, 8), limits = c(-9, 8)) + scale_y_continuous(limits = c(0, 8))
 
 #patch <- 
@@ -968,8 +968,8 @@ p1 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, labe
 #        plot.tag = element_text(face = "bold", size = 20))
 #patch
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 
 aldex2_ALR_SSU <- aldex_out[order(aldex_out$diff.btw),]
@@ -1079,7 +1079,7 @@ c <- ggscatter(df, x = "ALDEx2_ALR_SSU", y = "DESeq2",
     aspect.ratio = 1) +
 geom_point(data=df[which(df$ALDEx2_CLR == 0),], color = "darkgrey", shape = 21, size = 4, fill = "white") + 
 geom_point(data=df[which(df$ALDEx2_CLR != 0),], color = "black", shape = 21, size = 4, fill = "white")
-c
+#c
 
 design = "
 ABC
@@ -1091,8 +1091,8 @@ patch <- a + b + c + plot_annotation(
         plot.tag = element_text(size = 25, face = "bold"))
 patch + plot_layout(design = design)
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 
 # Check the differences in the results
@@ -1161,7 +1161,6 @@ pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), out
 plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "FH1_S162"), aes(x = country, y = RA, color = country), 
         size = 7, alpha = 0.7, width = 0.15) + labs(subtitle = "ARGs", tag = 'A')
 ARG_plot <- plo + geom_text_repel(data = subset(df, RA >1  & country == "Finland"), aes(label = name), size = 4, family = "Palatino")
-ARG_plot
 ```
 ### Relative abundances, MGEs
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
@@ -1215,8 +1214,7 @@ p <- ggboxplot(df, x = "country", y = "RA", color = "country", palette = c("#1C4
     labs(y = "MGEs/16S rRNA", x = "") +
   guides(color = "none", alpha = "none") + labs(subtitle = "MGEs", tag = 'B')
 pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), outlier.shape = NA, alpha = 0.5)
-plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "BFH19_S137" & rownames(df) != "BFH25_S143" & rownames(df) != "BFH35_S153"), 
-                         aes(x = country, y = RA, color = country), size = 7, alpha = 0.7, width = 0.15)
+plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "BFH19_S137" & rownames(df) != "BFH25_S143" & rownames(df) != "BFH35_S153"), aes(x = country, y = RA, color = country), size = 7, alpha = 0.7, width = 0.15)
 MGE_plot <- plo + geom_text_repel(data = subset(df, RA >= 6 & country == "Burkina Faso"), aes(label = name), size = 4, family = "Palatino")
 ```
 ### Relative abundances, intI1s
@@ -1283,7 +1281,6 @@ plo <- pl + geom_jitter(data = subset(df, rownames(df) != "FH1_S162" & rownames(
         size = 7, alpha = 0.7, width = 0.15)
 intI1_plot <- plo + geom_text_repel(data = subset(df, RA >= 0.8 & country == "Benin" | RA >= 0.25 & country == "Finland"), 
                                      aes(label = name), size = 4, family = "Palatino")
-intI1_plot
 
 title <- ggdraw(get_title(intI1_plot))
 
@@ -1295,17 +1292,6 @@ BBBBDDDDD
 BBBBDDDDD
 ####DDDDD
 "
-
-patch <- title + ARG_plot + MGE_plot + intI1_plot + 
-  plot_layout(design = design) + 
-  theme(plot.subtitle = element_text(hjust = 0.5))
-patch
-
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
-
-
-# Or next to each other?
 patch <-ARG_plot + MGE_plot + intI1_plot +
   plot_layout(nrow = 1) + 
   plot_annotation(title = "Sum of the relative abundance") &
@@ -1313,8 +1299,8 @@ patch <-ARG_plot + MGE_plot + intI1_plot +
         plot.title = element_text(hjust = 0, family = "Palatino", face = "bold", size = 30))
 patch
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ### Carbapenemases, five plots
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
@@ -1569,10 +1555,10 @@ AAAA#BBBB####F
 patch <- a + b + c + d + e + legend + plot_layout(design = design) +
   plot_annotation(title = 'The relative abundance of carbapenemase genes') & 
   theme(text = element_text('Palatino', face = "bold", size = 20))
-patch
+#patch
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ### MCR
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
@@ -1639,8 +1625,8 @@ p <- metaphlan_PHY_rel_genus_uniq %>%
         legend.key.size = unit(0.85, "cm")) + guides(fill = guide_legend(byrow = TRUE))
 p
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ## Differentially abundant taxa
 ### Aldex2, taxa with CLR
@@ -1824,20 +1810,25 @@ patch <- a + b + c + plot_layout(design = design) +
         plot.tag = element_text(face = "bold", size = 30, family = "Palatino"))
 patch
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ## Correlation between ARG & intI
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
 MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "intI1")
-MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "qacEdelta")
-MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "int2")
-MGE_PHY_counts_HWW_intI1 <- subset_taxa(MGE_PHY_counts_HWW, Class == "int3")
-MGE_PHY_counts_HWW_intI1 = MGE_PHY_counts_HWW
+MGE_PHY_counts_HWW_qacEdelta <- subset_taxa(MGE_PHY_counts_HWW, Class == "qacEdelta")
+MGE_PHY_counts_HWW_int2 <- subset_taxa(MGE_PHY_counts_HWW, Class == "int2")
+MGE_PHY_counts_HWW_int3 <- subset_taxa(MGE_PHY_counts_HWW, Class == "int3")
+MGE_PHY_counts_HWW_MGE = MGE_PHY_counts_HWW
 
 df1 <- data.frame("ARGs" = sample_sums(resfinder_PHY_counts_HWW))
-df2 <- data.frame("MGEs" = sample_sums(MGE_PHY_counts_HWW_intI1))
-df <- cbind(df1, df2)
+df2 <- data.frame("MGEs" = sample_sums(MGE_PHY_counts_HWW_MGE))
+df3 <- data.frame("intI1" = sample_sums(MGE_PHY_counts_HWW_intI1))
+df4 <- data.frame("qacEdelta" = sample_sums(MGE_PHY_counts_HWW_qacEdelta))
+df5 <- data.frame("int2" = sample_sums(MGE_PHY_counts_HWW_int2))
+df6 <- data.frame("int3" = sample_sums(MGE_PHY_counts_HWW_int3))
+
+df <- cbind(df1, df2, df3, df4, df5, df6)
 df$country <- MGE_PHY_counts_HWW_intI1@sam_data$country
 
 #"#9FBDAE", "#DF7087", "#A7CAE9"
@@ -1856,7 +1847,7 @@ p5 <- ggscatter(df, x = "ARGs", y = "MGEs", add = "reg.line", conf.int = TRUE,
     legend.spacing = unit(1, 'cm'),
     legend.key.size = unit(1, "cm"),
     axis.title.x = element_text(size = 20, face = "bold"),
-    #axis.title.y = element_text(size = 20, face = "bold.italic"),
+#axis.title.y = element_text(size = 20, face = "bold.italic"),
     axis.title.y = element_text(size = 20, face = "bold"),
     axis.text = element_text(size = 10, hjust = 1), aspect.ratio = 1) + 
   guides(fill = guide_legend(byrow = TRUE)) + scale_y_continuous(labels = function(x) format(x, scientific = TRUE)) +
@@ -1875,8 +1866,8 @@ l <- get_legend(p5)
 #  plot_layout(design =  design, guides = 'collect') 
 #patch
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 
 # int2
 # Ben: R2 = -0.18, p = 0.39
@@ -1957,8 +1948,8 @@ p_map3 <- p_map2 +
       aes(x = long, y = lat, label = Label), color = "black", size = 8, family = "Palatino", box.padding = 3)
 p_map3
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
 ## "Control" samples
 ```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
@@ -1991,6 +1982,6 @@ scale_fill_manual(values=c("#9FBDAE", "#DF7087", "#A7CAE9")) +
         legend.text = element_text(size = 30)) + guides(fill = guide_legend(byrow = TRUE))
 p
 
-#ggsave(filename = "plot.png",
-#       width = 16, height = 13, dpi = 300, units = "in", device='png', scale = 1)
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
 ```
