@@ -1,4 +1,4 @@
-# AMRIWA
+# AMRIWA Project
 ## AMRIWA metagenome analysis
 
 ### Analysis using the Snakemake workflow
