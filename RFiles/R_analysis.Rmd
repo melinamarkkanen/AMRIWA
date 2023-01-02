@@ -1,0 +1,1821 @@
+---
+title: "R_analysis"
+output: html_document
+date: '2022-10-12'
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Install
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+library(ALDEx2)
+library(stringr)
+library(phyloseq)
+library(ggplot2)
+library(vegan)
+library(patchwork)
+library(knitr)
+library(ggpubr)
+library(ggrepel)
+library(cowplot)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggspatial)
+library(maps)
+library(microViz)
+```
+# Load data
+## metadata
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+## metadata
+metadata <- read.delim2("metadata.txt", row.names=1)
+```
+## Metaxa2 results
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+metaxa_genus <- read.delim("metaxa_genus.txt")
+
+# Create OTU table
+OTU_metaxa <- metaxa_genus[,-1]
+# Match sample ID order with metadata file
+match <- match(rownames(metadata), colnames(OTU_metaxa))
+OTU_metaxa <- OTU_metaxa[,match]
+all(colnames(OTU_metaxa) == rownames(metadata))
+# Create tax table
+tax_table_metaxa <- data.frame(str_split_fixed(data.frame(metaxa_genus) [,1], ";", 6))
+colnames(tax_table_metaxa) <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus")
+# Check if samples are in order
+identical(rownames(metadata), colnames(OTU_metaxa))
+# Combine into phyloseq object
+metaxa_PHY <- phyloseq(otu_table(OTU_metaxa, 
+    taxa_are_rows=TRUE), tax_table(as.matrix(tax_table_metaxa)), sample_data(metadata))
+
+# Exclude taxa "Unknown", "Unclassified", "Eukaryota", "Mitochondria", "Archaea", "Chloroplast"
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unknown"))
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Unclassified"))
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Eukaryota"))
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Mitochondria"))
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Archaea"))
+metaxa_PHY <- subset_taxa(metaxa_PHY, !Domain %in% c("Chloroplast"))
+
+# Add SSU counts to metadata
+metadata$SSU_counts <- sample_sums(metaxa_PHY)
+
+# Exclude biological / technical replicates
+metaxa_PHY_uniq <- subset_samples(metaxa_PHY, replicate == "NO")
+metaxa_PHY_uniq <- subset_samples(metaxa_PHY_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+metaxa_PHY_HWW <- subset_samples(metaxa_PHY_uniq, HWW == "YES")
+```
+## ARGs, counts
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+counts_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+
+# Tax_table
+clusters_tax_table_resfinder <- read.csv("clusters_tax_table.txt", header=FALSE, sep=";")
+colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
+# Reorder columns
+col_order <- c("Class", "Cluster_name", "Gene")
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[, col_order]
+
+# Reorder to match metadata
+match <- match(rownames(metadata), colnames(counts_resfinder))
+counts_resfinder <- counts_resfinder[,match]
+all(colnames(counts_resfinder) == rownames(metadata))
+
+# Reorder to match tax_table
+match <- match(rownames(counts_resfinder), clusters_tax_table_resfinder$Gene)
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
+all(rownames(counts_resfinder) == clusters_tax_table_resfinder$Gene)
+
+# remove rownames
+counts_resfinder_phy <- counts_resfinder
+rownames(counts_resfinder_phy) <- c(1:3104)
+rownames(clusters_tax_table_resfinder) <- c(1:3104)
+
+# Phyloseq
+resfinder_PHY_counts <- phyloseq(otu_table(counts_resfinder_phy, taxa_are_rows = TRUE), 
+  sample_data(metadata), tax_table(as.matrix(clusters_tax_table_resfinder)))
+
+# Exclude biological / technical replicates
+resfinder_PHY_counts_uniq <- subset_samples(resfinder_PHY_counts, replicate == "NO")
+resfinder_PHY_counts_uniq <- subset_samples(resfinder_PHY_counts_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+resfinder_PHY_counts_HWW <- subset_samples(resfinder_PHY_counts_uniq, HWW == "YES")
+```
+## ARGs, relative abundances
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+counts_resfinder <-as.matrix(read.table("ARG_genemat.txt", header= T, check.names = F, row.names = 1))
+
+# Tax_table
+clusters_tax_table_resfinder <- read.csv("clusters_tax_table.txt", header=FALSE, sep=";")
+colnames(clusters_tax_table_resfinder) <- c("Gene",  "Cluster_name", "Class")
+# Reorder columns
+col_order <- c("Class", "Cluster_name", "Gene")
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[, col_order]
+
+# Reorder to match metadata
+match <- match(rownames(metadata), colnames(counts_resfinder))
+counts_resfinder <- counts_resfinder[,match]
+all(colnames(counts_resfinder) == rownames(metadata))
+
+# Reorder to match tax_table
+match <- match(rownames(counts_resfinder), clusters_tax_table_resfinder$Gene)
+clusters_tax_table_resfinder <- clusters_tax_table_resfinder[match,]
+all(rownames(counts_resfinder) == clusters_tax_table_resfinder$Gene)
+
+# Divide by ARG gene lengths
+resfinder_lengths <- read.delim("resfinder_lengths.txt", header=FALSE, comment.char="#")
+all(rownames(clusters_tax_table_resfinder$Gene) == resfinder_lengths$V1)
+resfinder_length_norm <- counts_resfinder/resfinder_lengths[, 2]
+
+# Normalization with Metaxa2 SSU counts
+resfinder_length_SSU_norm <- t(t(resfinder_length_norm)/metadata$SSU_counts) * 1540
+all(rownames(metadata) == colnames(resfinder_length_SSU_norm))
+identical((resfinder_length_norm[3, 5]/metadata$SSU_counts[5]) * 1540, resfinder_length_SSU_norm[3, 5])
+all(rownames(resfinder_length_norm) == clusters_tax_table_resfinder$Gene)
+
+# Hide rownames
+dim(resfinder_length_SSU_norm)
+rownames(resfinder_length_SSU_norm) <- c(1:3104)
+
+dim(clusters_tax_table_resfinder)
+rownames(clusters_tax_table_resfinder) <- c(1:3104)
+
+# Combine to phyloseq object
+resfinder_PHY_rel <- phyloseq(otu_table(resfinder_length_SSU_norm, taxa_are_rows = TRUE), 
+  sample_data(metadata), tax_table(as.matrix(clusters_tax_table_resfinder)))
+
+# Exclude biological / technical replicates
+resfinder_PHY_rel_uniq <- subset_samples(resfinder_PHY_rel, replicate == "NO")
+resfinder_PHY_rel_uniq <- subset_samples(resfinder_PHY_rel_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+resfinder_PHY_rel_HWW <- subset_samples(resfinder_PHY_rel_uniq, HWW == "YES")
+```
+# Metaphlan3, counts
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+metaphlan3_counts_merged_abundance_table <- read.delim("merged_metaphlan_count_species.txt", header = T)
+mp_counts <- metaphlan3_counts_merged_abundance_table[ -c(2) ]
+
+# Tax table
+## Check if in order
+tax_table_metaphlan3_counts <- read.csv2("tax_table_count_metaphlan3_species.txt", header=F, sep="")
+#all(tax_table_metaphlan3_counts$V1 == mp_counts$clade_name)
+
+tax_table_metaphlan3_counts <- data.frame(str_split_fixed(data.frame(tax_table_metaphlan3_counts) [,1], ";", 7))
+colnames(tax_table_metaphlan3_counts) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+tax_table_metaphlan3_counts <- apply(tax_table_metaphlan3_counts, 2, function(y) (gsub(".__", "", y)))
+
+# remove first column
+mp_counts <- mp_counts[ -c(1) ]
+
+# Reorder
+match <- match(rownames(metadata), colnames(mp_counts))
+mp_counts  <- mp_counts[,match]
+all(rownames(metadata) == colnames(mp_counts))
+
+# Combine into phyloseq object
+metaphlan_PHY_counts <- phyloseq(otu_table(mp_counts, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaphlan3_counts)), sample_data(metadata))
+
+# Leave only bacteria
+metaphlan_PHY_counts_bact <- subset_taxa(metaphlan_PHY_counts, Kingdom != "Viruses" & Kingdom != "Eukaryota" & Kingdom != "Archaea")
+
+# Prune to genus level
+metaphlan_PHY_counts_genus <- tax_glom(metaphlan_PHY_counts_bact, taxrank = "Genus")
+
+# Exclude biological / technical replicates
+metaphlan_PHY_counts_genus_uniq <- subset_samples(metaphlan_PHY_counts_genus, replicate == "NO")
+metaphlan_PHY_counts_genus_uniq <- subset_samples(metaphlan_PHY_counts_genus_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+metaphlan_PHY_counts_genus_HWW <- subset_samples(metaphlan_PHY_counts_genus_uniq, HWW == "YES")
+```
+## Metaphlan3, relative abundances
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+metaphlan3_merged_abundance_table <- read.delim("merged_metaphlan_rel_species.txt", header = T)
+mp_rel <- metaphlan3_merged_abundance_table[ -c(2) ]
+
+# Tax table
+## Check if in order
+tax_table_metaphlan3 <- read.csv2("tax_table_metaphlan3_rel_species.txt", header=F, sep="")
+all(tax_table_metaphlan3$V1 == mp_rel$clade_name)
+
+tax_table_metaphlan3 <- data.frame(str_split_fixed(data.frame(tax_table_metaphlan3) [,1], ";", 7))
+colnames(tax_table_metaphlan3) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+tax_table_metaphlan3 <- apply(tax_table_metaphlan3, 2, function(y) (gsub(".__", "", y)))
+
+# remove first column
+mp_rel <- mp_rel[ -c(1) ]
+
+# Reorder
+match <- match(rownames(metadata), colnames(mp_rel))
+mp_rel  <- mp_rel[,match]
+all(rownames(metadata) == colnames(mp_rel))
+
+# Combine into phyloseq object
+metaphlan_PHY_rel <- phyloseq(otu_table(mp_rel, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(tax_table_metaphlan3)), sample_data(metadata))
+
+# Leave only bacteria
+metaphlan_PHY_rel_bact <- subset_taxa(metaphlan_PHY_rel, Kingdom != "Viruses" & Kingdom != "Eukaryota" & Kingdom != "Archaea")
+
+# Prune to genus level
+metaphlan_PHY_rel_genus <- tax_glom(metaphlan_PHY_rel_bact, taxrank = "Genus")
+
+# Exclude biological / technical replicates
+metaphlan_PHY_rel_genus_uniq <- subset_samples(metaphlan_PHY_rel_genus, replicate == "NO")
+metaphlan_PHY_rel_genus_uniq <- subset_samples(metaphlan_PHY_rel_genus_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+metaphlan_PHY_rel_genus_HWW <- subset_samples(metaphlan_PHY_rel_genus_uniq, HWW == "YES")
+```
+## MGEs, counts
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+counts_MGE <-as.matrix(read.table("cp_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
+
+# Reorder to match metadata
+match <- match(rownames(metadata), colnames(counts_MGE))
+counts_MGE <- counts_MGE[,match]
+all(colnames(counts_MGE) == rownames(metadata))
+
+# Tax table
+MGE_tax_table_trim <- read.delim("MGE_tax_table_trim.txt", header=T)
+colnames(MGE_tax_table_trim) <- c("Gene", "Element", "Class")
+
+# Reorder tax_table to match
+match <- match(rownames(counts_MGE), MGE_tax_table_trim$Gene)
+MGE_tax_table_trim <- MGE_tax_table_trim[match,]
+all(rownames(counts_MGE) == MGE_tax_table_trim$Gene)
+
+# remove rownames
+counts_MGE_phy <- counts_MGE
+rownames(counts_MGE_phy) <- c(1:nrow(counts_MGE))
+
+# Combine into phyloseq object
+MGE_PHY_counts <- phyloseq(otu_table(counts_MGE_phy, taxa_are_rows=TRUE), 
+                       tax_table(as.matrix(MGE_tax_table_trim)), sample_data(metadata))
+
+# Exclude biological / technical replicates
+MGE_PHY_counts_uniq <- subset_samples(MGE_PHY_counts, replicate == "NO")
+MGE_PHY_counts_uniq <- subset_samples(MGE_PHY_counts_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+MGE_PHY_counts_HWW <- subset_samples(MGE_PHY_counts_uniq, HWW == "YES")
+```
+## MGEs, relative abundances
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+counts_MGE <-as.matrix(read.table("cp_MGE_genemat.txt", header= T, check.names = F, row.names = 1))
+
+# Reorder to match metadata
+match <- match(rownames(metadata), colnames(counts_MGE))
+counts_MGE <- counts_MGE[,match]
+all(colnames(counts_MGE) == rownames(metadata))
+
+# Tax table
+MGE_tax_table_trim <- read.delim("MGE_tax_table_trim.txt", header=T)
+colnames(MGE_tax_table_trim) <- c("Gene", "Element", "Class")
+
+# Reorder tax_table to match
+match <- match(rownames(counts_MGE), MGE_tax_table_trim$Gene)
+MGE_tax_table_trim <- MGE_tax_table_trim[match,]
+all(rownames(counts_MGE) == MGE_tax_table_trim$Gene)
+
+# Normalization to MGE lengths
+MGE_lengths <- read.delim("MGE_lengths.txt", 
+                          header=FALSE, comment.char="#", check.names = F)
+match <- match(rownames(counts_MGE), MGE_lengths$V1)
+MGE_lengths <- MGE_lengths[match,]
+all(rownames(MGE_tax_table_trim$Gene) == MGE_lengths$V1)
+counts_MGE_length_norm <- counts_MGE/MGE_lengths[, 2]
+
+# Normalization with Metaxa2 SSU counts
+counts_MGE_length_SSU_norm <- t(t(counts_MGE_length_norm)/metadata$SSU_counts) * 1540
+all(rownames(metadata) == colnames(counts_MGE_length_SSU_norm))
+identical((counts_MGE_length_norm[1, 5]/metadata$SSU_counts[5]) * 1540, counts_MGE_length_SSU_norm[1, 5])
+all(rownames(counts_MGE_length_norm) == MGE_tax_table_trim$Gene)
+
+# Hide rownames
+rownames(counts_MGE_length_SSU_norm) <- c(1:nrow(counts_MGE_length_SSU_norm))
+
+dim(MGE_tax_table_trim)
+rownames(MGE_tax_table_trim) <- c(1:nrow(counts_MGE_length_SSU_norm))
+
+# Combine to phyloseq object
+MGE_rel_PHY <- phyloseq(otu_table(counts_MGE_length_SSU_norm, taxa_are_rows = TRUE), 
+                    sample_data(metadata), tax_table(as.matrix(MGE_tax_table_trim)))
+
+# Exclude biological / technical replicates
+MGE_rel_PHY_uniq <- subset_samples(MGE_rel_PHY, replicate == "NO")
+MGE_rel_PHY_uniq <- subset_samples(MGE_rel_PHY_uniq, sample_material == "water")
+
+# Create phyloseq object with only HWW samples
+MGE_rel_PHY_HWW <- subset_samples(MGE_rel_PHY_uniq, HWW == "YES")
+```
+
+************
+# Analyses
+## Ordinations, clr-transformation
+### Resistome
+```{r, results='hide'}
+# Plot HWW
+a <- resfinder_PHY_counts_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+# Test the significance 
+resfinder_PHY_counts_HWW_temp <- subset_samples(resfinder_PHY_counts_HWW, (country == "Benin" | country == "Finland"))
+resfinder_PHY_counts_HWW_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(
+    variables = c("country"), n_perms = 9999, seed = 12345)
+
+# Plot all samples
+a2 <- resfinder_PHY_counts_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+a2_plot <- a2 + geom_label_repel(mapping = aes(label = name), data = subset(a2$data, a2$data$HWW == "NO"),
+                          size = 4, box.padding = 0.5, 
+                          segment.color = "#CECECE", family = "Palatino")
+
+#a2_plot + plot_annotation(tag_levels = list(c("A")), title = "PCA, clr-transformed", subtitle = "ARGs") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
+#    plot.tag = element_text(size = 25))
+
+# Save plots for all samples
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test the significance 
+resfinder_PHY_counts_uniq_temp <- subset_samples(resfinder_PHY_counts_uniq, (country == "Benin" | country == "Finland"))
+resfinder_PHY_counts_uniq_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(variables = c("country"), n_perms = 9999, seed = 12345)
+```
+### Taxa
+```{r, results='hide'}
+# Plot HWW
+b <- metaphlan_PHY_counts_genus_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+# Test significance
+metaphlan_PHY_counts_genus_HWW_temp <- subset_samples(metaphlan_PHY_counts_genus_HWW, (country == "Benin" | country == "Finland"))
+metaphlan_PHY_counts_genus_HWW_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(variables = c("country"), n_perms = 9999, seed = 12345)
+
+# Plot all samples
+b2 <- metaphlan_PHY_counts_genus_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.13, 0.95),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+b2_plot <- b2 + geom_label_repel(mapping = aes(label = name), data = subset(b2$data, b2$data$HWW == "NO"),
+                          size = 4, box.padding = 0.5, 
+                          segment.color = "#CECECE", family = "Palatino")
+
+#b2_plot + plot_annotation(tag_levels = list(c("B")), title = "PCA, clr-transformed", subtitle = "Taxa") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
+#    plot.tag = element_text(size = 25))
+
+# Save plots for all samples
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test significance
+metaphlan_PHY_counts_genus_uniq_temp <- subset_samples(metaphlan_PHY_counts_genus_uniq, (country == "Benin" | country == "Finland"))
+metaphlan_PHY_counts_genus_uniq_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(variables = c("country"), n_perms = 9999, seed = 12345)
+```
+### Mobilome
+```{r, results='hide'}
+# Plot HWW
+c <- MGE_PHY_counts_HWW %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.15, 0.9),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+legend <- get_legend(c)
+
+layout <- "
+ABC
+"
+patchwork0 <- a + b + c + plot_layout(design = layout) + 
+  plot_annotation(tag_levels = list(c('A', 'B', 'C')), 
+  title = "PCA, clr-transformed") & 
+  theme(legend.position = "bottom",
+        plot.title = element_text(size = 30, family = "Palatino", face = "bold"),
+        plot.tag = element_text(size = 25, face = "bold"))
+patchwork <- patchwork0 + plot_layout(guides = "collect")
+#patchwork
+
+# Save plots for HWW samples
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test significance
+MGE_PHY_counts_HWW_temp <- subset_samples(MGE_PHY_counts_HWW, (country == "Benin" | country == "Finland"))
+MGE_PHY_counts_HWW_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(variables = c("country"), n_perms = 9999, seed = 12345)
+
+# Plot all samples
+c2 <- MGE_PHY_counts_uniq %>% 
+  tax_transform("clr") %>% 
+  ord_calc(method = "PCA") %>% 
+  ord_plot(color = "country", size = 4, alpha = 0.8) +
+  theme(text = element_text(family = "Palatino"),
+    plot.title = element_text(size = 17, hjust = 0.5),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 17),
+    legend.key.size = unit(1, 'cm'),
+    legend.position = c(0.165, 0.125),
+    legend.background = element_rect(color = "#CECECE"),
+    legend.direction = "horizontal",
+    axis.text = element_text(size = 15), aspect.ratio = 1) +
+  scale_color_manual(values=c("#1C4731", "#910C28", "#1E88E5")) +
+  stat_ellipse(level = 0.95, linetype = 2, aes(colour = country), size = 0.3)
+
+c2_plot <- c2 + geom_label_repel(mapping = aes(label = name), data = subset(c2$data, c2$data$HWW == "NO"),
+                          size = 4, box.padding = 0.5, 
+                          segment.color = "#CECECE", family = "Palatino")
+
+# Save plots for all samples
+#c2_plot + plot_annotation(tag_levels = list(c("C")), title = "PCA, clr-transformed", subtitle = "MGEs") & 
+#  theme(plot.title = element_text(size = 25, family = "Palatino", face = "bold"),
+#        plot.subtitle = element_text(size = 25, family = "Palatino", hjust = 0.5),
+#    plot.tag = element_text(size = 25))
+
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test significance
+MGE_PHY_counts_uniq_temp <- subset_samples(MGE_PHY_counts_uniq, (country == "Benin" | country == "Finland"))
+MGE_PHY_counts_uniq_temp %>%
+  dist_calc("aitchison") %>%
+  dist_permanova(variables = c("country"), n_perms = 9999, seed = 12345)
+```
+## Diversity metrics
+### Diversity metrics, ARGs
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+d <- data.frame("shannon" = diversity(otu_table(resfinder_PHY_counts_HWW), index = "shannon", MARGIN = 2))
+div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(resfinder_PHY_counts_HWW), index = "invsimpson", MARGIN = 2)))
+
+all(rownames(div) == colnames(resfinder_PHY_counts_HWW@otu_table))
+diversity_observed <- apply(resfinder_PHY_counts_HWW@otu_table > 0, 2, sum)
+div$observed <- diversity_observed
+
+div$"country" <- cbind(resfinder_PHY_counts_HWW@sam_data$country)
+
+colnames(div) <- c("shannon", "invsimpson", "observed", "country")
+
+# Plot
+p <- ggplot(div, aes(x=country, y=shannon, fill = country)) + 
+  geom_boxplot()
+p1 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) + 
+  scale_fill_manual(values=c("#64B98F", "#CD3857", "#61A6E3")) +
+  theme_classic() + theme(text = element_text(family = "Palatino"),
+    axis.title.y = element_text(size = 35),
+    axis.title.x = element_blank(),
+    axis.text.y = element_text(size = 20),
+    axis.text.x = element_text(size = 16, angle = 30, hjust = 1, face = "bold"),
+    legend.position = "none",
+    plot.title = element_text(face = "bold"),
+    plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
+
+layout <- "
+ABC
+"
+#p <- p1 + p2 + p3 + 
+#  plot_layout(design = layout) + plot_annotation('Diversity of ARGs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
+#pl <- p + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 25, face = "bold"))
+#pl
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test the significance
+kruskal.test(observed ~ country, data = div)
+# There are sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(div$shannon, div$country,
+                 p.adjust.method = "BH")
+stat.test
+```
+### Diversity metrics, Taxa
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+d <- data.frame("shannon" = diversity(otu_table(metaphlan_PHY_counts_genus_HWW), index = "shannon", MARGIN = 2))
+div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(metaphlan_PHY_counts_genus_HWW), index = "invsimpson", MARGIN = 2)))
+
+all(rownames(div) == colnames(metaphlan_PHY_counts_genus_HWW@otu_table))
+diversity_observed <- apply(metaphlan_PHY_counts_genus_HWW@otu_table > 0, 2, sum)
+div$observed <- diversity_observed
+
+div$"country" <- cbind(metaphlan_PHY_counts_genus_HWW@sam_data$country)
+
+colnames(div) <- c("shannon", "invsimpson", "observed", "country")
+
+# Plot
+p <- ggplot(div, aes(x=country, y=shannon, fill = country)) + 
+  geom_boxplot()
+p1 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) + 
+  scale_fill_manual(values=c("#64B98F", "#CD3857", "#61A6E3")) +
+  theme_classic() + theme(text = element_text(family = "Palatino"),
+    axis.title.y = element_text(size = 35),
+    axis.title.x = element_blank(),
+    axis.text.y = element_text(size = 20),
+    axis.text.x = element_text(size = 16, angle = 30, hjust = 1, face = "bold"),
+    plot.title = element_text(face = "bold"),
+    legend.position = "none",
+    plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
+
+layout <- "
+ABC
+"
+#p <- p1 + p2 + p3 + 
+#  plot_layout(design = layout) + plot_annotation('Diversity of taxa') & theme(plot.title = element_text(size = 36, family = "Palatino"))
+#pl <- p + plot_annotation(tag_levels = list(c("D", "E", "F"))) & theme(plot.tag = element_text(size = 25, face = "bold"))
+#pl
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test the significance
+kruskal.test(observed ~ country, data = div)
+# There are no sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(div$observed, div$country,
+                 p.adjust.method = "BH")
+stat.test
+```
+### Diversity metrics, mobilome
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+d <- data.frame("shannon" = diversity(otu_table(MGE_PHY_counts_HWW), index = "shannon", MARGIN = 2))
+div <- cbind(d, data.frame("invsimpson" = diversity(otu_table(MGE_PHY_counts_HWW), index = "invsimpson", MARGIN = 2)))
+
+all(rownames(div) == colnames(MGE_PHY_counts_HWW@otu_table))
+diversity_observed <- apply(MGE_PHY_counts_HWW@otu_table > 0, 2, sum)
+div$observed <- diversity_observed
+
+div$"country" <- cbind(MGE_PHY_counts_HWW@sam_data$country)
+
+colnames(div) <- c("shannon", "invsimpson", "observed", "country")
+
+# Plot
+p <- ggplot(div, aes(x=country, y=shannon, fill = country)) + 
+  geom_boxplot()
+p1 <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.4) + 
+  scale_fill_manual(values=c("#64B98F", "#CD3857", "#61A6E3")) +
+  theme_classic() + theme(text = element_text(family = "Palatino"),
+    axis.title.y = element_text(size = 35),
+    axis.title.x = element_blank(),
+    axis.text.y = element_text(size = 20),
+    axis.text.x = element_text(size = 16, angle = 30, hjust = 1, face = "bold"),
+    legend.position = "none",
+    plot.title = element_text(face = "bold"),
+    plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
+
+layout <- "
+ABC
+"
+#p <- p1 + p2 + p3 + 
+#  plot_layout(design = layout) + plot_annotation('Diversity of MGEs') & theme(plot.title = element_text(size = 36, family = "Palatino"))
+#pl <- p + plot_annotation(tag_levels = list(c("G", "H", "I"))) & theme(plot.tag = element_text(size = 25, face = "bold"))
+#pl
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Test the significance
+kruskal.test(observed ~ country, data = div)
+# There are sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(div$observed, div$country,
+                 p.adjust.method = "BH")
+stat.test
+```
+### Aldex2, with ALR and 16S rRNA (SSU) as denominator, ARGs
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+## SSU_counts
+resfinder_PHY_counts_HWW_Ben_Fin <- subset_samples(resfinder_PHY_counts_HWW, country == "Benin" | country == "Finland")
+
+conditions <- resfinder_PHY_counts_HWW_Ben_Fin@sam_data[['country']]
+ARG_counts <- resfinder_PHY_counts_HWW_Ben_Fin@otu_table
+rownames(ARG_counts) <- rownames(counts_resfinder)
+all(rownames(ARG_counts) == rownames(counts_resfinder))
+all(resfinder_PHY_counts_HWW_Ben_Fin@sam_data@row.names == colnames(ARG_counts))
+
+SSU_counts <- data.frame(cbind(sample = rownames(resfinder_PHY_counts_HWW_Ben_Fin@sam_data), resfinder_PHY_counts_HWW_Ben_Fin@sam_data$SSU_counts))
+rownames(SSU_counts) <- SSU_counts$sample
+SSU_counts <- subset(SSU_counts, select = - c(sample)) 
+colnames(SSU_counts) <- "SSU"
+
+conditions <- factor(resfinder_PHY_counts_HWW_Ben_Fin@sam_data$country,levels=c("Benin", "Finland"))
+all(rownames(SSU_counts) ==  colnames(ARG_counts))
+SSU_counts_t <- t(SSU_counts)
+
+ARG_counts_df = ARG_counts
+df <- rbind(ARG_counts_df, SSU_counts_t[1,])
+rownames(df)[nrow(df)] <- "SSU"
+
+rnames <- rownames(df)
+df_int <- apply(df, 2, as.integer)
+rownames(df_int) <- rnames
+
+df <- df_int[rowSums(df_int[])>0,]
+ref <- grep("^SSU", rownames(df))
+x <- aldex.clr(df, conditions, denom=ref)
+
+x.e <- aldex.effect(x)
+x@denom
+
+x.tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+aldex_out <- data.frame(x.tt, x.e)
+
+aldex_out$'gene' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
+
+# Colors for plotting
+#"#1C4731", "#910C28", "#1E88E5"
+#"#9FBDAE", "#DF7087", "#A7CAE9"
+
+newdata <- aldex_out[order(aldex_out$diff.btw),]
+
+# Plot with volcano plot
+p1 <- ggplot(data=aldex_out, aes(x=diff.btw, y=-log10(wi.eBH), col=country, label=gene)) +
+        geom_point(alpha = 0.2) + 
+        geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw < -1 & diff.btw < 0), color='#1C4731', size = 1.5) +
+        geom_point(data=subset(aldex_out, wi.eBH < 0.05 & diff.btw > 1 & diff.btw > 0), color='#910C28', size = 1.5) +
+        theme_minimal() + 
+        scale_color_manual(values=c("#1C4731", "#910C28")) +
+        geom_hline(yintercept=-log10(0.05), col="#2842E6", linetype = "longdash") + 
+  theme(text = element_text(family = "Palatino"),
+    axis.title.x = element_text(size = 20, hjust = 0.53),
+    axis.title.y = element_text(size = 18),
+    axis.text = element_text(size = 20),
+    legend.position = "none",
+    aspect.ratio = 1,
+    plot.subtitle = element_text(size = 20, hjust = 0.45)) + coord_fixed() + 
+  xlab("difference between (diff.btw)") + ylab(expression('-log10('~italic(p)~'-value)')) +
+ labs(subtitle = '          Benin             Finland') +
+# labs(subtitle = '  Burkina Faso          Finland') +
+# labs(subtitle = '             Benin            Burkina Faso') + 
+  scale_x_continuous(breaks = c(-8, -4, 0, 4, 8), limits = c(-9, 8)) + scale_y_continuous(limits = c(0, 8))
+
+#patch <- 
+#  p1 + theme(axis.title = element_text(size = 18)) +
+#  p2 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
+#  p3 + theme(axis.title.y = element_blank(), axis.text.y = element_blank()) + 
+#  plot_annotation(title = "Differentially abundant ARGs (ALDEx2) in HWW from different countries\n",
+#                  tag_levels = "A") & 
+#  theme(plot.title = element_text(size = 23, family = "Palatino", face = "bold"),
+#        axis.text.x = element_text(size = 14),
+#        axis.text.y = element_text(size = 14),
+#        axis.title.x = element_text(size = 16, face = "bold", hjust = 0.55),
+#        plot.tag = element_text(face = "bold", size = 20))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+
+# Filter results for Supp. table
+aldex2_ALR_SSU <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_ALR_SSU) <- c(1:nrow(aldex2_ALR_SSU))
+aldex2_ALR_SSU$analysis <- rep("Aldex2_ALR_SSU", nrow(aldex2_ALR_SSU))
+
+# Shorten names
+aldex2_ALR_SSU$gene <- gsub('_[0-9a-zA-Z-]{6,}', '', aldex2_ALR_SSU$gene)
+aldex2_ALR_SSU = aldex2_ALR_SSU
+
+Ben_Fin_aldex2_ALR_SSU_filt <- subset(aldex2_ALR_SSU, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+#BF_Fin_aldex2_ALR_SSU_filt <- subset(aldex2_ALR_SSU, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+#Ben_BF_aldex2_ALR_SSU_filt <- subset(aldex2_ALR_SSU, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+# Save table
+#write.table(Ben_Fin_aldex2_ALR_SSU_filt, "Ben_Fin_aldex2_ALR_SSU_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+
+# Save table
+#write.table(BF_Fin_aldex2_ALR_SSU_filt, "BF_Fin_aldex2_ALR_SSU_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+
+# Save table
+#write.table(Ben_BF_aldex2_ALR_SSU_filt, "Ben_BF_aldex2_ALR_SSU_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+```
+## Relative abundances of functional genes
+### Relative abundances, ARGs
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# Gather data
+df<-data.frame(RA=sample_sums(resfinder_PHY_rel_HWW),
+               country=as.factor(sample_data(resfinder_PHY_rel_HWW)$country),
+               hospital=as.factor(sample_data(resfinder_PHY_rel_HWW)$hospital),
+               name=as.factor(sample_data(resfinder_PHY_rel_HWW)$name))
+
+M <-lm(RA~country, data=df)
+summary(M)
+shapiro.test(df$RA)
+# Data is not normally distributed.
+#plot(M)
+
+# Heterosedasticity?
+par(mfrow=c(2,2))
+#plot(M)
+
+lmtest::bptest(M)  # Breusch-Pagan test
+car::ncvTest(M)  # Breusch-Pagan test
+# There is no heteroscedasticity. 
+
+# Remove outlier
+#df <- df[!(row.names(df) %in% c("FH1_S162")),]
+
+# Test
+kruskal.test(RA ~ country, data = df)
+# There are sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(df$RA, df$country,
+                 p.adjust.method = "BH")
+stat.test
+
+pvalues <- tibble::tribble(
+  ~group1, ~group2,   ~p.adj,
+    "Benin",     "Burkina Faso", "***",
+    "Benin",     "Finland", "**",
+    "Burkina Faso",     "Finland", "**"
+  )
+pvalues
+
+# Save plot
+p <- ggboxplot(df, x = "country", y = "RA", color = "country", palette = c("#1C4731", "#910C28", "#1E88E5"), width=0.3) +
+  stat_pvalue_manual(pvalues, hide.ns = TRUE, size = 8, y.position = 2.5, step.increase = 0.075, label = "p.adj") + 
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 16, face = "bold"), 
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 16), 
+        axis.title.y = element_text(size = 20), legend.position = "none", 
+        plot.subtitle = element_text(size = 24, hjust = 0.5),
+        plot.tag = element_text(size = 24, family = "Palatino", face = "bold"),
+        text = element_text(family = "Palatino"), aspect.ratio = 1) +
+    labs(y = "ARGs/16S rRNA", x = "") +
+  guides(color = "none", alpha = "none")
+pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), outlier.shape = NA, alpha = 0.5)
+plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "FH1_S162"), aes(x = country, y = RA, color = country), 
+        size = 7, alpha = 0.7, width = 0.15) + labs(subtitle = "ARGs", tag = 'A')
+ARG_plot <- plo + geom_text_repel(data = subset(df, RA >1  & country == "Finland"), aes(label = name), size = 4, family = "Palatino")
+```
+### Relative abundances, MGEs
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+# Gather data
+df<-data.frame(RA=sample_sums(MGE_rel_PHY_HWW),
+               country=as.factor(sample_data(MGE_rel_PHY_HWW)$country),
+               hospital=as.factor(sample_data(MGE_rel_PHY_HWW)$hospital),
+               name=as.factor(sample_data(MGE_rel_PHY_HWW)$name))
+
+M <-lm(RA~country, data=df)
+summary(M)
+#summary(M)$coef
+shapiro.test(df$RA)
+#plot(M)
+
+# Data is not normally distributed.
+#plot(M)
+
+par(mfrow=c(2,2))
+#plot(M)
+
+lmtest::bptest(M)  # Breusch-Pagan test
+car::ncvTest(M)  # Breusch-Pagan test
+
+# Test
+kruskal.test(RA ~ country, data = df)
+# There are no sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(df$RA, df$country,
+                 p.adjust.method = "BH")
+stat.test
+
+# Save plot
+p <- ggboxplot(df, x = "country", y = "RA", color = "country", palette = c("#1C4731", "#910C28", "#1E88E5"), width=0.3) +
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 16, face = "bold"), 
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 16), 
+        axis.title.y = element_text(size = 20), legend.position = "none", 
+        plot.subtitle = element_text(size = 24, hjust = 0.5),
+        plot.tag = element_text(size = 24, family = "Palatino", face = "bold"),
+        text = element_text(family = "Palatino"), aspect.ratio = 1) +
+    labs(y = "MGEs/16S rRNA", x = "") +
+  guides(color = "none", alpha = "none") + labs(subtitle = "MGEs", tag = 'B')
+pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), outlier.shape = NA, alpha = 0.5)
+plo <- pl +  geom_jitter(data = subset(df, rownames(df) != "BFH19_S137" & rownames(df) != "BFH25_S143" & rownames(df) != "BFH35_S153"), aes(x = country, y = RA, color = country), size = 7, alpha = 0.7, width = 0.15)
+MGE_plot <- plo + geom_text_repel(data = subset(df, RA >= 6 & country == "Burkina Faso"), aes(label = name), size = 4, family = "Palatino")
+```
+### Relative abundances, intI1s
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# Gather data
+intiI1_rel_PHY_HWW <- subset_taxa(MGE_rel_PHY_HWW, Class == "intI1")
+
+df<-data.frame(RA=sample_sums(intiI1_rel_PHY_HWW),
+               country=as.factor(sample_data(intiI1_rel_PHY_HWW)$country),
+               hospital=as.factor(sample_data(intiI1_rel_PHY_HWW)$hospital),
+               name=as.factor(sample_data(intiI1_rel_PHY_HWW)$name))
+
+M <-lm(RA~country, data=df)
+summary(M)
+#summary(M)$coef
+shapiro.test(df$RA)
+#plot(M)
+
+# Heterosedasticity?
+par(mfrow=c(2,2))
+#plot(M)
+
+lmtest::bptest(M)  # Breusch-Pagan test
+car::ncvTest(M)  # Breusch-Pagan test
+
+# Remove outlier
+#df <- df[!(row.names(df) %in% c("BH38_S103")),]
+
+# Test
+kruskal.test(RA ~ country, data = df)
+# There are sig. differences
+
+# Test multiple pairwise
+stat.test <- pairwise.wilcox.test(df$RA, df$country,
+                 p.adjust.method = "BH")
+stat.test
+
+pvalues <- tibble::tribble(
+  ~group1, ~group2,   ~p.adj,
+    "Benin",     "Burkina Faso", "*",
+    "Benin",     "Finland", "***",
+    "Burkina Faso",     "Finland", "***"
+  )
+pvalues
+
+p <- ggboxplot(df, x = "country", y = "RA", color = "country", palette = c("#1C4731", "#910C28", "#1E88E5"), width=0.3) +
+  stat_pvalue_manual(pvalues, hide.ns = TRUE, size = 8, y.position = 1.1, step.increase = 0.075, label = "p.adj") + 
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 16, face = "bold"), 
+        axis.title.x = element_blank(), 
+        axis.text.y = element_text(size = 16), 
+        axis.title.y = element_text(size = 20), 
+        legend.position = "none", 
+        plot.subtitle = element_text(size = 24, face = "italic", hjust = 0.5),
+        plot.tag = element_text(size = 24, family = "Palatino", face = "bold"),
+        #plot.title = element_text(size = 30, face = "bold"),
+        text = element_text(family = "Palatino"), aspect.ratio = 1) +
+    labs(y = "intI1/16S rRNA", x = "") +
+  guides(color = "none", alpha = "none") + labs(subtitle = "intI", tag = 'C'
+                                                #, title = "Sum of the relative abundances"
+                                                )
+pl <- p + geom_boxplot(width=0.3, fill = c("#9FBDAE", "#DF7087", "#A7CAE9"), outlier.shape = NA, alpha = 0.5)
+plo <- pl + geom_jitter(data = subset(df, rownames(df) != "FH1_S162" & rownames(df) != "BH38_S103"), aes(x = country, y = RA, color = country), 
+        size = 7, alpha = 0.7, width = 0.15)
+intI1_plot <- plo + geom_text_repel(data = subset(df, RA >= 0.8 & country == "Benin" | RA >= 0.25 & country == "Finland"), 
+                                     aes(label = name), size = 4, family = "Palatino")
+
+
+# Plot all
+title <- ggdraw(get_title(intI1_plot))
+
+design <- "
+AAAACCCCC
+BBBBCCCCC
+BBBBCCCCC
+BBBBDDDDD
+BBBBDDDDD
+####DDDDD
+"
+patch <-ARG_plot + MGE_plot + intI1_plot +
+  plot_layout(nrow = 1) + 
+  plot_annotation(title = "Sum of the relative abundance") &
+  theme(plot.subtitle = element_text(hjust = 0.5),
+        plot.title = element_text(hjust = 0, family = "Palatino", face = "bold", size = 30))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+### Carbapenemases
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+resfinder_PHY_1 <- subset_taxa(resfinder_PHY_rel_uniq, Cluster_name == "blaKPC-34_1_clust"| 
+          Cluster_name == "blaNDM-18_1_clust" | Cluster_name == "blaVIM-48_1_clust" | 
+          Cluster_name == "blaIMP-1_1_clust" | Cluster_name == "blaOXA-397_1_clust")
+
+resfinder_PHY_2 <- subset_taxa(resfinder_PHY_rel_uniq, Gene == "blaGES-2_1_AF326355" | 
+      Gene == "blaGES-4_1_AB116723" | Gene == "blaGES-5_1_DQ236171" | 
+      Gene == "blaGES-6_1_AY494718" | Gene == "blaGES-14_1_GU207844" | 
+      Gene == "blaGES-15_1_GU208678" | Gene == "blaGES-16_1_HM173356" | 
+      Gene == "blaGES-18_1_JQ028729" | Gene == "blaGES-20_1_JN596280" | 
+      Gene == "blaGES-21_1_JQ772478" |  Gene == "blaOXA-244_1_KP659189" | 
+      Gene == "blaOXA-199_1_JN704570" | Gene == "blaOXA-370_1_KJ488943" | 
+      Gene == "blaOXA-247_1_JX893517" | Gene == "blaOXA-48_1_AY236073" | 
+      Gene == "blaOXA-204_1_KP027885" | Gene == "blaOXA-517_1_KU878974" | 
+      Gene == "blaOXA-232_1_JX423831" | Gene == "blaOXA-181_1_CM004561" | 
+      Gene == "blaOXA-514_1_KU866382" | Gene == "blaOXA-162_1_GU197550" | 
+      Gene == "blaOXA-245_1_JX438001" | Gene == "blaOXA-515_1_KU866383")
+
+resfinder_PHY_combined <- merge_phyloseq(resfinder_PHY_1, resfinder_PHY_2)
+
+tax_table <- data.frame(tax_table(resfinder_PHY_combined))
+tax_table$plot <- tax_table$Cluster_name
+
+tax_table["plot"][tax_table["Cluster_name"] == "blaOXA-370_1_clust"] <- "blaOXA-48-like"
+tax_table["plot"][tax_table["Cluster_name"] == "blaOXA-397_1_clust"] <- "blaOXA-58-like"
+tax_table["plot"][tax_table["Cluster_name"] == "blaOXA-436_1_clust"] <- "blaOXA-48-like"
+tax_table["plot"][tax_table["Cluster_name"] == "blaOXA-54_1"] <- "blaOXA-48-like"
+
+tax_table["plot"][tax_table["Cluster_name"] == "blaGES-1_1_clust"] <- "blaGES"
+tax_table["plot"][tax_table["Cluster_name"] == "blaIMP-1_1_clust"] <- "blaIMP"
+tax_table["plot"][tax_table["Cluster_name"] == "blaKPC-34_1_clust"] <- "blaKPC"
+tax_table["plot"][tax_table["Cluster_name"] == "blaNDM-18_1_clust"] <- "blaNDM"
+tax_table["plot"][tax_table["Cluster_name"] == "blaVIM-48_1_clust"] <- "blaVIM"
+
+resfinder_PHY_combined <- 
+  phyloseq(otu_table(resfinder_PHY_combined@otu_table, 
+taxa_are_rows = T), tax_table(as.matrix(tax_table)), 
+sample_data(sample_data(resfinder_PHY_combined)))
+
+#"#9FBDAE", "#DF7087", "#A7CAE9"
+#"#1C4731", "#910C28", "#1E88E5"
+#"#BFD1C8", "#EEBDC7", "#CEE1F3"
+
+# BENN
+df <- psmelt(resfinder_PHY_combined)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + plot + hospital + name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Benin'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Benin'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+p <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=plot)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(y = "ARGs/16S rRNA") +
+  ylim(0, 0.11) +
+  theme_light() +
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 20, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.75, "cm"),
+    strip.text.y = element_text(size = 15, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#BFD1C8")) +
+  facet_grid(country3~., space = "free", scales = "free", labeller = label_wrap_gen(width = 6, multi_line = TRUE)) + coord_flip()
+ben <- p
+ben
+
+a <- ben & theme(legend.position = "none")
+
+# BF
+df <- psmelt(resfinder_PHY_combined)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + plot + hospital + name, data=df, FUN=sum)
+df_SUM <- df_SUM[df_SUM$country2 == 'Burkina Faso',]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[meta$country2 == 'Burkina Faso',]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+p <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=plot)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(y = "ARGs/16S rRNA") +
+  ylim(0, 0.11) +
+  theme_light() +
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(size = 24, face = "bold", hjust = 1.1, vjust = -0.8), 
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 20, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.75, "cm"),
+    strip.text.y = element_text(size = 15, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#EEBDC7")) +
+  facet_grid(country3~., space = "free", scales = "free", labeller = label_wrap_gen(width = 6, multi_line = TRUE)) + coord_flip()
+bf <- p
+bf
+
+b <- bf & theme(legend.position = "none")
+
+# FI
+df <- psmelt(resfinder_PHY_combined)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + plot + hospital + name, data=df, FUN=sum)
+df_SUM <- df_SUM[df_SUM$country2 == 'Finland',]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[meta$country2 == 'Finland',]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+p <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=plot)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(y = "ARGs/16S rRNA") +
+  ylim(0, 0.11) +
+  theme_light() +
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 20, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.75, "cm"),
+    strip.text.y = element_text(size = 15, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#CEE1F3")) +
+  facet_grid(country3~., space = "free", scales = "free") + 
+  coord_flip() + scale_x_discrete(limits = rev(levels(df$alias)))
+fin <- p
+fin
+
+legend <- get_legend(fin)
+
+c <- fin & theme(legend.position = "none")
+
+## BeENN Env.
+df <- psmelt(resfinder_PHY_combined)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + plot + hospital + name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Benin Env.'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Benin Env.'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+names <- unique(df$name)
+df$name = factor(df$name, levels=names)
+
+p <- ggplot(data=df, aes(x=alias, y=Abundance, fill=plot)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(y = "ARGs/16S rRNA") +
+  ylim(0, 0.035) +
+  theme_light() +
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 20, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.75, "cm"),
+    strip.text.y = element_text(size = 15, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#BFD1C8")) +
+  facet_grid(name~., space = "free", scales = "free") + coord_flip()
+benenv <- p
+benenv
+
+d <- benenv & theme(legend.position = "none")
+
+# BF Env.
+df <- psmelt(resfinder_PHY_combined)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + plot + hospital + name, data=df, FUN=sum)
+df_SUM <- df_SUM[df_SUM$country2 == 'Burkina Faso Env.',]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[meta$country2 == 'Burkina Faso Env.',]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+names <- unique(df$name)
+df$name = factor(df$name, levels=names)
+
+p <- ggplot(data=df, aes(x=alias, y=Abundance, fill=plot)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_fill_brewer(palette = "Paired") +
+  labs(y = "ARGs/16S rRNA") +
+  ylim(0, 0.035) +
+  theme_light() +
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 20, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.75, "cm"),
+    strip.text.y = element_text(size = 15, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#EEBDC7")) +
+  facet_grid(name~., space = "free", scales = "free") + coord_flip()
+bfenv <- p
+bfenv
+
+e <- bfenv & theme(legend.position = "none")
+
+design <- "
+AAAA#BBBB#CCCC
+AAAA#BBBB#CCCC
+AAAA#BBBB#CCCC
+AAAA#BBBB#####
+AAAA#BBBB#DDDD
+AAAA#BBBB#DDDD
+AAAA#BBBB#DDDD
+AAAA#BBBB#EEEE
+AAAA#BBBB####F
+AAAA#BBBB####F
+"
+patch <- a + b + c + d + e + legend + plot_layout(design = design) +
+  plot_annotation(title = 'The relative abundance of carbapenemase genes') & 
+  theme(text = element_text('Palatino', face = "bold", size = 20))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+### mcr genes
+```{r}
+resfinder_PHY_mcr <- subset_taxa(resfinder_PHY_rel_uniq, Class == "Polymyxin")
+resfinder_PHY_mcr <- tax_glom(resfinder_PHY_mcr, taxrank = "Cluster_name")
+
+# BENN
+df <- psmelt(resfinder_PHY_mcr)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + hospital + name + Cluster_name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Benin'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Benin'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+cols <- get_palette(c("#B9792B", "#97D2CF", "#B7CC72", "#9B0ED6", "#E756D4", "#004D40", "#1B90AC", "#901431", "#EA1F1B", "#EAB190", "#AAA0B1"), 11)
+
+a <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=Cluster_name)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_y_continuous(expand = c(0,0),
+                       limits = c(0, 0.0375), breaks = seq(0, 0.0375, 0.01)) +
+  scale_fill_manual(labels = c("mcr-1", "mcr-10", "mcr-2", "mcr-3.1", "mcr-3.17", "mcr-4", "mcr-5", "mcr-6", "mcr-7", "mcr-8", "mcr-9"), 
+                     values = cols) +
+  theme_bw() + 
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 15, vjust = 0.5, face = "italic"),
+    legend.title = element_blank(),
+    legend.key.size = unit(0.6, "cm"),
+    legend.position="bottom",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(size = 12, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#BFD1C8")) +
+  facet_grid(name~., space = "free", scales = "free", labeller = label_wrap_gen(width = 6, multi_line = TRUE)) + coord_flip()
+
+legend <- get_legend(a)
+a <- a & theme(legend.position = "none")
+
+# BF
+df <- psmelt(resfinder_PHY_mcr)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + hospital + name + Cluster_name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Burkina Faso'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Burkina Faso'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+b <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=Cluster_name)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  labs(y = expression(~bolditalic(mcr)~bold(" genes/16S rRNA"))) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.0375), breaks = seq(0, 0.0375, 0.01)) +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    axis.title.x = element_text(size = 20, face = "bold", hjust = 0.7),
+    axis.title.y = element_blank(),
+    legend.position = "none",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(size = 12, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#EEBDC7")) +
+  facet_grid(name~., space = "free", scales = "free", labeller = label_wrap_gen(width = 6, multi_line = TRUE)) + coord_flip()
+
+# FI
+df <- psmelt(resfinder_PHY_mcr)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + hospital + name + Cluster_name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Finland'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Finland'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+c <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=Cluster_name)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.0375), breaks = seq(0, 0.0375, 0.01)) +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.position = "none",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(size = 12, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#CEE1F3")) +
+  facet_grid(name~., space = "free", scales = "free") + coord_flip()
+
+# BENN Env.
+df <- psmelt(resfinder_PHY_mcr)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + hospital + name + Cluster_name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Benin Env.'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Benin Env.'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+d <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=Cluster_name)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  labs(y = expression(~italic(mcr)~" genes / 16S rRNA")) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.0375), breaks = seq(0, 0.0375, 0.01)) +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.position = "none",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(size = 12, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#BFD1C8")) +
+  facet_grid(name~., space = "free", scales = "free") + coord_flip()
+
+# BF Env.
+df <- psmelt(resfinder_PHY_mcr)
+df_SUM <- aggregate(Abundance ~ alias + country + country2 + hospital + name + Cluster_name, data=df, FUN=sum)
+df_SUM <- df_SUM[(df_SUM$country2 == 'Burkina Faso Env.'),]
+df <- df_SUM[order(df_SUM$alias),]
+
+meta = metadata
+meta <- meta[(meta$country2 == 'Burkina Faso Env.'),]
+match <- match(df$alias, meta$alias)
+meta <- meta[match,]
+df$'name' <- meta$name
+df$'country' <- meta$country
+df$'country2' <- meta$country2
+df$'country3' <- meta$country3
+
+e <- ggplot(data=df, aes(x=forcats::fct_rev(alias), y=Abundance, fill=Cluster_name)) +
+  geom_bar(stat="identity", position = "stack", width = 0.75) +
+  labs(y = expression(~italic(mcr)~" genes / 16S rRNA")) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.0375), breaks = seq(0, 0.0375, 0.01)) +
+  scale_fill_manual(values = cols) +
+  theme_bw() + 
+  theme(text = element_text(family = "Palatino"),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    axis.text.y = element_text(size = 11, face = "bold"),
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank(),
+    legend.position = "none",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(size = 12, hjust = 0.5, vjust = 0.5, face = "bold", angle = 0, color = "black"),
+    strip.background = element_rect(color = "black", fill = "#EEBDC7")) +
+  facet_grid(name~., space = "free", scales = "free") + coord_flip()
+
+design <- "
+AAAAABBBBBCCCCC
+AAAAABBBBBCCCCC
+AAAAABBBBBCCCCC
+AAAAABBBBBCCCCC
+AAAAABBBBB#####
+AAAAABBBBBDDDDD
+AAAAABBBBBDDDDD
+AAAAABBBBBDDDDD
+AAAAABBBBBDDDDD
+AAAAABBBBB#####
+AAAAABBBBBEEEEE
+AAAAABBBBBEEEEE
+AAAAABBBBB#FFFF
+"
+
+patch <- a + b + c + d + e + legend + plot_layout(design = design) +
+  plot_annotation(title = expression(bold("The relative abundance of")~bolditalic("mcr")~bold("genes"))) & 
+  theme(plot.title = element_text('Palatino', face = "bold", size = 28))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+## Relative abundance of taxa (Metaphlan3)
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# Colors for plotting
+cols <- get_palette(c("#332288", "#117733", "#52BFAD", "#88CCEE", "#DDCC77", "#FDA4B3", 
+                      "#F22D3D", "#882255", "#5F5E98", "#E4C960", "#FD8FD9"), 12)
+
+# Labels for plotting
+labels <- c(`Benin` = "BENN HWW", `Burkina Faso` = "BF HWW", `Finland` = "FI HWW", `Benin Env.` = "BENN other", `Burkina Faso Env.` = "BF other")
+
+p <- metaphlan_PHY_rel_genus_uniq %>%
+  comp_barplot(tax_level = "Genus", n_taxa = 11, label = "alias", 
+              tax_transform_for_plot = "identity") +
+  scale_fill_manual(values = cols) +
+  coord_flip() + 
+  facet_grid(factor(country2, levels=c('Benin','Burkina Faso','Finland','Benin Env.', 'Burkina Faso Env.'))~., 
+             scales = "free", space = "free", labeller = as_labeller(labels)) + 
+  labs(x = NULL, y = NULL) + theme_light() + ggtitle("Top 11 taxa (Metaphlan3)") +
+  theme(text = element_text(family = "Palatino"),
+        plot.title = element_text(size = 30, face = "bold"),
+        axis.text.y = element_text(size = 10),
+        axis.text.x = element_text(size = 20),
+        strip.text.y = element_text(size = 20, color = "black", face = "bold", angle = 0, hjust = 0),
+        strip.background = element_rect(fill = "white", color = "white"),
+        panel.spacing.y = unit(1, "lines"),
+        legend.text = element_text(size = 18, face = "italic"),
+        legend.title = element_blank(),
+        legend.position = "bottom", legend.direction = "horizontal",
+        legend.spacing = unit(0.25, 'cm'),
+        legend.key.size = unit(0.85, "cm")) + guides(fill = guide_legend(byrow = TRUE))
+#p
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+## Differentially abundant taxa
+### Aldex2, with CLR
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# BENN-FIN
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Benin" | country == "Finland")
+
+conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
+counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
+
+tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
+rownames(counts_mp) <- tax$Genus
+
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
+x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
+
+# combine all outputs 
+aldex_out <- data.frame(x_tt, x_effect)
+
+par(mfrow=c(1,2))
+aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
+    ylab="Difference")
+aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
+    ylab="Difference")
+
+aldex_out$'Genus' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
+
+aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
+aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
+
+Ben_Fin_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+# BF-FIN
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Burkina Faso" | country == "Finland")
+
+conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
+counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
+
+tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
+rownames(counts_mp) <- tax$Genus
+
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
+x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
+
+# combine all outputs 
+aldex_out <- data.frame(x_tt, x_effect)
+
+par(mfrow=c(1,2))
+aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
+    ylab="Difference")
+aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
+    ylab="Difference")
+
+aldex_out$'Genus' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Finland')
+
+aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
+aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
+
+BF_Fin_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+# BENN-BF
+metaphlan_PHY_counts_genus_HWW_Ben_Fin <- subset_samples(metaphlan_PHY_counts_genus_HWW, country == "Benin" | country == "Burkina Faso")
+
+conditions <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@sam_data[['country']]
+counts_mp <- metaphlan_PHY_counts_genus_HWW_Ben_Fin@otu_table
+
+tax <- data.frame(metaphlan_PHY_counts_genus_HWW_Ben_Fin@tax_table)
+rownames(counts_mp) <- tax$Genus
+
+x <- aldex.clr(counts_mp, conds = conditions, mc.samples = 128, denom = "all", verbose = FALSE)
+x_tt <- aldex.ttest(x, paired.test = FALSE, verbose = FALSE)
+x_effect <- aldex.effect(x, CI = TRUE, verbose = FALSE)
+
+# combine all outputs 
+aldex_out <- data.frame(x_tt, x_effect)
+
+par(mfrow=c(1,2))
+aldex.plot(aldex_out, type="MA", test="welch", xlab="Log-ratio abundance",
+    ylab="Difference")
+aldex.plot(aldex_out, type="MW", test="welch", xlab="Dispersion",
+    ylab="Difference")
+
+aldex_out$'Genus' <- rownames(aldex_out)
+rownames(aldex_out) <- c(1:nrow(aldex_out))
+
+aldex_out$country <- ifelse(aldex_out$diff.btw < 0,  'Benin',  'Burkina Faso')
+
+aldex2_CLR <- aldex_out[order(aldex_out$diff.btw),]
+rownames(aldex2_CLR) <- c(1:nrow(aldex2_CLR))
+aldex2_CLR$analysis <- rep("Aldex2_CLR", nrow(aldex2_CLR))
+
+Ben_BF_taxa_aldex2_CLR_filt = subset(aldex2_CLR, wi.eBH < 0.05 & (diff.btw >= 1 | diff.btw <= -1))
+
+# Save table
+#write.table(Ben_Fin_taxa_aldex2_CLR_filt, "Ben_Fin_taxa_aldex2_CLR_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+
+# Save table
+#write.table(BF_Fin_taxa_aldex2_CLR_filt, "BF_Fin_taxa_aldex2_CLR_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+
+# Save table
+#write.table(Ben_BF_taxa_aldex2_CLR_filt, "Ben_BF_taxa_aldex2_CLR_filt.txt", 
+#            row.names=F, sep = "\t", col.names = T)
+
+# Colors for plotting
+#"#9FBDAE", "#DF7087", "#A7CAE9"
+#"#1C4731", "#910C28", "#1E88E5"
+#"#BFD1C8", "#EEBDC7", "#CEE1F3"
+
+d1 <- subset(Ben_Fin_taxa_aldex2_CLR_filt, (diff.btw >= 5 | diff.btw <= -5))
+d2 <- subset(BF_Fin_taxa_aldex2_CLR_filt, (diff.btw >= 5 | diff.btw <= -5))
+d3 <- subset(Ben_BF_taxa_aldex2_CLR_filt, (diff.btw >= 5 | diff.btw <= -5))
+
+# Plot
+## Highlight genera belonging to Pseudomonadota
+HighlightData <- d1[(d1$Genus == "Acinetobacter" | d1$Genus == "Comamonas" | d1$Genus == "Thauera" | d1$Genus == "Proteobacteria_unclassified" | d1$Genus ==  "Citrobacter" | d1$Genus == "Paracoccus" | d1$Genus == "Enhydrobacter" |  d1$Genus == "Moraxella" | d1$Genus == "Raoultella" | d1$Genus == "Delftia"),]
+
+a <- ggplot(d1, aes(y = reorder(Genus, -diff.btw), x = diff.btw, fill = country)) +
+  geom_bar(stat = "identity") + theme_light() + labs(x = "Benin              diff.btw          Finland") +
+  geom_bar(data=HighlightData, position=position_dodge(.9), stat="identity", colour="darkgrey",size=1) +
+  theme(text = element_text(family = "Palatino"), 
+        axis.title.x = element_text(size = 15, hjust = 0.58, face = "bold"),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(face = "italic", size = 20),
+        axis.text.x = element_text(size = 12),
+        legend.position = "none") + xlim(-21, 16.5) +
+  scale_fill_manual(values = c("#9FBDAE", "#A7CAE9"))
+
+## Highlight genera belonging to Pseudomonadota
+HighlightData <- d2[(d2$Genus == "Brachymonas" | d2$Genus == "Proteobacteria_unclassified" | d2$Genus == "Delftia" | d2$Genus == "Raoultella"),]
+
+b <- ggplot(d2, aes(y = reorder(Genus, -diff.btw), x = diff.btw, fill = country)) +
+  geom_bar(stat = "identity") + theme_light() + labs(x = "Burkina Faso       diff.btw       Finland") +
+  geom_bar(data=HighlightData, position=position_dodge(.9), stat="identity", colour="darkgrey",size=1) +
+  theme(text = element_text(family = "Palatino"),
+        axis.title.x = element_text(size = 15, hjust = 0.55, face = "bold"),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(face = "italic", size = 20),
+        axis.text.x = element_text(size = 12),
+        legend.position = "none") + xlim(-21, 16.5) +
+  scale_fill_manual(values = c("#DF7087", "#A7CAE9"))
+
+## Highlight genera belonging to Pseudomonadota
+HighlightData <- Ben_BF_taxa_aldex2_CLR_filt[(Ben_BF_taxa_aldex2_CLR_filt$Genus == "Acinetobacter" | 
+                                               Ben_BF_taxa_aldex2_CLR_filt$Genus == "Pseudomonas"),]
+
+c <- ggplot(Ben_BF_taxa_aldex2_CLR_filt, aes(y = reorder(Genus, -diff.btw), x = diff.btw, fill = country)) +
+  geom_bar(stat = "identity") + theme_light() + labs(x = "    Benin     diff.btw  Burkina Faso") +
+  geom_bar(data=HighlightData, position=position_dodge(.9), stat="identity", colour="darkgrey",size=1) +
+  theme(text = element_text(family = "Palatino"),
+        axis.title.x = element_text(size = 15, hjust = 0.65, face = "bold"),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(face = "italic", size = 20),
+        axis.text.x = element_text(size = 12),
+        legend.position = "none") + xlim(-21, 16.5) +
+  scale_fill_manual(values = c("#9FBDAE", "#DF7087"))
+
+design <- "
+AAAAA#BBBBB
+AAAAA#BBBBB
+AAAAA#BBBBB
+AAAAA#BBBBB
+AAAAA#CCCCC
+"
+
+patch <- a + b + c + plot_layout(design = design) + 
+  plot_annotation(title = "Differentially abundant taxa in HWWs (ALDEx2, clr-transformation)", tag_levels = 'A') & 
+  theme(plot.title = element_text(face = "bold", size = 30, family = "Palatino"),
+        plot.tag = element_text(face = "bold", size = 30, family = "Palatino"))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+## Correlation between the normalized counts of ARG & MGE
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+MGE_rel_PHY_HWW_intI1 <- subset_taxa(MGE_rel_PHY_HWW, Class == "intI1")
+MGE_rel_PHY_HWW_qacEdelta <- subset_taxa(MGE_rel_PHY_HWW, Class == "qacEdelta")
+MGE_rel_PHY_HWW_int2 <- subset_taxa(MGE_rel_PHY_HWW, Class == "int2")
+MGE_rel_PHY_HWW_int3 <- subset_taxa(MGE_rel_PHY_HWW, Class == "int3")
+MGE_rel_PHY_HWW_MGE = MGE_rel_PHY_HWW
+
+df1 <- data.frame("ARGs" = sample_sums(resfinder_PHY_rel_HWW))
+df2 <- data.frame("MGEs" = sample_sums(MGE_rel_PHY_HWW_MGE))
+df3 <- data.frame("intI1" = sample_sums(MGE_rel_PHY_HWW_intI1))
+df4 <- data.frame("qacEdelta" = sample_sums(MGE_rel_PHY_HWW_qacEdelta))
+df5 <- data.frame("int2" = sample_sums(MGE_rel_PHY_HWW_int2))
+df6 <- data.frame("int3" = sample_sums(MGE_rel_PHY_HWW_int3))
+
+df <- cbind(df1, df2, df3, df4, df5, df6)
+df$country <- MGE_rel_PHY_HWW_intI1@sam_data$country
+
+#"#9FBDAE", "#DF7087", "#A7CAE9"
+#"#1C4731", "#910C28", "#1E88E5"
+#"#BFD1C8", "#EEBDC7", "#CEE1F3"
+
+p1 <- ggscatter(df, x = "ARGs", y = "int3", add = "reg.line", conf.int = TRUE,
+          color = "country", palette = c("#1C4731", "#910C28", "#1E88E5"),
+          alpha = 0.6, size = 3, show.legend = FALSE) +
+  #stat_cor(aes(color = country), label.x = 0, size = 4, family = "Palatino", show.legend = FALSE) + 
+  stat_cor(aes(color = country), label.x = 1.5, size = 3.5, family = "Palatino", show.legend = FALSE) + 
+  theme(text = element_text(family = "Palatino"),
+    legend.position = "right",
+    legend.direction = "vertical",
+    legend.title = element_blank(), 
+    legend.text = element_text(size = 24),
+    legend.spacing = unit(1, 'cm'),
+    legend.key.size = unit(1, "cm"),
+    axis.title.x = element_text(size = 20, face = "bold"),
+axis.title.y = element_text(size = 20, face = "bold.italic"),
+#    axis.title.y = element_text(size = 20, face = "bold"),
+    axis.text = element_text(size = 10, hjust = 1), aspect.ratio = 1) + 
+  guides(fill = guide_legend(byrow = TRUE)) + scale_y_continuous(labels = function(x) format(x, scientific = TRUE)) +
+  scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+
+l <- get_legend(p1)
+
+#patch <- p1 + p2 + p3 + p4 + p5 + l +
+#  plot_annotation(title = "Correlation between the relative\nabundances of ARGs and MGEs in HWWs", tag_levels = list(c('A', 'B', 'C', 'D', 'E'))) +
+#plot_layout(ncol = 2, guides = 'collect') &
+#theme(text = element_text(family = "Palatino"),
+#        legend.position = "none",
+#        plot.title = element_text(face = "bold", size = 24, hjust = 0.5),
+#        plot.tag = element_text(face = "bold", size = 20))
+#patch
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+## Draw maps
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# Plot maps for sample sites in Benin and Burkina Faso
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+
+gps0 <- metadata[!duplicated(metadata[,c('lat','long')]),]
+gps0 <- gps0[ , c("country", "lat", "long", "hospital")] 
+gps0 <- subset(gps0, country == "Benin" | country == "Burkina Faso")
+
+gps0$hospital[rownames(gps0) == "BSE100_S122"] <- "P/Q/R"
+gps0$hospital[rownames(gps0) == "BFH6_S125"] <- "F/G"
+
+gps = gps0
+
+# Add important cities
+gps_labels <- data.frame(
+  country = c("country_name", "Benin", "Benin", "country_name", 
+              "Burkina Faso", "Burkina Faso", "ocean"), 
+  lat = c("10.544904033009432", "6.3676953", "9.3400159", "13.740788326149952", 
+            "12.3681873", "11.1757783", "4.944956754100344"), 
+  long = c("2.3165032566686428", "2.4252507", "2.6278258", "-1.0794179365270806", 
+             "-1.5270944", "-4.2957591", "2.376996878456601"), 
+  hospital = c("nd", "nd", "nd", "nd", "nd", "nd", "nd"))
+
+rownames(gps_labels) <- c("Benin", "Cotonou", "Parakou", "Burkina Faso", 
+                          "Ouagadougou", "Bobo Dioulasso", "Gulf of Guinea")
+
+gps_data <- rbind(gps, gps_labels)
+gps_data$Label <- c("nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd", "nd",
+                    "Benin", "Cotonou", "Parakou", "Burkina Faso", 
+                    "Ouagadougou", "Bobo Dioulasso", "Gulf of Guinea")
+gps_data$lat <- as.numeric(gps_data$lat)
+gps_data$long <- as.numeric(gps_data$long)
+
+# Add sampling sites
+p_map1 <- ggplot(data = world) + geom_sf() + borders("world", colour="black", fill="wheat1") + 
+  theme(panel.background = element_rect(fill = "azure1", colour = "azure1")) + 
+  geom_point(data = subset(gps_data, Label == "nd"), aes(x = long, y = lat), 
+    size = 4, shape = 16, color = "#B2182B") + 
+  geom_text_repel(data = subset(gps_data, Label == "nd"), 
+    mapping = aes(x = long, y = lat, label = hospital, family = "Palatino"), 
+    size = 11, point.padding = 1e-06) + 
+  coord_sf(ylim = c(4.5, 14.75), xlim = c(-6, 3.95), expand = T) + 
+  theme(axis.text = element_text(family = "Palatino", size = 16), 
+    axis.title = element_blank()) + 
+  annotation_scale(location = "bl", width_hint = 0.2, height = unit(0.5, "cm"), line_width = 0.5, text_family = "Palatino", text_cex = 1.5)
+
+# Add countries
+p_map2 <- p_map1 + 
+  geom_point(data = subset(gps_data, 
+      Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"), 
+      aes(x = long, y = lat), size = 0, shape = 16, color = "black") +
+  geom_text_repel(data = subset(gps_data, 
+      Label == "Benin" | Label == "Burkina Faso" | Label == "Gulf of Guinea"), 
+      aes(x = long, y = lat, label = Label), color = "#4C4B49", size = 16, family = "Palatino")
+
+# Add cities
+p_map3 <- p_map2 + 
+  geom_point(data = subset(gps_data, 
+      Label == "Porto Novo" | Label == "Cotonou" | 
+      Label == "Parakou" | Label == "Ouagadougou" | Label == "Bobo Dioulasso"), 
+      aes(x = long, y = lat), size = 5, shape = 9, color = "black") + 
+  geom_label_repel(data=subset(gps_data, 
+      Label == "Porto Novo" | Label == "Cotonou" | 
+      Label == "Parakou" | Label == "Ouagadougou" | Label == "Bobo Dioulasso"), 
+      aes(x = long, y = lat, label = Label), color = "black", size = 8, family = "Palatino", box.padding = 3)
+#p_map3
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
+## "Control" samples
+```{r, warning=FALSE, error=FALSE, message=FALSE, results='hide', fig.show='hide'}
+# The replicates as controls
+# BH34A_S98 BH34B_S99
+# BFH38A_S156 BFH38B_S157
+# FH7_S168 FH8_S169
+
+resfinder_PHY_rel_control <- subset_samples(resfinder_PHY_rel, replicate == "YES" | alias == "BH34A" | alias == "BFH38A" | alias == "FH7")
+
+df <- data.frame(SUM = sample_sums(resfinder_PHY_rel_control),
+                 country = c("Benin", "Benin", "Burkina Faso", "Burkina Faso", "Finland", "Finland"),
+                 alias = resfinder_PHY_rel_control@sam_data$alias)
+
+p <- ggplot(df, aes(x=reorder(alias, -SUM), y=SUM, fill = country)) +
+geom_bar(stat="identity", color="black") +
+scale_fill_manual(values=c("#9FBDAE", "#DF7087", "#A7CAE9")) +
+  theme_classic() + labs(y = "ARGs/16S rRNA") +
+  ggtitle("Sum of the relative abundance of ARGs of replicate samples") +
+  theme(text = element_text(family = "Palatino"),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 25, face = "bold"),
+        axis.text.y = element_text(size = 30),
+        axis.title.y = element_text(size = 30),
+        plot.title = element_text(size = 35, face = "bold"),
+        legend.title = element_blank(),
+        legend.spacing = unit(1.0, 'cm'),
+        legend.position = c(0.9, 0.9),
+        legend.key.size = unit(1, "cm"),
+        legend.text = element_text(size = 30)) + guides(fill = guide_legend(byrow = TRUE))
+#p
+
+# Save plot
+#ggsave(filename = "plot.tiff",
+#       width = 16, height = 13, dpi = 300, units = "in", device='tiff', scale = 1)
+```
