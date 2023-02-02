@@ -1,23 +1,9 @@
-# AMRIWA Project
-## AMRIWA metagenome analysis
+# Metagenomic analyses for AMRIWA metagenomics project
 
-### Analysis using the Snakemake workflow
-#### The Snakemake file and the environment `.yml` files are in the `workflow` folder.
-
-#### Create virtual environment
-```
-conda install -c conda-forge mamba
-mamba create -c bioconda -c conda-forge -n snakemake snakemake-minimal
-```
-#### Dry-run
-```
-snakemake --use-conda -np
-```
-#### Run in batch job
-```
-snakemake --use-conda -j $SLURM_CPUS_PER_TASK
-```
-
-### Analysis run outside the Snakemake workflow are in the `bioinformatics` folder
-
-### The R analysis scripts and related data are in the `RFiles` folder
+## Publication:
+### Melina A. Markkanen, Kaisa Haukka, Katariina M. M. Pärnänen, Victorien Tamegnon Dougnon, Isidore Juste O. 
+Bonkoungou, Zakaria Garba, Halidou Tinto, Anniina Sarekoski, Antti Karkman, Anu Kantele, Marko P. J. Virta. 2023. 
+*Metagenomic 
+Analysis of 
+the Abundance and Composition of Antibiotic Resistance Genes in Hospital Wastewater in Benin, Burkina Faso, and Finland* 
+mSphere. https://doi.org/10.1128/msphere.00538-22 
